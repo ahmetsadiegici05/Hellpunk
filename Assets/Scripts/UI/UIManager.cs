@@ -1,0 +1,241 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using TMPro;
+
+public class UIManager : MonoBehaviour
+{
+    [Header("Game Over")]
+    [SerializeField] private GameObject gameOverScreen;
+    [SerializeField] private TextMeshProUGUI distanceText;
+    [SerializeField] private TextMeshProUGUI enemiesKilledText;
+    [SerializeField] private TextMeshProUGUI scoreText;
+
+    [Header("Game Win")]
+    [SerializeField] private GameObject victoryScreen;
+
+    [Header("Leaderboard Save")]
+    [SerializeField] private TMP_InputField playerNameInput;
+    [SerializeField] private GameObject saveScoreButton;
+    [SerializeField] private TextMeshProUGUI savedMessageText;
+
+    [Header("Pause")]
+    [SerializeField] private GameObject pauseScreen;
+
+    private bool isPaused;
+
+    // Singleton instance for easy access
+    public static UIManager Instance { get; private set; }
+    
+    // Public properties for TimeSlowUI and other systems
+    public bool IsPaused => isPaused;
+    public bool IsGameOver => gameOverScreen != null && gameOverScreen.activeSelf;
+    public bool IsVictory => victoryScreen != null && victoryScreen.activeSelf;
+
+    private void Awake()
+    {
+        // Singleton pattern
+        if (Instance == null)
+            Instance = this;
+        else if (Instance != this)
+            Destroy(gameObject);
+            
+        Time.timeScale = 1f;
+        isPaused = false;
+
+        if (gameOverScreen != null)
+            gameOverScreen.SetActive(false);
+
+        if (victoryScreen != null)
+            victoryScreen.SetActive(false);
+
+        if (pauseScreen != null)
+            pauseScreen.SetActive(false);
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+            TogglePause();
+    }
+
+    public void GameWin()
+    {
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.StopTracking();
+            UpdateGameOverStats();
+        }
+
+        if (victoryScreen != null)
+            victoryScreen.SetActive(true);
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        Time.timeScale = 0f;
+    }
+
+    public void GameOver()
+    {
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.StopTracking();
+            UpdateGameOverStats();
+        }
+
+        if (gameOverScreen != null)
+            gameOverScreen.SetActive(true);
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+
+        Time.timeScale = 0f;
+    }
+
+    private void UpdateGameOverStats()
+    {
+        if (ScoreManager.Instance == null)
+            return;
+
+        if (distanceText != null)
+            distanceText.text = $"Distance: {ScoreManager.Instance.DistanceTraveled:F1} m";
+
+        if (enemiesKilledText != null)
+            enemiesKilledText.text = $"Enemies Killed: {ScoreManager.Instance.EnemiesKilled}";
+
+        if (scoreText != null)
+            scoreText.text = $"Score: {ScoreManager.Instance.TotalScore}";
+
+        if (saveScoreButton != null)
+            saveScoreButton.SetActive(true);
+
+        if (savedMessageText != null)
+            savedMessageText.gameObject.SetActive(false);
+
+        if (playerNameInput != null)
+        {
+            playerNameInput.text = "";
+            playerNameInput.interactable = true;
+        }
+    }
+
+    public void SaveScoreToLeaderboard()
+    {
+        if (ScoreManager.Instance == null)
+        {
+            Debug.LogError("ScoreManager bulunamadı!");
+            return;
+        }
+
+        string playerName = "Player";
+        if (playerNameInput != null && !string.IsNullOrEmpty(playerNameInput.text))
+        {
+            playerName = playerNameInput.text;
+            Debug.Log($"İsim girildi: {playerName}");
+        }
+        else
+        {
+            Debug.LogWarning("PlayerNameInput bağlı değil veya boş!");
+        }
+
+        ScoreManager.Instance.SaveToLeaderboard(playerName);
+        Debug.Log($"Skor kaydedildi: {playerName} - {ScoreManager.Instance.TotalScore}");
+
+        if (saveScoreButton != null)
+            saveScoreButton.SetActive(false);
+        else
+            Debug.LogWarning("SaveScoreButton bağlı değil!");
+
+        if (playerNameInput != null)
+            playerNameInput.interactable = false;
+
+        if (savedMessageText != null)
+        {
+            savedMessageText.text = "Score Saved!";
+            savedMessageText.gameObject.SetActive(true);
+            Debug.Log("Score Saved mesajı gösterildi");
+        }
+        else
+        {
+            Debug.LogWarning("SavedMessageText bağlı değil!");
+        }
+    }
+
+    public void TogglePause()
+    {
+        if ((gameOverScreen != null && gameOverScreen.activeSelf) ||
+            (victoryScreen != null && victoryScreen.activeSelf))
+            return;
+
+        if (pauseScreen == null)
+            return;
+
+        if (isPaused)
+            Resume();
+        else
+            Pause();
+    }
+
+    public void Pause()
+    {
+        if (pauseScreen == null)
+            return;
+
+        isPaused = true;
+        pauseScreen.SetActive(true);
+        Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    public void Resume()
+    {
+        isPaused = false;
+        if (pauseScreen != null)
+            pauseScreen.SetActive(false);
+
+        Time.timeScale = 1f;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    public void ContinueFromCheckpoint()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void RestartFromBeginning()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        CheckpointData.ResetData();
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void Restart()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void MainMenu()
+    {
+        isPaused = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenu");
+    }
+
+    public void Quit()
+    {
+        Application.Quit();
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
+}
