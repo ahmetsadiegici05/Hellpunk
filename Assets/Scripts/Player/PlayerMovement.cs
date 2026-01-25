@@ -122,9 +122,7 @@ public class PlayerMovement : MonoBehaviour
         {
             coyoteCounter = coyoteTime;
             hasDoubleJumped = false; 
-            
-            bool skillDoubleJumpActive = GuitarSkillSystem.Instance != null && GuitarSkillSystem.Instance.IsDoubleJumpActive;
-            canDoubleJump = skillDoubleJumpActive;
+            canDoubleJump = true; // Yerde olunca double jump hakkı yenilenir (standart mekanik)
         }
         else
         {
@@ -155,14 +153,10 @@ public class PlayerMovement : MonoBehaviour
             PerformWallJump();
             jumpBufferCounter = 0f;
         }
-        // 3. Double Jump (Sadece skill ile)
+        // 3. Double Jump (Standart - her zaman kullanılabilir)
         else if (Input.GetKeyDown(KeyCode.Space) && !isGroundedState && canDoubleJump && !hasDoubleJumped && !touchingWall)
         {
-            bool skillDoubleJumpActive = GuitarSkillSystem.Instance != null && GuitarSkillSystem.Instance.IsDoubleJumpActive;
-            if (skillDoubleJumpActive)
-            {
-                PerformDoubleJump();
-            }
+            PerformDoubleJump();
         }
 
         // --- Variable Jump Height ---
@@ -231,8 +225,8 @@ public class PlayerMovement : MonoBehaviour
         ApplyFacingScale(direction);
         wallJumpCooldown = 0;
         
-        bool skillDoubleJumpActive = GuitarSkillSystem.Instance != null && GuitarSkillSystem.Instance.IsDoubleJumpActive;
-        canDoubleJump = skillDoubleJumpActive;
+        // Wall jump sonrası double jump hakkı yenilenir (standart mekanik)
+        canDoubleJump = true;
         hasDoubleJumped = false;
         coyoteCounter = 0f; 
     }

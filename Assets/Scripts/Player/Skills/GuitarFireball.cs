@@ -29,6 +29,16 @@ public class GuitarFireball : MonoBehaviour
         anim = GetComponent<Animator>();
         col = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
+        // Player ile çarpışmayı devre dışı bırak (0.1 saniye sonra aktif et)
+        StartCoroutine(EnableColliderDelayed());
+    }
+    
+    private System.Collections.IEnumerator EnableColliderDelayed()
+    {
+        if (col != null) col.enabled = false;
+        yield return new WaitForSeconds(0.1f);
+        if (col != null && !hit) col.enabled = true;
     }
 
     public void Initialize(float dir, float dmg)

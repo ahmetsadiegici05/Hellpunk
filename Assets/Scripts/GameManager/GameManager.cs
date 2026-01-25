@@ -118,7 +118,9 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 3. UI
+        // 3. UI - TimeSlowUI artık kullanılmıyor, SkillCooldownUI kullanılıyor
+        // TimeSlowUI oluşturma kodunu devre dışı bırak
+        /*
         if (TimeSlowUI.Instance == null)
         {
             var existingUI = FindFirstObjectByType<TimeSlowUI>();
@@ -133,6 +135,7 @@ public class GameManager : MonoBehaviour
                 DontDestroyOnLoad(existingUI.gameObject);
             }
         }
+        */
     }
 
     private void EnsureGuitarSkillSystem()

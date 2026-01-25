@@ -36,8 +36,19 @@ public class EnemyHealthBar : MonoBehaviour
         maxHealth = maxHp;
         currentHealth = maxHp;
         displayedHealth = maxHp;
+        lastDamageTime = Time.time; // Başlangıçta görünür olsun
+        isVisible = true;
+        
+        // Offset'i düşmanın boyutuna göre ayarla
+        SpriteRenderer sr = enemyTransform.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            offset = new Vector3(0f, sr.bounds.extents.y + 0.3f, 0f);
+        }
 
         CreateHealthBar();
+        
+        Debug.Log($"EnemyHealthBar oluşturuldu: {enemyTransform.name}, MaxHP: {maxHp}");
     }
 
     private void CreateHealthBar()
@@ -47,14 +58,16 @@ public class EnemyHealthBar : MonoBehaviour
         canvasObj.transform.SetParent(transform);
         canvas = canvasObj.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
-        canvas.sortingOrder = 50;
+        // Default sorting layer kullan, yüksek order ile
+        canvas.overrideSorting = true;
+        canvas.sortingOrder = 1000;
 
         RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
         canvasRect.sizeDelta = new Vector2(100, 20);
-        canvasRect.localScale = Vector3.one * 0.01f;
+        canvasRect.localScale = Vector3.one * 0.015f; // Biraz daha büyük
 
         canvasGroup = canvasObj.AddComponent<CanvasGroup>();
-        canvasGroup.alpha = 0f;
+        canvasGroup.alpha = 1f; // Başlangıçta görünür
 
         // Background
         GameObject bgObj = new GameObject("Background");
@@ -100,10 +113,25 @@ public class EnemyHealthBar : MonoBehaviour
         // Pozisyon güncelle
         transform.position = target.position + offset;
 
-        // Kameraya bak
-        if (Camera.main != null)
+        // Sorting Order güncelle (Düşmanın hep önünde olsun)
+        if (canvas != null)
         {
-            canvas.transform.rotation = Camera.main.transform.rotation;
+            // Kameraya bak
+            if (Camera.main != null)
+                canvas.transform.rotation = Camera.main.transform.rotation;
+                
+            SpriteRenderer sr = target.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                // Düşman hangi kattaysa onun önünde dur
+                canvas.sortingLayerID = sr.sortingLayerID;
+                canvas.sortingOrder = sr.sortingOrder + 10;
+            }
+            else
+            {
+                // Sprite yoksa varsayılan
+                canvas.sortingOrder = 100;
+            }
         }
 
         // Smooth health transition
@@ -122,6 +150,15 @@ public class EnemyHealthBar : MonoBehaviour
         currentHealth = Mathf.Clamp(health, 0f, maxHealth);
         lastDamageTime = Time.time;
         isVisible = true;
+        
+        // Hasar aldığında hemen görünür yap
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+        }
+        
+        // Anında güncelle
+        UpdateHealthBar();
     }
 
     private void UpdateHealthBar()
@@ -142,16 +179,17 @@ public class EnemyHealthBar : MonoBehaviour
     {
         if (canvasGroup == null) return;
 
-        bool shouldShow = isVisible && (!hideWhenFull || currentHealth < maxHealth);
+        // Can tam değilse her zaman göster
+        bool shouldShow = currentHealth < maxHealth;
         
-        // 3 saniye hasar almadıysa gizle
-        if (Time.time - lastDamageTime > 3f && currentHealth >= maxHealth)
+        // Can tamsa ve 3 saniye geçtiyse gizle
+        if (currentHealth >= maxHealth && Time.time - lastDamageTime > 3f)
         {
             shouldShow = false;
         }
 
         float targetAlpha = shouldShow ? 1f : 0f;
-        canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, targetAlpha, Time.deltaTime * fadeSpeed);
+        canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, targetAlpha, Time.deltaTime * fadeSpeed);
     }
 
     private Sprite CreateRoundedRectSprite(int size, int cornerRadius)

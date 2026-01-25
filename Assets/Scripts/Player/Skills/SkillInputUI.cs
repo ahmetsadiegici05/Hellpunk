@@ -25,7 +25,7 @@ public class SkillInputUI : MonoBehaviour
     [Header("Skill Colors")]
     [SerializeField] private Color healColor = new Color(0.3f, 0.6f, 1f, 1f); // Mavi
     [SerializeField] private Color fireballColor = new Color(1f, 0.5f, 0.1f, 1f);
-    [SerializeField] private Color doubleJumpColor = new Color(0.4f, 1f, 0.4f, 1f); // Yeşil
+    [SerializeField] private Color timeSlowColor = new Color(0.6f, 0.4f, 1f, 1f); // Mor
     [SerializeField] private Color shockwaveColor = new Color(1f, 0.9f, 0.2f, 1f); // Sarı
 
     [Header("Animation")]
@@ -264,8 +264,8 @@ public class SkillInputUI : MonoBehaviour
         if (isShowing && skillSystem != null && skillSystem.IsInSkillInput && timerFillImage != null)
         {
             float elapsed = Time.unscaledTime - inputStartTime;
-            float remaining = 5f - elapsed; // 5 saniyelik timeout
-            timerFillImage.fillAmount = Mathf.Clamp01(remaining / 5f);
+            float remaining = 3f - elapsed; // 3 saniyelik timeout
+            timerFillImage.fillAmount = Mathf.Clamp01(remaining / 3f);
             
             // Timer rengi - azaldıkça kırmızıya dön
             timerFillImage.color = Color.Lerp(failColor, currentColor, timerFillImage.fillAmount);
@@ -424,7 +424,7 @@ public class SkillInputUI : MonoBehaviour
         {
             case GuitarSkillSystem.SkillType.Heal: return healColor;
             case GuitarSkillSystem.SkillType.Fireball: return fireballColor;
-            case GuitarSkillSystem.SkillType.DoubleJump: return doubleJumpColor;
+            case GuitarSkillSystem.SkillType.TimeSlow: return timeSlowColor;
             case GuitarSkillSystem.SkillType.Shockwave: return shockwaveColor;
             default: return Color.white;
         }
@@ -635,10 +635,10 @@ public class SkillInputUI : MonoBehaviour
     {
         switch (skillType)
         {
-            case GuitarSkillSystem.SkillType.Heal: return "💙 HEAL";
-            case GuitarSkillSystem.SkillType.Fireball: return "🔥 FIREBALL";
-            case GuitarSkillSystem.SkillType.DoubleJump: return "🦘 DOUBLE JUMP";
-            case GuitarSkillSystem.SkillType.Shockwave: return "💥 SHOCKWAVE";
+            case GuitarSkillSystem.SkillType.Heal: return "HEAL";
+            case GuitarSkillSystem.SkillType.Fireball: return "FIREBALL";
+            case GuitarSkillSystem.SkillType.TimeSlow: return "TIME SLOW";
+            case GuitarSkillSystem.SkillType.Shockwave: return "SHOCKWAVE";
             default: return "";
         }
     }

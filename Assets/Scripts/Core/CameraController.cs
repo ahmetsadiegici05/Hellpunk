@@ -100,12 +100,10 @@ public class CameraController : MonoBehaviour
     {
         isExitingLevel = true;
         
-        float duration = 1.5f;
-        float targetSize = 2f; 
-        float rotationAmount = 360f * 2f; 
-        
+        // Hızlı ve etkileyici geçiş - karakteri zoomlamak yerine hızlıca fade'e geç
+        float duration = 0.4f; // Çok kısa, fade out ile birleşecek
         float startSize = cam.orthographicSize;
-        Vector3 startPos = transform.position;
+        float targetSize = startSize * 1.3f; // Hafif zoom out (zoomlama yerine)
         
         float time = 0f;
         
@@ -113,18 +111,11 @@ public class CameraController : MonoBehaviour
         {
             time += Time.deltaTime;
             float t = time / duration;
-            float smoothT = t * t * t; 
+            // Ease out cubic - başta hızlı, sonda yavaş
+            float smoothT = 1f - Mathf.Pow(1f - t, 3f);
             
+            // Hafif zoom out efekti
             cam.orthographicSize = Mathf.Lerp(startSize, targetSize, smoothT);
-            
-            if (player != null)
-            {
-                Vector3 targetPos = new Vector3(player.position.x, player.position.y, -10f);
-                transform.position = Vector3.Lerp(startPos, targetPos, smoothT);
-            }
-            
-            float currentRot = Mathf.Lerp(0, rotationAmount, smoothT);
-            transform.rotation = Quaternion.Euler(0, 0, currentRot);
             
             yield return null;
         }

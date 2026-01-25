@@ -24,11 +24,8 @@ public class GuitarSkillSystem : MonoBehaviour
     [Header("Cooldowns")]
     [SerializeField] private float healCooldown = 10f;
     [SerializeField] private float fireballCooldown = 5f;
-    [SerializeField] private float doubleJumpCooldown = 20f;
+    [SerializeField] private float timeSlowCooldown = 15f;
     [SerializeField] private float shockwaveCooldown = 12f;
-
-    [Header("Double Jump Settings")]
-    [SerializeField] private float doubleJumpDuration = 10f; // Double jump kaç saniye aktif kalır
 
     [Header("Input Timeout")]
     [SerializeField] private float inputTimeout = 3f;
@@ -40,7 +37,7 @@ public class GuitarSkillSystem : MonoBehaviour
     [Header("Skill Prefabs")]
     [SerializeField] private GameObject fireballPrefab;
     [SerializeField] private Transform firePoint;
-    [SerializeField] private GameObject doubleJumpEffectPrefab;
+    [SerializeField] private GameObject timeSlowEffectPrefab;
     [SerializeField] private GameObject healEffectPrefab;
     [SerializeField] private GameObject shockwaveEffectPrefab;
 
@@ -50,7 +47,7 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private AudioClip skillFailSound;
     [SerializeField] private AudioClip healSound;
     [SerializeField] private AudioClip fireballSound;
-    [SerializeField] private AudioClip doubleJumpSound;
+    [SerializeField] private AudioClip timeSlowSound;
     [SerializeField] private AudioClip shockwaveSound;
 
     [Header("Visual Effects")]
@@ -62,20 +59,16 @@ public class GuitarSkillSystem : MonoBehaviour
 
     [Header("Skill Input Mode")]
     [SerializeField] private Color skillInputOverlayColor = new Color(0.1f, 0.2f, 0.5f, 0.6f); // Koyu mavi
-    [SerializeField] private float skillInputDuration = 5f; // Input için verilen süre (5 saniye)
+    [SerializeField] private float skillInputDuration = 3f; // Input için verilen süre (3 saniye)
 
     // Cooldown timers
     private float healCooldownTimer = 0f;
     private float fireballCooldownTimer = 0f;
-    private float doubleJumpCooldownTimer = 0f;
+    private float timeSlowCooldownTimer = 0f;
     private float shockwaveCooldownTimer = 0f;
     
-    // Double Jump state
-    private bool isDoubleJumpActive = false;
-    private float doubleJumpTimer = 0f;
-    
-    // Public property for PlayerMovement
-    public bool IsDoubleJumpActive => isDoubleJumpActive;
+    // TimeSlow state
+    private bool isTimeSlowActive = false;
 
     // Skill state
     private bool isInSkillInput = false;
@@ -105,6 +98,7 @@ public class GuitarSkillSystem : MonoBehaviour
     public System.Action<int, bool> OnInputReceived;
     public System.Action<bool> OnSkillComplete;
     public System.Action OnSkillCancelled;
+    public System.Action<SkillType> OnAbilityFailedNoSoul; // Yeterli ruh olmadığında tetiklenir
 
     // Properties
     public bool IsInSkillInput => isInSkillInput;
@@ -114,12 +108,12 @@ public class GuitarSkillSystem : MonoBehaviour
 
     public float HealCooldownProgress => healCooldownTimer <= 0 ? 1f : 1f - (healCooldownTimer / healCooldown);
     public float FireballCooldownProgress => fireballCooldownTimer <= 0 ? 1f : 1f - (fireballCooldownTimer / fireballCooldown);
-    public float DoubleJumpCooldownProgress => doubleJumpCooldownTimer <= 0 ? 1f : 1f - (doubleJumpCooldownTimer / doubleJumpCooldown);
+    public float TimeSlowCooldownProgress => timeSlowCooldownTimer <= 0 ? 1f : 1f - (timeSlowCooldownTimer / timeSlowCooldown);
     public float ShockwaveCooldownProgress => shockwaveCooldownTimer <= 0 ? 1f : 1f - (shockwaveCooldownTimer / shockwaveCooldown);
 
     public bool IsHealReady => healCooldownTimer <= 0f;
     public bool IsFireballReady => fireballCooldownTimer <= 0f;
-    public bool IsDoubleJumpReady => doubleJumpCooldownTimer <= 0f;
+    public bool IsTimeSlowReady => timeSlowCooldownTimer <= 0f;
     public bool IsShockwaveReady => shockwaveCooldownTimer <= 0f;
 
     public enum SkillType
@@ -127,8 +121,8 @@ public class GuitarSkillSystem : MonoBehaviour
         None,
         Heal,       // F tuşu - 3 input - Mavi efekt
         Fireball,   // Q tuşu - 3 input
-        DoubleJump, // R tuşu - 4 input - Double Jump aktif eder
-        Shockwave   // E tuşu - 2 input - Titreme + knockback
+        TimeSlow,   // R tuşu - 3 input - Zaman yavaşlatma
+        Shockwave   // Kullanılmıyor şu an
     }
 
     public enum ArrowDirection
@@ -210,22 +204,39 @@ public class GuitarSkillSystem : MonoBehaviour
             return;
 
         // Skill aktivasyonu
-        // E tuşu artık TimeSlowAbility tarafından kullanılıyor
         // F: Heal (3 input)
-        if (Input.GetKeyDown(KeyCode.F) && IsHealReady && CanUseAbility())
+        if (Input.GetKeyDown(KeyCode.F) && IsHealReady)
         {
-            ActivateSkill(SkillType.Heal, 3);
+            if (CanUseAbility())
+                ActivateSkill(SkillType.Heal, 3);
+            else
+                TriggerNoSoulFeedback(SkillType.Heal);
         }
-        // Q: Fireball (3 input)
-        else if (Input.GetKeyDown(KeyCode.Q) && IsFireballReady && CanUseAbility())
+        // Q: Fireball (3 input) - Fireball modu aktif değilse ability sistemi ile
+        else if (Input.GetKeyDown(KeyCode.Q) && IsFireballReady && !IsFireballModeActive())
         {
-            ActivateSkill(SkillType.Fireball, 3);
+            if (CanUseAbility())
+                ActivateSkill(SkillType.Fireball, 3);
+            else
+                TriggerNoSoulFeedback(SkillType.Fireball);
         }
-        // R: Double Jump (4 input)
-        else if (Input.GetKeyDown(KeyCode.R) && IsDoubleJumpReady && CanUseAbility())
+        // R: Time Slow (3 input)
+        else if (Input.GetKeyDown(KeyCode.R) && IsTimeSlowReady)
         {
-            ActivateSkill(SkillType.DoubleJump, 4);
+            if (CanUseAbility())
+                ActivateSkill(SkillType.TimeSlow, 3);
+            else
+                TriggerNoSoulFeedback(SkillType.TimeSlow);
         }
+    }
+    
+    /// <summary>
+    /// PlayerAttack'tan fireball modunun aktif olup olmadığını kontrol et
+    /// </summary>
+    private bool IsFireballModeActive()
+    {
+        PlayerAttack playerAttack = GetComponent<PlayerAttack>();
+        return playerAttack != null && playerAttack.IsFireballModeActive;
     }
     
     /// <summary>
@@ -235,6 +246,19 @@ public class GuitarSkillSystem : MonoBehaviour
     {
         if (SoulSystem.Instance == null) return true; // Sistem yoksa izin ver
         return SoulSystem.Instance.CanUseAbility;
+    }
+    
+    /// <summary>
+    /// Yeterli ruh olmadığında görsel/ses feedback tetikle
+    /// </summary>
+    private void TriggerNoSoulFeedback(SkillType skillType)
+    {
+        Debug.Log($"Yeterli ruh yok! {skillType} kullanılamaz.");
+        OnAbilityFailedNoSoul?.Invoke(skillType);
+        
+        // Olumsuz ses efekti çal
+        if (audioSource != null && skillFailSound != null)
+            audioSource.PlayOneShot(skillFailSound, 0.5f);
     }
     
     /// <summary>
@@ -250,25 +274,20 @@ public class GuitarSkillSystem : MonoBehaviour
 
     private void UpdateCooldowns()
     {
+        // unscaledDeltaTime kullan - time slow aktifken de normal hızda say
         if (healCooldownTimer > 0)
-            healCooldownTimer -= Time.deltaTime;
+            healCooldownTimer -= Time.unscaledDeltaTime;
         if (fireballCooldownTimer > 0)
-            fireballCooldownTimer -= Time.deltaTime;
-        if (doubleJumpCooldownTimer > 0)
-            doubleJumpCooldownTimer -= Time.deltaTime;
-        if (shockwaveCooldownTimer > 0)
-            shockwaveCooldownTimer -= Time.deltaTime;
+            fireballCooldownTimer -= Time.unscaledDeltaTime;
+        
+        // TimeSlow cooldown'u sadece TimeSlow aktif DEĞİLKEN say
+        // Böylece cooldown aktif süre bittikten sonra başlar
+        bool isTimeSlowActive = TimeSlowAbility.Instance != null && TimeSlowAbility.Instance.IsSlowMotionActive;
+        if (timeSlowCooldownTimer > 0 && !isTimeSlowActive)
+            timeSlowCooldownTimer -= Time.unscaledDeltaTime;
             
-        // Double Jump süresini kontrol et
-        if (isDoubleJumpActive)
-        {
-            doubleJumpTimer -= Time.deltaTime;
-            if (doubleJumpTimer <= 0)
-            {
-                isDoubleJumpActive = false;
-                Debug.Log("Double Jump süresi bitti!");
-            }
-        }
+        if (shockwaveCooldownTimer > 0)
+            shockwaveCooldownTimer -= Time.unscaledDeltaTime;
     }
 
     private void ActivateSkill(SkillType skillType, int inputCount)
@@ -478,8 +497,8 @@ public class GuitarSkillSystem : MonoBehaviour
             case SkillType.Fireball:
                 ExecuteFireball();
                 break;
-            case SkillType.DoubleJump:
-                ExecuteDoubleJump();
+            case SkillType.TimeSlow:
+                ExecuteTimeSlow();
                 break;
             case SkillType.Shockwave:
                 ExecuteShockwave();
@@ -644,19 +663,16 @@ public class GuitarSkillSystem : MonoBehaviour
 
     private void ExecuteFireball()
     {
-        // Animasyon
-        if (anim != null)
-            anim.SetTrigger("attack");
-
-        // Fireball oluştur
-        if (fireballPrefab != null && firePoint != null)
+        // PlayerAttack'ın fireball modunu aktif et (15 saniye boyunca fireball atabilir)
+        PlayerAttack playerAttack = GetComponent<PlayerAttack>();
+        if (playerAttack != null)
         {
-            GameObject fireball = Instantiate(fireballPrefab, firePoint.position, Quaternion.identity);
-            GuitarFireball fb = fireball.GetComponent<GuitarFireball>();
-            if (fb != null)
-            {
-                fb.Initialize(Mathf.Sign(transform.localScale.x), fireballDamage);
-            }
+            playerAttack.ActivateFireballMode();
+            Debug.Log("Fireball modu aktif edildi! 15 saniye boyunca sol tık ile fireball at!");
+        }
+        else
+        {
+            Debug.LogError("PlayerAttack komponenti bulunamadı!");
         }
 
         // Ses
@@ -667,42 +683,45 @@ public class GuitarSkillSystem : MonoBehaviour
 
         // Cooldown başlat
         fireballCooldownTimer = fireballCooldown;
-
-        Debug.Log("Fireball executed!");
     }
 
-    private void ExecuteDoubleJump()
+    private void ExecuteTimeSlow()
     {
-        // Double Jump'ı aktif et
-        isDoubleJumpActive = true;
-        doubleJumpTimer = doubleJumpDuration;
-        
-        // Görsel efekt
-        StartCoroutine(DoubleJumpActivateEffect());
-        
-        // Ses
-        if (doubleJumpSound != null && audioSource != null)
-            audioSource.PlayOneShot(doubleJumpSound);
-        
-        // Cooldown başlat
-        doubleJumpCooldownTimer = doubleJumpCooldown;
-        
-        Debug.Log($"Double Jump aktif! Süre: {doubleJumpDuration}s");
-    }
-    
-    private IEnumerator DoubleJumpActivateEffect()
-    {
-        // Efekt oluştur
-        if (doubleJumpEffectPrefab != null)
+        // TimeSlowAbility'yi tetikle
+        if (TimeSlowAbility.Instance != null)
         {
-            Instantiate(doubleJumpEffectPrefab, transform.position, Quaternion.identity);
+            TimeSlowAbility.Instance.ActivateFromSkillSystem();
+            Debug.Log("Time Slow aktif edildi!");
+        }
+        else
+        {
+            Debug.LogWarning("TimeSlowAbility bulunamadı!");
         }
         
-        // Karakteri kısa süreliğine parlat (yeşil renk)
+        // Görsel efekt
+        StartCoroutine(TimeSlowActivateEffect());
+        
+        // Ses
+        if (timeSlowSound != null && audioSource != null)
+            audioSource.PlayOneShot(timeSlowSound);
+        
+        // Cooldown başlat
+        timeSlowCooldownTimer = timeSlowCooldown;
+    }
+    
+    private IEnumerator TimeSlowActivateEffect()
+    {
+        // Efekt oluştur
+        if (timeSlowEffectPrefab != null)
+        {
+            Instantiate(timeSlowEffectPrefab, transform.position, Quaternion.identity);
+        }
+        
+        // Karakteri kısa süreliğine parlat (mor/mavi renk)
         if (spriteRenderer != null)
         {
-            Color doubleJumpColor = new Color(0.5f, 1f, 0.5f, 1f); // Yeşil
-            yield return StartCoroutine(ColorTintEffect(doubleJumpColor));
+            Color timeSlowColor = new Color(0.6f, 0.4f, 1f, 1f); // Mor
+            yield return StartCoroutine(ColorTintEffect(timeSlowColor));
         }
     }
 

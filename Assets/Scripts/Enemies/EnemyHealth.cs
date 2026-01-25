@@ -5,7 +5,7 @@ public class EnemyHealth : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField] private bool isBoss = false;
-    [SerializeField] private float maxHealth = 3f;
+    [SerializeField] private float maxHealth = 9f; // 3 yumrukta ölsün (hasar 3 x 3 = 9)
     [SerializeField] private GameObject deathEffect;
 
     [Header("Health Bar")]
@@ -19,7 +19,7 @@ public class EnemyHealth : MonoBehaviour
     private float currentHealth;
     private bool isDead = false;
     private Color defaultColor;
-    private EnemyHealthBar healthBar;
+    private SimpleEnemyHealthBar healthBar; // Yeni basit can barı
 
     private void Start()
     {
@@ -27,7 +27,16 @@ public class EnemyHealth : MonoBehaviour
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
 
         if (spriteRenderer != null) defaultColor = spriteRenderer.color;
+        
+        // Boss değilse canı mutlaka 9 yap (3 yumrukta ölsün)
+        if (!isBoss)
+        {
+            maxHealth = 9f; // Her zaman 9 yap (Inspector override'ı önle)
+        }
+        
         currentHealth = maxHealth;
+        
+        Debug.Log($"[EnemyHealth] {gameObject.name} başlatıldı - MaxHealth: {maxHealth}, CurrentHealth: {currentHealth}");
         
         // Can barı oluştur
         if (showHealthBar)
@@ -39,7 +48,7 @@ public class EnemyHealth : MonoBehaviour
     private void CreateHealthBar()
     {
         GameObject healthBarObj = new GameObject($"{gameObject.name}_HealthBar");
-        healthBar = healthBarObj.AddComponent<EnemyHealthBar>();
+        healthBar = healthBarObj.AddComponent<SimpleEnemyHealthBar>(); // Yeni basit versiyon
         healthBar.Initialize(transform, maxHealth);
     }
 
@@ -49,10 +58,17 @@ public class EnemyHealth : MonoBehaviour
 
         currentHealth -= amount;
         
+        Debug.Log($"{gameObject.name} hasar aldı: {amount}, Kalan can: {currentHealth}");
+        
         // Can barını güncelle
         if (healthBar != null)
         {
             healthBar.SetHealth(currentHealth);
+            Debug.Log($"{gameObject.name} can barı güncellendi");
+        }
+        else
+        {
+            Debug.LogWarning($"{gameObject.name} can barı bulunamadı!");
         }
 
         if (animator != null) animator.SetTrigger("Hurt");

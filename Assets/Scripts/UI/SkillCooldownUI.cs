@@ -20,17 +20,16 @@ public class SkillCooldownUI : MonoBehaviour
     [SerializeField] private Color activeColor = new Color(0.3f, 0.9f, 1f, 1f);
     [SerializeField] private Color healColor = new Color(0.3f, 0.6f, 1f, 1f); // Mavi
     [SerializeField] private Color fireballColor = new Color(1f, 0.5f, 0.1f, 1f);
-    [SerializeField] private Color doubleJumpColor = new Color(0.4f, 1f, 0.4f, 1f); // Yeşil
+    [SerializeField] private Color timeSlowColor = new Color(0.6f, 0.4f, 1f, 1f); // Mor
     [SerializeField] private Color shockwaveColor = new Color(1f, 0.9f, 0.2f, 1f); // Sarı
 
     private Canvas canvas;
     private GuitarSkillSystem skillSystem;
 
     // Skill UI elements
-    // E tuşu artık TimeSlowAbility için (ayrı UI)
     private SkillIcon healSkill;
     private SkillIcon fireballSkill;
-    private SkillIcon doubleJumpSkill;
+    private SkillIcon timeSlowSkill;
 
     private class SkillIcon
     {
@@ -70,6 +69,10 @@ public class SkillCooldownUI : MonoBehaviour
             {
                 CreateUI();
             }
+            
+            // Event'e abone ol
+            skillSystem.OnAbilityFailedNoSoul += OnAbilityFailedNoSoul;
+            
             Debug.Log("SkillCooldownUI: UI Hazır!");
         }
         else
@@ -96,10 +99,9 @@ public class SkillCooldownUI : MonoBehaviour
         canvasObj.AddComponent<GraphicRaycaster>();
 
         // Skill ikonlarını oluştur (sağdan sola: F, Q, R)
-        // E tuşu artık TimeSlowAbility tarafından kullanılıyor (ayrı UI'da)
         healSkill = CreateSkillIcon(canvasObj.transform, "Heal", "F", 0, healColor);
         fireballSkill = CreateSkillIcon(canvasObj.transform, "Fireball", "Q", 1, fireballColor);
-        doubleJumpSkill = CreateSkillIcon(canvasObj.transform, "DoubleJump", "R", 2, doubleJumpColor);
+        timeSlowSkill = CreateSkillIcon(canvasObj.transform, "TimeSlow", "R", 2, timeSlowColor);
     }
 
     private SkillIcon CreateSkillIcon(Transform parent, string name, string key, int index, Color skillColor)
@@ -218,6 +220,95 @@ public class SkillCooldownUI : MonoBehaviour
         return skill;
     }
 
+    private PlayerAttack playerAttack;
+    
+    // No soul feedback için
+    private Coroutine healShakeCoroutine;
+    private Coroutine fireballShakeCoroutine;
+    private Coroutine timeSlowShakeCoroutine;
+    
+    private void OnDestroy()
+    {
+        if (skillSystem != null)
+        {
+            skillSystem.OnAbilityFailedNoSoul -= OnAbilityFailedNoSoul;
+        }
+    }
+    
+    private void OnAbilityFailedNoSoul(GuitarSkillSystem.SkillType skillType)
+    {
+        // İlgili skill ikonunu kırmızı shake efekti ile göster
+        SkillIcon targetSkill = null;
+        
+        switch (skillType)
+        {
+            case GuitarSkillSystem.SkillType.Heal:
+                targetSkill = healSkill;
+                if (healShakeCoroutine != null) StopCoroutine(healShakeCoroutine);
+                if (targetSkill != null && targetSkill.container != null)
+                    healShakeCoroutine = StartCoroutine(NoSoulShakeEffect(targetSkill));
+                break;
+            case GuitarSkillSystem.SkillType.Fireball:
+                targetSkill = fireballSkill;
+                if (fireballShakeCoroutine != null) StopCoroutine(fireballShakeCoroutine);
+                if (targetSkill != null && targetSkill.container != null)
+                    fireballShakeCoroutine = StartCoroutine(NoSoulShakeEffect(targetSkill));
+                break;
+            case GuitarSkillSystem.SkillType.TimeSlow:
+                targetSkill = timeSlowSkill;
+                if (timeSlowShakeCoroutine != null) StopCoroutine(timeSlowShakeCoroutine);
+                if (targetSkill != null && targetSkill.container != null)
+                    timeSlowShakeCoroutine = StartCoroutine(NoSoulShakeEffect(targetSkill));
+                break;
+        }
+    }
+    
+    private IEnumerator NoSoulShakeEffect(SkillIcon skill)
+    {
+        if (skill == null || skill.container == null) yield break;
+        
+        Vector2 originalPos = skill.container.anchoredPosition;
+        Color originalIconColor = skill.icon != null ? skill.icon.color : Color.white;
+        Color originalBgColor = skill.background != null ? skill.background.color : Color.black;
+        
+        float duration = 0.5f;
+        float shakeIntensity = 8f;
+        float flashFrequency = 20f;
+        float time = 0f;
+        
+        // Kırmızı renk
+        Color noSoulRed = new Color(1f, 0.2f, 0.2f, 1f);
+        Color darkRed = new Color(0.4f, 0.1f, 0.1f, 0.95f);
+        
+        while (time < duration)
+        {
+            // Shake
+            float shakeX = Mathf.Sin(time * 50f) * shakeIntensity * (1f - time / duration);
+            skill.container.anchoredPosition = originalPos + new Vector2(shakeX, 0);
+            
+            // Flash (kırmızı yanıp sönme)
+            float flash = (Mathf.Sin(time * flashFrequency) + 1f) / 2f;
+            
+            if (skill.icon != null)
+                skill.icon.color = Color.Lerp(originalIconColor, noSoulRed, flash * 0.8f);
+            
+            if (skill.background != null)
+                skill.background.color = Color.Lerp(originalBgColor, darkRed, flash * 0.6f);
+            
+            if (skill.cooldownFill != null)
+                skill.cooldownFill.color = Color.Lerp(skill.skillColor, noSoulRed, flash * 0.7f);
+            
+            time += Time.unscaledDeltaTime;
+            yield return null;
+        }
+        
+        // Reset
+        skill.container.anchoredPosition = originalPos;
+        if (skill.icon != null) skill.icon.color = originalIconColor;
+        if (skill.background != null) skill.background.color = originalBgColor;
+        if (skill.cooldownFill != null) skill.cooldownFill.color = skill.skillColor;
+    }
+
     private void Update()
     {
         if (skillSystem == null)
@@ -225,15 +316,134 @@ public class SkillCooldownUI : MonoBehaviour
             skillSystem = FindFirstObjectByType<GuitarSkillSystem>();
             if (skillSystem == null) return;
         }
+        
+        // PlayerAttack referansını al (fireball modu için)
+        if (playerAttack == null)
+        {
+            playerAttack = FindFirstObjectByType<PlayerAttack>();
+        }
 
         UpdateSkillIcon(healSkill, skillSystem.HealCooldownProgress, skillSystem.IsHealReady,
             skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Heal);
         
-        UpdateSkillIcon(fireballSkill, skillSystem.FireballCooldownProgress, skillSystem.IsFireballReady,
-            skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Fireball);
+        // Fireball için özel güncelleme (fireball modu aktifken farklı göster)
+        UpdateFireballSkillIcon();
         
-        UpdateSkillIcon(doubleJumpSkill, skillSystem.DoubleJumpCooldownProgress, skillSystem.IsDoubleJumpReady,
-            skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.DoubleJump);
+        // TimeSlow için özel güncelleme (aktifken kalan süreyi göster)
+        UpdateTimeSlowSkillIcon();
+    }
+    
+    private void UpdateTimeSlowSkillIcon()
+    {
+        if (timeSlowSkill == null || timeSlowSkill.container == null) return;
+        
+        bool isTimeSlowActive = TimeSlowAbility.Instance != null && TimeSlowAbility.Instance.IsSlowMotionActive;
+        
+        if (isTimeSlowActive)
+        {
+            // Time Slow aktif - özel görünüm
+            float timeRemaining = TimeSlowAbility.Instance.ActiveTimeRemaining;
+            float duration = TimeSlowAbility.Instance.ActiveDuration;
+            float progress = timeRemaining / duration;
+            
+            // Fill amount - kalan süreyi göster
+            if (timeSlowSkill.cooldownFill != null)
+            {
+                timeSlowSkill.cooldownFill.fillAmount = progress;
+                timeSlowSkill.cooldownFill.color = new Color(0.5f, 0.3f, 1f, 1f); // Parlak mor
+            }
+            
+            // Icon - küçült ve yukarı kaydır
+            if (timeSlowSkill.icon != null)
+            {
+                timeSlowSkill.icon.color = new Color(0.8f, 0.6f, 1f, 1f); // Açık mor
+                float pulse = 1f + Mathf.Sin(Time.unscaledTime * 6f) * 0.15f;
+                timeSlowSkill.icon.transform.localScale = Vector3.one * pulse * 0.7f;
+                timeSlowSkill.icon.rectTransform.anchoredPosition = new Vector2(0, 8f);
+            }
+            
+            // Kalan süreyi göster
+            if (timeSlowSkill.cooldownText != null)
+            {
+                timeSlowSkill.cooldownText.text = timeRemaining.ToString("F1");
+                timeSlowSkill.cooldownText.color = new Color(0.8f, 0.6f, 1f, 1f);
+                timeSlowSkill.cooldownText.fontSize = 18;
+                timeSlowSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, -8f);
+            }
+        }
+        else
+        {
+            // Normal mod - pozisyonları sıfırla
+            if (timeSlowSkill.icon != null)
+            {
+                timeSlowSkill.icon.rectTransform.anchoredPosition = Vector2.zero;
+            }
+            if (timeSlowSkill.cooldownText != null)
+            {
+                timeSlowSkill.cooldownText.rectTransform.anchoredPosition = Vector2.zero;
+                timeSlowSkill.cooldownText.fontSize = 24;
+            }
+            
+            // Standart skill icon güncelleme
+            UpdateSkillIcon(timeSlowSkill, skillSystem.TimeSlowCooldownProgress, skillSystem.IsTimeSlowReady,
+                skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.TimeSlow);
+        }
+    }
+
+    private void UpdateFireballSkillIcon()
+    {
+        if (fireballSkill == null || fireballSkill.container == null) return;
+        
+        bool isFireballModeActive = playerAttack != null && playerAttack.IsFireballModeActive;
+        
+        if (isFireballModeActive)
+        {
+            // Fireball modu aktif - özel görünüm
+            float timeRemaining = playerAttack.FireballModeTimeRemaining;
+            float progress = timeRemaining / 10f; // 10 saniye max
+            
+            // Fill amount - kalan süreyi göster
+            if (fireballSkill.cooldownFill != null)
+            {
+                fireballSkill.cooldownFill.fillAmount = progress;
+                fireballSkill.cooldownFill.color = new Color(1f, 0.3f, 0.1f, 1f); // Parlak turuncu
+            }
+            
+            // Icon - küçült ve yukarı kaydır (süre yazısına yer aç)
+            if (fireballSkill.icon != null)
+            {
+                fireballSkill.icon.color = new Color(1f, 0.8f, 0.3f, 1f); // Altın sarısı
+                float pulse = 1f + Mathf.Sin(Time.time * 8f) * 0.15f;
+                fireballSkill.icon.transform.localScale = Vector3.one * pulse * 0.7f; // Küçült
+                fireballSkill.icon.rectTransform.anchoredPosition = new Vector2(0, 8f); // Yukarı kaydır
+            }
+            
+            // Kalan süreyi göster (altta)
+            if (fireballSkill.cooldownText != null)
+            {
+                fireballSkill.cooldownText.text = timeRemaining.ToString("F1");
+                fireballSkill.cooldownText.color = new Color(1f, 0.9f, 0.3f, 1f); // Sarı
+                fireballSkill.cooldownText.fontSize = 18; // Biraz küçük
+                fireballSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, -8f); // Aşağı kaydır
+            }
+        }
+        else
+        {
+            // Normal mod - pozisyonları sıfırla
+            if (fireballSkill.icon != null)
+            {
+                fireballSkill.icon.rectTransform.anchoredPosition = Vector2.zero;
+            }
+            if (fireballSkill.cooldownText != null)
+            {
+                fireballSkill.cooldownText.rectTransform.anchoredPosition = Vector2.zero;
+                fireballSkill.cooldownText.fontSize = 24; // Normal boyut
+            }
+            
+            // Standart skill icon güncelleme
+            UpdateSkillIcon(fireballSkill, skillSystem.FireballCooldownProgress, skillSystem.IsFireballReady,
+                skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Fireball);
+        }
     }
 
     private void UpdateSkillIcon(SkillIcon skill, float progress, bool isReady, bool isActive)
@@ -343,14 +553,14 @@ public class SkillCooldownUI : MonoBehaviour
         
         healSkill = FindSkillIcon(canvasTrans, "Heal", healColor);
         fireballSkill = FindSkillIcon(canvasTrans, "Fireball", fireballColor);
-        doubleJumpSkill = FindSkillIcon(canvasTrans, "DoubleJump", doubleJumpColor);
+        timeSlowSkill = FindSkillIcon(canvasTrans, "TimeSlow", timeSlowColor);
         
         // Spriteları yenile (Editor'de yaratılanlar Play modunda kaybolabilir)
         RefreshSkillSprites(healSkill, "Heal");
         RefreshSkillSprites(fireballSkill, "Fireball");
-        RefreshSkillSprites(doubleJumpSkill, "DoubleJump");
+        RefreshSkillSprites(timeSlowSkill, "TimeSlow");
 
-        return healSkill != null && fireballSkill != null && doubleJumpSkill != null;
+        return healSkill != null && fireballSkill != null && timeSlowSkill != null;
     }
 
     private SkillIcon FindSkillIcon(Transform parent, string name, Color color)
@@ -396,8 +606,8 @@ public class SkillCooldownUI : MonoBehaviour
             return (1f - skillSystem.HealCooldownProgress) * 10f; // healCooldown
         else if (skill == fireballSkill)
             return (1f - skillSystem.FireballCooldownProgress) * 5f; // fireballCooldown
-        else if (skill == doubleJumpSkill)
-            return (1f - skillSystem.DoubleJumpCooldownProgress) * 20f; // doubleJumpCooldown
+        else if (skill == timeSlowSkill)
+            return (1f - skillSystem.TimeSlowCooldownProgress) * 15f; // timeSlowCooldown
         
         return 0f;
     }
@@ -493,9 +703,9 @@ public class SkillCooldownUI : MonoBehaviour
                 // Güneş/Patlama efekti (gelişmiş)
                 DrawFireball(pixels, size, center, size * 0.42f);
                 break;
-            case "DoubleJump":
-                // Kanatlı bot veya çift ok
-                DrawDoubleArrow(pixels, size, center, size * 0.38f);
+            case "TimeSlow":
+                // Saat ikonu (zaman yavaşlatma)
+                DrawClock(pixels, size, center, size * 0.4f);
                 break;
             case "Shockwave":
                 // Dalga/patlama çiz
@@ -533,29 +743,47 @@ public class SkillCooldownUI : MonoBehaviour
 
     private void DrawFireball(Color[] pixels, int size, Vector2 center, float radius)
     {
+        // Meteor/Ateş topu ikonu - daire + kuyruk
         for (int y = 0; y < size; y++)
         {
             for (int x = 0; x < size; x++)
             {
                 Vector2 pos = new Vector2(x, y) - center;
                 float dist = pos.magnitude;
-                float angle = Mathf.Atan2(pos.y, pos.x);
                 
-                // 8 kollu dalgalı güneş/ateş topu
-                float spikes = 8f;
-                float wave = Mathf.Cos(angle * spikes);
-                // radius değişimi: 0.7 ile 1.0 arası
-                float currentRadius = radius * (0.75f + 0.25f * wave);
+                // Ana ateş topu (daire) - biraz sağa kaydır
+                Vector2 fireballCenter = new Vector2(radius * 0.2f, 0);
+                float fireballDist = (pos - fireballCenter).magnitude;
+                float fireballRadius = radius * 0.55f;
                 
-                // İç kısım (çekirdek)
-                float coreRadius = radius * 0.5f;
-
-                if (dist <= currentRadius)
+                if (fireballDist <= fireballRadius)
                 {
                     // Kenarları yumuşat
                     float alpha = 1f;
-                    if (dist > currentRadius - 1f) alpha = currentRadius - dist;
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    if (fireballDist > fireballRadius - 2f) 
+                        alpha = (fireballRadius - fireballDist) / 2f;
+                    pixels[y * size + x] = new Color(1f, 1f, 1f, Mathf.Clamp01(alpha));
+                    continue;
+                }
+                
+                // Kuyruk (sol tarafa doğru uzayan üçgen)
+                // Kuyruk başlangıcı: ateş topunun sol kenarı
+                float tailStartX = -radius * 0.3f;
+                float tailEndX = -radius * 0.9f;
+                float tailWidth = radius * 0.5f;
+                
+                if (pos.x >= tailEndX && pos.x <= tailStartX)
+                {
+                    // Kuyruk genişliği sola doğru daralır
+                    float progress = (pos.x - tailEndX) / (tailStartX - tailEndX); // 0 = sol, 1 = sağ
+                    float maxY = tailWidth * progress * 0.5f; // Sola doğru daralır
+                    
+                    if (Mathf.Abs(pos.y) <= maxY)
+                    {
+                        // Kuyruk için gradient alpha
+                        float alpha = progress * 0.9f + 0.1f;
+                        pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+                    }
                 }
             }
         }
@@ -585,57 +813,45 @@ public class SkillCooldownUI : MonoBehaviour
         }
     }
 
-    private void DrawDoubleArrow(Color[] pixels, int size, Vector2 center, float arrowSize)
+    private void DrawClock(Color[] pixels, int size, Vector2 center, float radius)
     {
-        // İki yukarı ok çiz (double jump için) - Biraz daha dinamik
-        float arrowWidth = arrowSize * 0.7f;
-        float arrowHeight = arrowSize * 0.45f;
-        float stemWidth = arrowSize * 0.25f; // Sapı kalınlaştır
-        float spacing = arrowSize * 0.5f;
+        // Saat ikonu çiz (zaman yavaşlatma için)
+        float ringThickness = radius * 0.15f;
         
         for (int y = 0; y < size; y++)
         {
             for (int x = 0; x < size; x++)
             {
                 Vector2 pos = new Vector2(x, y) - center;
+                float dist = pos.magnitude;
                 
-                // Üst ok
-                Vector2 topArrowPos = pos - new Vector2(0, spacing * 0.6f);
-                if (IsInArrow(topArrowPos, arrowWidth, arrowHeight, stemWidth))
+                // Dış çember (saat kadranı)
+                if (Mathf.Abs(dist - radius) <= ringThickness)
                 {
                     pixels[y * size + x] = Color.white;
-                    continue; // Overwite
+                    continue;
                 }
                 
-                // Alt ok
-                Vector2 bottomArrowPos = pos + new Vector2(0, spacing * 0.5f);
-                if (IsInArrow(bottomArrowPos, arrowWidth, arrowHeight, stemWidth))
+                // Saat akrep (dikey - 12'yi gösterir)
+                if (Mathf.Abs(pos.x) <= radius * 0.08f && pos.y > 0 && pos.y < radius * 0.7f)
                 {
-                    pixels[y * size + x] = new Color(1f, 1f, 1f, 0.7f); // Alt ok biraz saydam
+                    pixels[y * size + x] = Color.white;
+                    continue;
+                }
+                
+                // Yelkovan (yatay-çapraz - 3'ü gösterir)
+                if (pos.x > 0 && pos.x < radius * 0.5f && Mathf.Abs(pos.y) <= radius * 0.08f)
+                {
+                    pixels[y * size + x] = Color.white;
+                    continue;
+                }
+                
+                // Merkez nokta
+                if (dist <= radius * 0.12f)
+                {
+                    pixels[y * size + x] = Color.white;
                 }
             }
         }
-    }
-    
-    private bool IsInArrow(Vector2 pos, float width, float height, float stemWidth)
-    {
-        // Ok başı (üçgen)
-        float headHeight = height * 0.6f;
-        if (pos.y > 0 && pos.y < headHeight)
-        {
-            float progress = pos.y / headHeight;
-            float maxWidth = width * (1f - progress) * 0.5f;
-            if (Mathf.Abs(pos.x) <= maxWidth)
-                return true;
-        }
-        
-        // Ok gövdesi (dikdörtgen)
-        if (pos.y >= -height * 0.5f && pos.y <= 0)
-        {
-            if (Mathf.Abs(pos.x) <= stemWidth * 0.5f)
-                return true;
-        }
-        
-        return false;
     }
 }

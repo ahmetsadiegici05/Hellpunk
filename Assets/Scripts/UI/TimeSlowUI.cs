@@ -61,6 +61,13 @@ public class TimeSlowUI : MonoBehaviour
 
     private void Start()
     {
+        // Bu UI artık kullanılmıyor - SkillCooldownUI tüm yetenekleri gösteriyor
+        // E tuşu kaldırıldı, Time Slow artık R tuşu + ok kombinasyonu ile aktif
+        // Bu objeyi devre dışı bırak
+        gameObject.SetActive(false);
+        return;
+        
+        /*
         // MainMenu kontrolü
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
         {
@@ -77,6 +84,7 @@ public class TimeSlowUI : MonoBehaviour
         
         if (abilityIconImage != null)
             originalIconScale = abilityIconImage.transform.localScale;
+        */
     }
     
     private void ForcePositionToTopRight()

@@ -84,31 +84,29 @@ public class SceneTransitionController : MonoBehaviour
         // 1. Raycast'i aç ki oyuncu hareket edemesin
         if (fadeImage != null) fadeImage.raycastTarget = true;
 
-        // 2. Kamera Animasyonu (Varsa)
+        // 2. Beyaz Flash efekti (çok hızlı)
+        yield return StartCoroutine(FlashEffect());
+
+        // 3. Kamera Animasyonu (kısa zoom out)
         CameraController camController = FindFirstObjectByType<CameraController>();
         if (camController != null)
         {
             bool animComplete = false;
             StartCoroutine(camController.PlayLevelExitAnimation(() => { animComplete = true; }));
             
-            // Animasyon bitene kadar bekle (timeout koyalım ne olur ne olmaz)
-            float timeout = 3f;
+            // Animasyon bitene kadar bekle (timeout koyalım)
+            float timeout = 1f;
             while (!animComplete && timeout > 0)
             {
                 timeout -= Time.deltaTime;
                 yield return null;
             }
         }
-        else
-        {
-            // Kamera yoksa direkt kısa bir bekleme
-            yield return new WaitForSeconds(0.5f);
-        }
 
-        // 3. Fade Out (Siyaha döner)
-        yield return StartCoroutine(FadeRoutine(0f, 1f, 0.5f, Color.black));
+        // 4. Fade Out (Siyaha döner) - daha hızlı
+        yield return StartCoroutine(FadeRoutine(0f, 1f, 0.3f, Color.black));
 
-        // 4. Sahneyi Yükle
+        // 5. Sahneyi Yükle
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
         op.allowSceneActivation = false;
 
@@ -120,18 +118,41 @@ public class SceneTransitionController : MonoBehaviour
         
         op.allowSceneActivation = true;
 
-        // Sahne değişmesini bekle (SceneLoaded eventi yerine frame bekleme)
-        yield return new WaitForEndOfFrame(); // Eski sahne sonu
-        yield return new WaitForEndOfFrame(); // Yeni sahne başı
+        // Sahne değişmesini bekle
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
 
         // Yeni sahne için TimeScale düzelt
         Time.timeScale = 1f;
 
-        // 5. Fade In (Siyahtan açılır)
-        yield return StartCoroutine(FadeRoutine(1f, 0f, 1f, Color.black));
+        // 6. Fade In (Siyahtan açılır) - smooth
+        yield return StartCoroutine(FadeRoutine(1f, 0f, 0.8f, Color.black));
 
         // İşlem bitti, etkileşimi aç
         if (fadeImage != null) fadeImage.raycastTarget = false;
+    }
+    
+    /// <summary>
+    /// Hızlı beyaz flash efekti - level geçişinde parlama
+    /// </summary>
+    private IEnumerator FlashEffect()
+    {
+        if (fadeImage == null) CreateTransitionUI();
+        
+        float flashDuration = 0.15f;
+        float time = 0f;
+        
+        // Beyaza flash
+        while (time < flashDuration)
+        {
+            time += Time.deltaTime;
+            float t = time / flashDuration;
+            float alpha = Mathf.Sin(t * Mathf.PI); // 0 -> 1 -> 0 eğrisi
+            fadeImage.color = new Color(1f, 1f, 1f, alpha * 0.7f);
+            yield return null;
+        }
+        
+        fadeImage.color = Color.clear;
     }
 
     private IEnumerator FadeRoutine(float startAlpha, float targetAlpha, float duration, Color color)
