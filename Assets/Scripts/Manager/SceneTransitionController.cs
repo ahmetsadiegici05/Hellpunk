@@ -1,10 +1,11 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using System.Collections;
 
 /// <summary>
-/// Sahne geçişlerini ve animasyonlarını yöneten kontrolcü.
+/// "Spin & Zoom" Transition
+/// Kamerayı ve dünyayı döndürerek (vortex etkisi) sahneden uzaklaştırır.
 /// </summary>
 public class SceneTransitionController : MonoBehaviour
 {
@@ -29,17 +30,21 @@ public class SceneTransitionController : MonoBehaviour
         }
     }
 
-    private Canvas transitionCanvas;
-    private Image fadeImage;
+    [Header("Spin Settings")]
+    [SerializeField] private float duration = 1.0f;
+    [SerializeField] private float zoomAmount = 0.05f; // En son ne kadar küçülsün
+    [SerializeField] private float spinRotations = 2f; // Kaç tam tur dönsün
 
-    // Singleton yönetimi
+    private Canvas overlayCanvas;
+    private Image blackoutImage;
+
     private void Awake()
     {
         if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
-            CreateTransitionUI();
+            CreateOverlay();
         }
         else if (instance != this)
         {
@@ -47,135 +52,152 @@ public class SceneTransitionController : MonoBehaviour
         }
     }
 
-    private void CreateTransitionUI()
+    private void CreateOverlay()
     {
-        GameObject canvasObj = new GameObject("TransitionCanvas");
+        if (overlayCanvas != null) return;
+
+        GameObject canvasObj = new GameObject("TransitionOverlay");
         canvasObj.transform.SetParent(transform);
         
-        transitionCanvas = canvasObj.AddComponent<Canvas>();
-        transitionCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        transitionCanvas.sortingOrder = 999; // En üstte
-
-        GameObject imgObj = new GameObject("FadeImage");
-        imgObj.transform.SetParent(canvasObj.transform);
+        overlayCanvas = canvasObj.AddComponent<Canvas>();
+        overlayCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        overlayCanvas.sortingOrder = 9999;
         
-        fadeImage = imgObj.AddComponent<Image>();
-        fadeImage.color = Color.clear; // Başlangıçta görünmez
+        GameObject imgObj = new GameObject("Blackout");
+        imgObj.transform.SetParent(overlayCanvas.transform);
         
-        RectTransform rect = imgObj.GetComponent<RectTransform>();
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.sizeDelta = Vector2.zero;
+        blackoutImage = imgObj.AddComponent<Image>();
+        blackoutImage.color = Color.clear;
+        blackoutImage.raycastTarget = false; // Tıklamayı engellemesin
         
-        // Touch/Click geçirmemesi için
-        fadeImage.raycastTarget = false; 
+        RectTransform rt = imgObj.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
     }
 
-    /// <summary>
-    /// Level geçişini başlatır: Kamera animasyonu -> Fade Out -> Sahne Yükle -> Fade In
-    /// </summary>
     public void LoadSceneWithTransition(string sceneName)
     {
-        StartCoroutine(TransitionRoutine(sceneName));
+        if (overlayCanvas == null) CreateOverlay();
+        StartCoroutine(SpinRoutine(sceneName));
     }
 
-    private IEnumerator TransitionRoutine(string sceneName)
+    private IEnumerator SpinRoutine(string sceneName)
     {
-        // 1. Raycast'i aç ki oyuncu hareket edemesin
-        if (fadeImage != null) fadeImage.raycastTarget = true;
+        // --- STEP 1: EXIT SCENE (SPIN IN) ---
+        Time.timeScale = 0f; // Fizik ve inputları dondur
+        
+        Camera cam = Camera.main;
+        float startSize = 5f;
+        Quaternion startRot = Quaternion.identity;
 
-        // 2. Beyaz Flash efekti (çok hızlı)
-        yield return StartCoroutine(FlashEffect());
-
-        // 3. Kamera Animasyonu (kısa zoom out)
-        CameraController camController = FindFirstObjectByType<CameraController>();
-        if (camController != null)
+        // Mevcut kamera bilgilerini al
+        if (cam != null)
         {
-            bool animComplete = false;
-            StartCoroutine(camController.PlayLevelExitAnimation(() => { animComplete = true; }));
-            
-            // Animasyon bitene kadar bekle (timeout koyalım)
-            float timeout = 1f;
-            while (!animComplete && timeout > 0)
-            {
-                timeout -= Time.deltaTime;
-                yield return null;
-            }
+            startSize = cam.orthographicSize;
+            startRot = cam.transform.rotation;
         }
 
-        // 4. Fade Out (Siyaha döner) - daha hızlı
-        yield return StartCoroutine(FadeRoutine(0f, 1f, 0.3f, Color.black));
+        float timer = 0f;
+        while (timer < duration)
+        {
+            timer += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(timer / duration);
+            
+            // Ease In Cubic (yavaş hızlanarak başla)
+            float curve = t * t * t;
 
-        // 5. Sahneyi Yükle
+            if (cam != null)
+            {
+                // Kamerayı döndür (Z ekseninde)
+                float currentRotAngle = curve * 360f * spinRotations;
+                cam.transform.rotation = startRot * Quaternion.Euler(0, 0, currentRotAngle);
+                
+                // Kamerayı merkeze doğru zoom'la (Vortex etkisi için)
+                cam.orthographicSize = Mathf.Lerp(startSize, zoomAmount, curve);
+            }
+
+            // Sonlara doğru ekranı karart (Geçiş anındaki çirkinliği gizlemek için)
+            if (t > 0.7f && blackoutImage != null)
+            {
+                float fadeT = (t - 0.7f) / 0.3f;
+                blackoutImage.color = new Color(0, 0, 0, fadeT);
+            }
+
+            yield return null;
+        }
+
+        // Tam karartma
+        if (blackoutImage != null) blackoutImage.color = Color.black;
+
+
+        // --- STEP 2: LOAD NEW SCENE ---
         AsyncOperation op = SceneManager.LoadSceneAsync(sceneName);
         op.allowSceneActivation = false;
-
-        // Yükleme bitene kadar bekle
+        
         while (op.progress < 0.9f)
-        {
             yield return null;
-        }
-        
-        op.allowSceneActivation = true;
-
-        // Sahne değişmesini bekle
-        yield return new WaitForEndOfFrame();
-        yield return new WaitForEndOfFrame();
-
-        // Yeni sahne için TimeScale düzelt
-        Time.timeScale = 1f;
-
-        // 6. Fade In (Siyahtan açılır) - smooth
-        yield return StartCoroutine(FadeRoutine(1f, 0f, 0.8f, Color.black));
-
-        // İşlem bitti, etkileşimi aç
-        if (fadeImage != null) fadeImage.raycastTarget = false;
-    }
-    
-    /// <summary>
-    /// Hızlı beyaz flash efekti - level geçişinde parlama
-    /// </summary>
-    private IEnumerator FlashEffect()
-    {
-        if (fadeImage == null) CreateTransitionUI();
-        
-        float flashDuration = 0.15f;
-        float time = 0f;
-        
-        // Beyaza flash
-        while (time < flashDuration)
-        {
-            time += Time.deltaTime;
-            float t = time / flashDuration;
-            float alpha = Mathf.Sin(t * Mathf.PI); // 0 -> 1 -> 0 eğrisi
-            fadeImage.color = new Color(1f, 1f, 1f, alpha * 0.7f);
-            yield return null;
-        }
-        
-        fadeImage.color = Color.clear;
-    }
-
-    private IEnumerator FadeRoutine(float startAlpha, float targetAlpha, float duration, Color color)
-    {
-        if (fadeImage == null) CreateTransitionUI();
-        
-        Color c = color;
-        float time = 0f;
-
-        fadeImage.color = new Color(c.r, c.g, c.b, startAlpha);
-
-        while (time < duration)
-        {
-            time += Time.deltaTime;
-            float t = time / duration;
-            // Smoothstep
-            t = t * t * (3f - 2f * t);
             
-            float alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
-            fadeImage.color = new Color(c.r, c.g, c.b, alpha);
-            yield return null;
-        }
+        op.allowSceneActivation = true;
+        yield return null; // Aktifleşme için bir frame bekle
+        
+        // --- STEP 3: ENTER SCENE (SPIN OUT) ---
+        
+        // Yeni sahnenin kamerasını bul
+        cam = Camera.main;
+        if (cam == null) cam = FindFirstObjectByType<Camera>();
+        
+        if (cam != null)
+        {
+            // Yeni kameranın orijinal ayarlarını sakla
+            float targetSize = cam.orthographicSize;
+            Quaternion targetRot = cam.transform.rotation;
+            
+            // Başlangıç durumunu ayarla (Dönmüş ve küçük)
+            cam.orthographicSize = zoomAmount;
+            cam.transform.rotation = targetRot * Quaternion.Euler(0, 0, 360f * spinRotations); // Spun state
+            
+            timer = 0f;
+            while (timer < duration)
+            {
+                timer += Time.unscaledDeltaTime;
+                float t = Mathf.Clamp01(timer / duration);
+                
+                // Ease Out Cubic (hızlı başla, yavaşlayarak dur)
+                float curve = 1f - Mathf.Pow(1f - t, 3f);
+                
+                // Dönüşü geri al
+                float currentRotAngle = (1f - curve) * 360f * spinRotations;
+                cam.transform.rotation = targetRot * Quaternion.Euler(0, 0, currentRotAngle);
+                
+                // Zoom'u geri aç
+                cam.orthographicSize = Mathf.Lerp(zoomAmount, targetSize, curve);
+                
+                // Ekran karartmasını aç
+                if (t < 0.4f && blackoutImage != null)
+                {
+                    // İlk %40'lık kısımda aç
+                    blackoutImage.color = Color.Lerp(Color.black, Color.clear, t / 0.4f);
+                }
+                else if (blackoutImage != null)
+                {
+                    blackoutImage.color = Color.clear;
+                }
 
-        fadeImage.color = new Color(c.r, c.g, c.b, targetAlpha);
+                yield return null;
+            }
+            
+            // Garantileme
+            cam.transform.rotation = targetRot;
+            cam.orthographicSize = targetSize;
+        }
+        else
+        {
+            // Kamera yoksa sadece blackout'u kaldır
+            if (blackoutImage != null) blackoutImage.color = Color.clear;
+        }
+        
+        Time.timeScale = 1f; // Oyunu devam ettir
     }
 }
