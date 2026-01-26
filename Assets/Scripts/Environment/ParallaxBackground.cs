@@ -1,150 +1,132 @@
 using UnityEngine;
 
 /// <summary>
-/// Parallax arka plan sistemi - Kamera hareket ettikçe arka plan da hareket eder
-/// ve sonsuz tekrar (infinite scrolling) sağlar. Kamera görüş alanını her zaman kaplar.
+/// 2D Platformer için optimize edilmiş Parallax arka plan sistemi
+/// Yatay panoramik görseller için ideal (1920x1080, 2048x512 vb.)
 /// </summary>
 public class ParallaxBackground : MonoBehaviour
 {
     [Header("Parallax Ayarları")]
-    [Tooltip("Parallax efekt miktarı. 0 = sabit, 1 = kamerayla aynı hızda")]
+    [Tooltip("Yatay parallax efekt. 0 = sabit, 1 = kamerayla aynı hızda")]
     [Range(0f, 1f)]
     public float parallaxEffectX = 0.5f;
     
-    [Tooltip("Dikey parallax efekt miktarı")]
+    [Tooltip("Dikey parallax efekt (genellikle 0 veya çok düşük)")]
     [Range(0f, 1f)]
-    public float parallaxEffectY = 0.3f;
+    public float parallaxEffectY = 0f;
     
-    [Header("Tekrarlama Ayarları")]
-    [Tooltip("Arka planın yatay olarak tekrarlanmasını aktif eder")]
-    public bool infiniteHorizontal = true;
+    [Header("Ölçekleme")]
+    [Tooltip("Kamera yüksekliğine göre otomatik ölçekle")]
+    public bool autoScaleToCamera = true;
     
-    [Tooltip("Arka planın dikey olarak tekrarlanmasını aktif eder")]
-    public bool infiniteVertical = true;
-    
-    [Header("Ölçek Ayarları")]
-    [Tooltip("Arka planın minimum ölçeği")]
-    public float minScale = 3f;
+    [Tooltip("Manuel ölçek (autoScale kapalıysa)")]
+    public float manualScale = 5f;
     
     [Tooltip("Ekstra ölçek çarpanı")]
-    public float scaleMultiplier = 1.5f;
+    public float extraScale = 1.2f;
     
-    [Tooltip("Kopyalar arası overlap (boşluk önleme)")]
-    public float overlapAmount = 0.02f;
-    
-    [Header("Referanslar")]
-    [Tooltip("Boş bırakılırsa Main Camera otomatik bulunur")]
-    public Transform cameraTransform;
-    
-    private float spriteWidth;
-    private float spriteHeight;
-    private Vector3 lastCameraPosition;
-    private SpriteRenderer spriteRenderer;
+    private Transform cameraTransform;
     private Camera mainCamera;
+    private SpriteRenderer spriteRenderer;
+    private float textureUnitSizeX;
+    private Vector3 lastCameraPosition;
     
-    // Arka plan kopyaları (3x3 grid - tüm yönleri kapsar)
-    private GameObject[,] copies = new GameObject[3, 3];
+    // Sadece yatay 3 tile (sol, merkez, sağ)
+    private SpriteRenderer[] tiles;
+    private float appliedScale;
 
     void Start()
     {
-        // Kamera referansı
         mainCamera = Camera.main;
-        if (mainCamera != null)
-        {
-            cameraTransform = mainCamera.transform;
-        }
-        
-        if (cameraTransform == null)
-        {
-            Debug.LogError("ParallaxBackground: Kamera bulunamadı!");
-            enabled = false;
-            return;
-        }
-        
+        cameraTransform = mainCamera.transform;
         spriteRenderer = GetComponent<SpriteRenderer>();
+        
         if (spriteRenderer == null || spriteRenderer.sprite == null)
         {
-            Debug.LogWarning("ParallaxBackground: SpriteRenderer veya Sprite bulunamadı!");
+            Debug.LogError("ParallaxBackground: SpriteRenderer veya Sprite yok!");
             enabled = false;
             return;
         }
         
-        // Kamera görüş alanına göre ölçekle
-        AutoScaleToCamera();
+        // Ölçeği hesapla ve uygula
+        CalculateAndApplyScale();
+        
+        // Başlangıç pozisyonu
+        transform.position = new Vector3(
+            cameraTransform.position.x,
+            cameraTransform.position.y,
+            transform.position.z
+        );
         
         lastCameraPosition = cameraTransform.position;
         
-        // Sprite boyutlarını al (scale uygulandıktan sonra)
-        spriteWidth = spriteRenderer.bounds.size.x;
-        spriteHeight = spriteRenderer.bounds.size.y;
+        // Sadece yatay 3 tile oluştur (sol, merkez, sağ)
+        CreateHorizontalTiles();
         
-        // Pozisyonu kameraya göre ayarla
-        transform.position = new Vector3(cameraTransform.position.x, cameraTransform.position.y, transform.position.z);
-        
-        // 3x3 grid oluştur (merkez + 8 komşu)
-        CreateBackgroundGrid();
-        
-        Debug.Log($"ParallaxBackground: Ölçek={transform.localScale}, Boyut={spriteWidth}x{spriteHeight}");
+        Debug.Log($"ParallaxBackground: Scale={appliedScale}, Tile genişliği={textureUnitSizeX}");
     }
     
-    void AutoScaleToCamera()
+    void CalculateAndApplyScale()
     {
-        if (mainCamera == null || spriteRenderer == null) return;
+        Sprite sprite = spriteRenderer.sprite;
+        float spriteHeight = sprite.bounds.size.y;
+        float spriteWidth = sprite.bounds.size.x;
         
-        // Kameranın görüş alanı boyutlarını hesapla
-        float cameraHeight = mainCamera.orthographicSize * 2f;
-        float cameraWidth = cameraHeight * mainCamera.aspect;
-        
-        // Sprite'ın orijinal boyutları (pixels per unit hesaba katılarak)
-        float spriteOriginalWidth = spriteRenderer.sprite.bounds.size.x;
-        float spriteOriginalHeight = spriteRenderer.sprite.bounds.size.y;
-        
-        // Kamerayı kaplamak için gereken ölçek
-        float scaleX = (cameraWidth / spriteOriginalWidth) * scaleMultiplier;
-        float scaleY = (cameraHeight / spriteOriginalHeight) * scaleMultiplier;
-        
-        // En büyük ölçeği kullan (tam kaplama için)
-        float finalScale = Mathf.Max(scaleX, scaleY, minScale);
-        
-        transform.localScale = new Vector3(finalScale, finalScale, 1f);
-        
-        Debug.Log($"ParallaxBackground: Camera size={cameraWidth}x{cameraHeight}, Sprite size={spriteOriginalWidth}x{spriteOriginalHeight}, Final scale={finalScale}");
-    }
-    
-    void CreateBackgroundGrid()
-    {
-        // Overlap için boyutları biraz küçült (kopyalar üst üste binsin)
-        float effectiveWidth = spriteWidth * (1f - overlapAmount);
-        float effectiveHeight = spriteHeight * (1f - overlapAmount);
-        
-        for (int x = -1; x <= 1; x++)
+        if (autoScaleToCamera)
         {
-            for (int y = -1; y <= 1; y++)
+            // Kamera yüksekliğini tamamen kaplasın
+            float cameraHeight = mainCamera.orthographicSize * 2f;
+            appliedScale = (cameraHeight / spriteHeight) * extraScale;
+        }
+        else
+        {
+            appliedScale = manualScale;
+        }
+        
+        transform.localScale = new Vector3(appliedScale, appliedScale, 1f);
+        
+        // Tile genişliğini hesapla
+        textureUnitSizeX = spriteWidth * appliedScale;
+    }
+    
+    void CreateHorizontalTiles()
+    {
+        // Sadece 3 tile: sol (-1), merkez (0), sağ (+1)
+        tiles = new SpriteRenderer[3];
+        
+        for (int i = 0; i < 3; i++)
+        {
+            int x = i - 1; // -1, 0, 1
+            
+            if (x == 0)
             {
-                if (x == 0 && y == 0) continue; // Merkez = ana obje
+                // Merkez = ana sprite
+                tiles[i] = spriteRenderer;
+            }
+            else
+            {
+                // Yatay kopya oluştur
+                GameObject tileObj = new GameObject($"Tile_{x}");
+                tileObj.transform.SetParent(transform);
+                tileObj.transform.localPosition = new Vector3(
+                    x * textureUnitSizeX / appliedScale, 
+                    0, 
+                    0
+                );
+                tileObj.transform.localScale = Vector3.one;
+                tileObj.transform.localRotation = Quaternion.identity;
                 
-                GameObject copy = CreateBackgroundCopy($"BG_{x}_{y}");
-                copy.transform.position = transform.position + new Vector3(x * effectiveWidth, y * effectiveHeight, 0);
-                copies[x + 1, y + 1] = copy;
+                SpriteRenderer sr = tileObj.AddComponent<SpriteRenderer>();
+                sr.sprite = spriteRenderer.sprite;
+                sr.sortingLayerID = spriteRenderer.sortingLayerID;
+                sr.sortingOrder = spriteRenderer.sortingOrder;
+                sr.color = spriteRenderer.color;
+                
+                tiles[i] = sr;
             }
         }
     }
-    
-    GameObject CreateBackgroundCopy(string name)
-    {
-        GameObject copy = new GameObject(name);
-        copy.transform.SetParent(transform.parent); // Aynı parent'a ekle
-        copy.transform.localScale = transform.localScale;
-        
-        SpriteRenderer copyRenderer = copy.AddComponent<SpriteRenderer>();
-        copyRenderer.sprite = spriteRenderer.sprite;
-        copyRenderer.sortingLayerID = spriteRenderer.sortingLayerID;
-        copyRenderer.sortingOrder = spriteRenderer.sortingOrder;
-        copyRenderer.color = spriteRenderer.color;
-        
-        return copy;
-    }
-    
+
     void LateUpdate()
     {
         if (cameraTransform == null) return;
@@ -152,125 +134,46 @@ public class ParallaxBackground : MonoBehaviour
         // Kamera hareket miktarı
         Vector3 deltaMovement = cameraTransform.position - lastCameraPosition;
         
-        // Parallax hareketi uygula
-        float moveX = deltaMovement.x * parallaxEffectX;
-        float moveY = deltaMovement.y * parallaxEffectY;
-        
-        transform.position += new Vector3(moveX, moveY, 0);
-        
-        // Sonsuz tekrar kontrolü
-        CheckAndRepositionGrid();
+        // Parallax hareketi (yatay ağırlıklı)
+        transform.position += new Vector3(
+            deltaMovement.x * parallaxEffectX,
+            deltaMovement.y * parallaxEffectY,
+            0
+        );
         
         lastCameraPosition = cameraTransform.position;
-    }
-    
-    void CheckAndRepositionGrid()
-    {
-        float effectiveWidth = spriteWidth * (1f - overlapAmount);
-        float effectiveHeight = spriteHeight * (1f - overlapAmount);
         
-        // Kamera ile arka plan merkezi arasındaki mesafe
+        // Sonsuz yatay tekrar için pozisyon kontrolü
         float distX = cameraTransform.position.x - transform.position.x;
-        float distY = cameraTransform.position.y - transform.position.y;
         
-        // Yatay reposition
-        if (infiniteHorizontal)
+        if (Mathf.Abs(distX) >= textureUnitSizeX)
         {
-            if (distX > effectiveWidth * 0.5f)
-            {
-                ShiftGrid(1, 0);
-            }
-            else if (distX < -effectiveWidth * 0.5f)
-            {
-                ShiftGrid(-1, 0);
-            }
-        }
-        
-        // Dikey reposition
-        if (infiniteVertical)
-        {
-            if (distY > effectiveHeight * 0.5f)
-            {
-                ShiftGrid(0, 1);
-            }
-            else if (distY < -effectiveHeight * 0.5f)
-            {
-                ShiftGrid(0, -1);
-            }
-        }
-    }
-    
-    void ShiftGrid(int shiftX, int shiftY)
-    {
-        float effectiveWidth = spriteWidth * (1f - overlapAmount);
-        float effectiveHeight = spriteHeight * (1f - overlapAmount);
-        
-        // Ana objeyi taşı
-        transform.position += new Vector3(shiftX * effectiveWidth, shiftY * effectiveHeight, 0);
-        
-        // Tüm kopyaları güncelle
-        UpdateCopyPositions();
-    }
-    
-    void UpdateCopyPositions()
-    {
-        float effectiveWidth = spriteWidth * (1f - overlapAmount);
-        float effectiveHeight = spriteHeight * (1f - overlapAmount);
-        
-        for (int x = -1; x <= 1; x++)
-        {
-            for (int y = -1; y <= 1; y++)
-            {
-                if (x == 0 && y == 0) continue;
-                
-                if (copies[x + 1, y + 1] != null)
-                {
-                    copies[x + 1, y + 1].transform.position = transform.position + new Vector3(x * effectiveWidth, y * effectiveHeight, 0);
-                }
-            }
+            float offsetX = (distX > 0) ? textureUnitSizeX : -textureUnitSizeX;
+            transform.position += new Vector3(offsetX, 0, 0);
         }
     }
     
     void OnDestroy()
     {
-        // Kopyaları temizle
-        for (int x = 0; x < 3; x++)
-        {
-            for (int y = 0; y < 3; y++)
-            {
-                if (copies[x, y] != null)
-                {
-                    Destroy(copies[x, y]);
-                }
-            }
-        }
+        // Child objeler otomatik silinir
     }
     
-    /// <summary>
-    /// Editor'da görselleştirme
-    /// </summary>
     void OnDrawGizmosSelected()
     {
         SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr != null && sr.sprite != null)
-        {
-            float w = sr.bounds.size.x;
-            float h = sr.bounds.size.y;
-            
-            // Merkez
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(transform.position, new Vector3(w, h, 0));
-            
-            // Grid
-            Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
-            for (int x = -1; x <= 1; x++)
-            {
-                for (int y = -1; y <= 1; y++)
-                {
-                    if (x == 0 && y == 0) continue;
-                    Gizmos.DrawWireCube(transform.position + new Vector3(x * w, y * h, 0), new Vector3(w, h, 0));
-                }
-            }
-        }
+        if (sr == null || sr.sprite == null) return;
+        
+        float scale = autoScaleToCamera ? extraScale : manualScale;
+        float w = sr.sprite.bounds.size.x * transform.localScale.x;
+        float h = sr.sprite.bounds.size.y * transform.localScale.y;
+        
+        // Merkez
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position, new Vector3(w, h, 0));
+        
+        // Yatay komşular
+        Gizmos.color = new Color(1f, 1f, 0f, 0.5f);
+        Gizmos.DrawWireCube(transform.position + new Vector3(-w, 0, 0), new Vector3(w, h, 0));
+        Gizmos.DrawWireCube(transform.position + new Vector3(w, 0, 0), new Vector3(w, h, 0));
     }
 }

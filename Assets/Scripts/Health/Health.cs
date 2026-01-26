@@ -6,6 +6,7 @@ public class Health : MonoBehaviour
     [Header("Health")]
     [SerializeField] private float startingHealth;
     public float currentHealth { get; private set; }
+    public float maxHealth => startingHealth;
     private Animator anim;
     private bool dead;
 
@@ -41,6 +42,18 @@ public class Health : MonoBehaviour
         {
             GameManager.Instance.PlayPlayerHitSound();
         }
+        
+        // Ekran efektleri
+        if (ScreenEffects.Instance != null)
+        {
+            ScreenEffects.Instance.UpdateHealthVignette(currentHealth / startingHealth);
+        }
+        
+        // Ekran sarsıntısı
+        if (ScreenShake.Instance != null)
+        {
+            ScreenShake.Instance.ShakeMedium();
+        }
 
         if (currentHealth > 0)
         {
@@ -66,6 +79,12 @@ public class Health : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.PlayHealSound();
+        }
+        
+        // İyileşme efektleri
+        if (ScreenEffects.Instance != null)
+        {
+            ScreenEffects.Instance.UpdateHealthVignette(currentHealth / startingHealth);
         }
     }
 

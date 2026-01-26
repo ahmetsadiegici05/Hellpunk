@@ -14,7 +14,7 @@ public class GuitarSkillSystem : MonoBehaviour
     public static GuitarSkillSystem Instance { get; private set; }
 
     [Header("Skill Settings")]
-    [SerializeField] private float healAmount = 30f;
+    [SerializeField] private float healAmount = 1f;
     [SerializeField] private float fireballDamage = 25f;
     [SerializeField] private float ultimateDamage = 50f;
     [SerializeField] private float ultimateRadius = 5f;

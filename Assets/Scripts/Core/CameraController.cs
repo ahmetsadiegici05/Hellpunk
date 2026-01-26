@@ -4,8 +4,9 @@ public class CameraController : MonoBehaviour
 {
     [Header("Follow Player")]
     [SerializeField] private Transform player;
-    [SerializeField] private float followSpeed = 2f;
+    [SerializeField] private float followSpeed = 8f;
     [SerializeField] private float lookAheadDistance = 2f;
+    [SerializeField] private float catchUpSpeed = 15f; // Oyuncu uzaklaştığında daha hızlı yakala
 
     [Header("Zoom")]
     [SerializeField] private bool overrideOrthographicSize = true;
@@ -68,7 +69,20 @@ public class CameraController : MonoBehaviour
                 transform.position.z
             );
             
-            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * followSpeed);
+            // Oyuncu ile kamera arasındaki mesafeyi hesapla
+            float distanceToPlayer = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.y),
+                new Vector2(player.position.x, player.position.y)
+            );
+            
+            // Mesafe arttıkça hızı artır (catch-up mekanizması)
+            float dynamicSpeed = followSpeed;
+            if (distanceToPlayer > 2f)
+            {
+                dynamicSpeed = Mathf.Lerp(followSpeed, catchUpSpeed, (distanceToPlayer - 2f) / 5f);
+            }
+            
+            transform.position = Vector3.Lerp(transform.position, targetPos, Time.deltaTime * dynamicSpeed);
         }
     }
 
