@@ -91,7 +91,6 @@ public class RushingTrap : MonoBehaviour
 #else
             rb.velocity = new Vector2(directionX * moveSpeed, rb.velocity.y);
 #endif
-
             if (animator != null) animator.SetBool(ANIM_RUN, true);
         }
         else

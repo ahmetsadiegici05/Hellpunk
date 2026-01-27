@@ -3,8 +3,8 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    [SerializeField] private float speed = 10f;
-    [SerializeField] private float jumpPower = 15f;
+    [SerializeField] public float speed = 10f;
+    [SerializeField] public float jumpPower = 15f;
     [SerializeField] private float footstepInterval = 0.3f;
     [SerializeField] private float groundGravity = 7f;
     [SerializeField] private float wallSlideGravity = 1.5f;
@@ -40,6 +40,8 @@ public class PlayerMovement : MonoBehaviour
     // Double Jump
     private bool canDoubleJump = false;
     private bool hasDoubleJumped = false;
+
+    [HideInInspector] public bool lockMovement;
 
     #region Time Slow Compensation
     // ===========================================
@@ -84,6 +86,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        if (lockMovement)
+        {
+            horizontalInput = 0f;
+            rawHorizontalInput = 0f;
+            anim.SetBool("Run", false);
+            return;
+        }
+
         // Skill input modundayken hareketi devre dışı bırak
         if (GuitarSkillSystem.Instance != null && GuitarSkillSystem.Instance.IsInSkillInput)
         {

@@ -6,7 +6,7 @@ public class Health : MonoBehaviour
     [Header("Health")]
     [SerializeField] private float startingHealth;
     public float currentHealth { get; private set; }
-    public float maxHealth => startingHealth;
+    public float maxHealth;
     private Animator anim;
     private bool dead;
 
@@ -18,9 +18,12 @@ public class Health : MonoBehaviour
     [SerializeField] private int numberOfFlashes;
     private SpriteRenderer spriteRend;
 
+    public int reviveCount = 0;
+
     private void Awake()
     {
         currentHealth = startingHealth;
+        maxHealth = startingHealth;
         anim = GetComponent<Animator>();
         spriteRend = GetComponent<SpriteRenderer>();
 
@@ -58,6 +61,8 @@ public class Health : MonoBehaviour
         if (currentHealth > 0)
         {
             anim.SetTrigger("hurt");
+            GetComponent<PlayerMovement>().lockMovement = true;
+            Invoke(nameof(UnlockMovement), 0.35f);
             StartCoroutine(Invunerability());
         }
         else
@@ -66,6 +71,8 @@ public class Health : MonoBehaviour
             {
                 anim.SetTrigger("die");
                 GetComponent<PlayerMovement>().enabled = false;
+                GetComponent<PlayerMovement>().lockMovement = true;
+                Invoke(nameof(UnlockMovement), 0.35f);
                 dead = true;
 
                 StartCoroutine(DeathSequence());
@@ -92,8 +99,10 @@ public class Health : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
 
-        if (uiManager != null)
+        if (uiManager != null && reviveCount <= 0)
             uiManager.GameOver();
+        else
+            uiManager.ContinueFromCheckpoint();
     }
 
     private IEnumerator Invunerability()
@@ -107,5 +116,10 @@ public class Health : MonoBehaviour
             yield return new WaitForSeconds(iFramesDuration / (numberOfFlashes * 2));
         }
         Physics2D.IgnoreLayerCollision(8, 9, false);
+    }
+
+    void UnlockMovement()
+    {
+        GetComponent<PlayerMovement>().lockMovement = false;
     }
 }

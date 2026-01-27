@@ -31,6 +31,9 @@ public class UIManager : MonoBehaviour
     public bool IsGameOver => gameOverScreen != null && gameOverScreen.activeSelf;
     public bool IsVictory => victoryScreen != null && victoryScreen.activeSelf;
 
+    [Header("Shop")]
+    public GameObject shopPanel;
+
     private void Awake()
     {
         // Singleton pattern
@@ -207,6 +210,7 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GetComponent<PlayerMovement>().lockMovement = false;
     }
 
     public void RestartFromBeginning()
@@ -215,6 +219,7 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         CheckpointData.ResetData();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GetComponent<PlayerMovement>().lockMovement = false;
     }
 
     public void Restart()
@@ -222,6 +227,7 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        GetComponent<PlayerMovement>().lockMovement = false;
     }
 
     public void MainMenu()
@@ -229,6 +235,26 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
+    }
+
+    public void OpenShopPanel()
+    {
+        if (shopPanel == null)
+            return;
+
+        shopPanel.SetActive(true);
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+
+    public void CloseShopPanel()
+    {
+        if (shopPanel == null)
+            return;
+
+        shopPanel.SetActive(false);
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void Quit()

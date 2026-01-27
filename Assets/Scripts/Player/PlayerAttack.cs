@@ -5,7 +5,7 @@ public class PlayerAttack : MonoBehaviour
     [Header("Melee Settings")]
     [SerializeField] private float attackCooldown = 0.5f;
     [SerializeField] private float attackRange = 0.8f;
-    [SerializeField] private float damage = 3f;
+    [SerializeField] public float damage = 3f;
     [SerializeField] private LayerMask enemyLayers;
     [SerializeField] private Transform attackPoint;
 
@@ -79,6 +79,7 @@ public class PlayerAttack : MonoBehaviour
 
     private void Attack()
     {
+        playerMovement.lockMovement = true;
         anim.SetTrigger("punch");
         cooldownTimer = 0;
 
@@ -98,6 +99,8 @@ public class PlayerAttack : MonoBehaviour
                 }
             }
         }
+
+        Invoke(nameof(UnlockMovement), 0.35f);
     }
 
     /// <summary>
@@ -115,6 +118,7 @@ public class PlayerAttack : MonoBehaviour
     /// </summary>
     public void FireballAttack()
     {
+        playerMovement.lockMovement = true; 
         anim.SetTrigger("attack");
         fireballCooldownTimer = 0;
 
@@ -124,6 +128,8 @@ public class PlayerAttack : MonoBehaviour
             fireballs[fireballIndex].transform.position = firePoint.position;
             fireballs[fireballIndex].GetComponent<Projectile>().SetDirection(Mathf.Sign(transform.localScale.x));
         }
+
+        Invoke(nameof(UnlockMovement), 0.35f);
     }
 
     private int FindFireball()
@@ -142,5 +148,10 @@ public class PlayerAttack : MonoBehaviour
     {
         if (attackPoint == null) return;
         Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+    }
+
+    void UnlockMovement()
+    {
+        playerMovement.lockMovement = false;
     }
 }

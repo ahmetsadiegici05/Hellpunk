@@ -18,6 +18,7 @@ public class MainMenu : MonoBehaviour
 	{
 		SetupButtons();
 		SelectFirstButton();
+		GetComponent<PlayerMovement>().lockMovement = false;
 
 		Cursor.visible = true;
 		Cursor.lockState = CursorLockMode.None;
@@ -66,6 +67,7 @@ public class MainMenu : MonoBehaviour
 	{
 		CheckpointData.ResetData();
 		SceneManager.LoadScene("Level1");
+		GetComponent<PlayerMovement>().lockMovement = false;
 	}
 
 	public void QuitGame()

@@ -15,6 +15,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip enemyHitSound;
     [SerializeField] private AudioClip playerHitSound;
 
+    [Header("Data")]
+    [SerializeField] public int coin;
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;

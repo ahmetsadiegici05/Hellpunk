@@ -91,6 +91,8 @@ public class EnemyHealth : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        GameManager.Instance.coin += 10;
         
         // Can barını yok et
         if (healthBar != null)
