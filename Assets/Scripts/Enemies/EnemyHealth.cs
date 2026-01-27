@@ -7,6 +7,7 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private bool isBoss = false;
     [SerializeField] private float maxHealth = 9f; // 3 yumrukta ölsün (hasar 3 x 3 = 9)
     [SerializeField] private GameObject deathEffect;
+    public bool isDamagableObject = false;
 
     [Header("Health Bar")]
     [SerializeField] private bool showHealthBar = true;
@@ -15,6 +16,7 @@ public class EnemyHealth : MonoBehaviour
     [Header("Components")]
     [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    public ParticleSystem particleSystem;
 
     private float currentHealth;
     private bool isDead = false;
@@ -79,7 +81,7 @@ public class EnemyHealth : MonoBehaviour
             StartCoroutine(nameof(FlashEffect));
         }
 
-        if (!isBoss && GameManager.Instance != null)
+        if (!isBoss && GameManager.Instance != null && !isDamagableObject)
         {
             GameManager.Instance.PlayEnemyHitSound();
         }
@@ -92,7 +94,17 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
+        if (isDamagableObject) 
+        {
+            GameManager.Instance.coin += 10;
+            particleSystem.Play();
+            ShopManager.Instance.UpdateCoinText();
+            Destroy(healthBar.gameObject);
+            return;
+        }
+
         GameManager.Instance.coin += 10;
+        ShopManager.Instance.UpdateCoinText();
         
         // Can barını yok et
         if (healthBar != null)
@@ -101,6 +113,7 @@ public class EnemyHealth : MonoBehaviour
         }
 
         if (animator != null) animator.SetTrigger("Die");
+
 
         if (isBoss)
         {
@@ -162,5 +175,11 @@ public class EnemyHealth : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         gameObject.SetActive(false);
+    }
+
+    public void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Ulti")
+            TakeDamage(100);
     }
 }

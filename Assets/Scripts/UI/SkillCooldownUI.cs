@@ -22,6 +22,7 @@ public class SkillCooldownUI : MonoBehaviour
     [SerializeField] private Color fireballColor = new Color(1f, 0.5f, 0.1f, 1f);
     [SerializeField] private Color timeSlowColor = new Color(0.6f, 0.4f, 1f, 1f); // Mor
     [SerializeField] private Color shockwaveColor = new Color(1f, 0.9f, 0.2f, 1f); // Sarı
+    [SerializeField] private Color ultimateColor = Color.red;
 
     private Canvas canvas;
     private GuitarSkillSystem skillSystem;
@@ -30,6 +31,7 @@ public class SkillCooldownUI : MonoBehaviour
     private SkillIcon healSkill;
     private SkillIcon fireballSkill;
     private SkillIcon timeSlowSkill;
+    private SkillIcon ultimateSkill;
 
     private class SkillIcon
     {
@@ -102,6 +104,7 @@ public class SkillCooldownUI : MonoBehaviour
         healSkill = CreateSkillIcon(canvasObj.transform, "Heal", "F", 0, healColor);
         fireballSkill = CreateSkillIcon(canvasObj.transform, "Fireball", "Q", 1, fireballColor);
         timeSlowSkill = CreateSkillIcon(canvasObj.transform, "TimeSlow", "R", 2, timeSlowColor);
+        ultimateSkill = CreateSkillIcon(canvasObj.transform, "Ultimate", "U", 3, ultimateColor);
     }
 
     private SkillIcon CreateSkillIcon(Transform parent, string name, string key, int index, Color skillColor)
@@ -226,6 +229,7 @@ public class SkillCooldownUI : MonoBehaviour
     private Coroutine healShakeCoroutine;
     private Coroutine fireballShakeCoroutine;
     private Coroutine timeSlowShakeCoroutine;
+    private Coroutine ultimateShakeCoroutine;
     
     private void OnDestroy()
     {
@@ -259,6 +263,12 @@ public class SkillCooldownUI : MonoBehaviour
                 if (timeSlowShakeCoroutine != null) StopCoroutine(timeSlowShakeCoroutine);
                 if (targetSkill != null && targetSkill.container != null)
                     timeSlowShakeCoroutine = StartCoroutine(NoSoulShakeEffect(targetSkill));
+                break;
+            case GuitarSkillSystem.SkillType.Ultimate:
+                targetSkill = ultimateSkill;
+                if (ultimateShakeCoroutine != null) StopCoroutine(ultimateShakeCoroutine);
+                if (targetSkill != null && targetSkill.container != null)
+                    ultimateShakeCoroutine = StartCoroutine(NoSoulShakeEffect(targetSkill));
                 break;
         }
     }
@@ -331,6 +341,8 @@ public class SkillCooldownUI : MonoBehaviour
         
         // TimeSlow için özel güncelleme (aktifken kalan süreyi göster)
         UpdateTimeSlowSkillIcon();
+
+        UpdateUltimateSkillIcon();
     }
     
     private void UpdateTimeSlowSkillIcon()
@@ -510,6 +522,61 @@ public class SkillCooldownUI : MonoBehaviour
         }
     }
 
+    private void UpdateUltimateSkillIcon()
+    {
+        if (ultimateSkill == null || ultimateSkill.container == null) return;
+
+        // UltimateAbility.Instance kontrolü yapılıyor [1]
+        bool isUltimateActive = UltimateAbility.Instance != null && UltimateAbility.Instance.IsUltimateActive;
+
+        if (isUltimateActive)
+        {
+            float timeRemaining = UltimateAbility.Instance.ActiveTimeRemaining; // [3]
+            float duration = UltimateAbility.Instance.ActiveDuration;
+            float progress = timeRemaining / duration;
+
+            if (ultimateSkill.cooldownFill != null)
+            {
+                ultimateSkill.cooldownFill.fillAmount = progress;
+                ultimateSkill.cooldownFill.color = new Color(1f, 0.2f, 0.2f, 1f); // Ulti için parlak kırmızı
+            }
+
+            if (ultimateSkill.icon != null)
+            {
+                ultimateSkill.icon.color = new Color(1f, 0.5f, 0.5f, 1f);
+                float pulse = 1f + Mathf.Sin(Time.unscaledTime * 8f) * 0.2f;
+                ultimateSkill.icon.transform.localScale = Vector3.one * pulse * 0.7f;
+                ultimateSkill.icon.rectTransform.anchoredPosition = new Vector2(0, 8f);
+            }
+
+            if (ultimateSkill.cooldownText != null)
+            {
+                ultimateSkill.cooldownText.text = timeRemaining.ToString("F1");
+                ultimateSkill.cooldownText.fontSize = 18;
+                ultimateSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, -8f);
+            }
+        }
+        else
+        {
+            // Normal moda dönme ve cooldown gösterme [5]
+            if (ultimateSkill.icon != null)
+            {
+                ultimateSkill.icon.rectTransform.anchoredPosition = Vector2.zero;
+                ultimateSkill.icon.transform.localScale = Vector3.one;
+            }
+
+            if (ultimateSkill.cooldownText != null)
+            {
+                ultimateSkill.cooldownText.rectTransform.anchoredPosition = Vector2.zero;
+                ultimateSkill.cooldownText.fontSize = 24;
+            }
+
+            // DÜZELTME: Kaynaktaki SkillType.TimeSlow hatası SkillType.Ultimate ile değiştirildi [6]
+            UpdateSkillIcon(ultimateSkill, skillSystem.UltimateCooldownProgress, skillSystem.IsUltimateReady, 
+                skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Ultimate);
+        }
+    }
+
     private IEnumerator PopEffect(RectTransform target)
     {
         float duration = 0.2f;
@@ -554,13 +621,14 @@ public class SkillCooldownUI : MonoBehaviour
         healSkill = FindSkillIcon(canvasTrans, "Heal", healColor);
         fireballSkill = FindSkillIcon(canvasTrans, "Fireball", fireballColor);
         timeSlowSkill = FindSkillIcon(canvasTrans, "TimeSlow", timeSlowColor);
-        
+        ultimateSkill = FindSkillIcon(canvasTrans, "Ultimate", ultimateColor);        
         // Spriteları yenile (Editor'de yaratılanlar Play modunda kaybolabilir)
         RefreshSkillSprites(healSkill, "Heal");
         RefreshSkillSprites(fireballSkill, "Fireball");
         RefreshSkillSprites(timeSlowSkill, "TimeSlow");
+        RefreshSkillSprites(ultimateSkill, "Ultimate");
 
-        return healSkill != null && fireballSkill != null && timeSlowSkill != null;
+        return healSkill != null && fireballSkill != null && timeSlowSkill != null && ultimateSkill != null;
     }
 
     private SkillIcon FindSkillIcon(Transform parent, string name, Color color)
@@ -608,6 +676,8 @@ public class SkillCooldownUI : MonoBehaviour
             return (1f - skillSystem.FireballCooldownProgress) * 5f; // fireballCooldown
         else if (skill == timeSlowSkill)
             return (1f - skillSystem.TimeSlowCooldownProgress) * 15f; // timeSlowCooldown
+        else if (skill == ultimateSkill)
+            return (1f - skillSystem.UltimateCooldownProgress) * 20f; // ultimateCooldown
         
         return 0f;
     }
@@ -708,6 +778,10 @@ public class SkillCooldownUI : MonoBehaviour
                 DrawClock(pixels, size, center, size * 0.4f);
                 break;
             case "Shockwave":
+                // Dalga/patlama çiz
+                DrawShockwave(pixels, size, center, size * 0.4f);
+                break;
+            case "Ultimate":
                 // Dalga/patlama çiz
                 DrawShockwave(pixels, size, center, size * 0.4f);
                 break;

@@ -26,7 +26,8 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private float fireballCooldown = 5f;
     [SerializeField] private float timeSlowCooldown = 15f;
     [SerializeField] private float shockwaveCooldown = 12f;
-
+    [SerializeField] private float ultimateCooldown = 20f;
+    
     [Header("Input Timeout")]
     [SerializeField] private float inputTimeout = 3f;
     [SerializeField] private float inputWindowPerArrow = 1f;
@@ -66,6 +67,7 @@ public class GuitarSkillSystem : MonoBehaviour
     private float fireballCooldownTimer = 0f;
     private float timeSlowCooldownTimer = 0f;
     private float shockwaveCooldownTimer = 0f;
+    private float ultimateCooldownTimer = 0f;
     
     // TimeSlow state
     private bool isTimeSlowActive = false;
@@ -110,11 +112,13 @@ public class GuitarSkillSystem : MonoBehaviour
     public float FireballCooldownProgress => fireballCooldownTimer <= 0 ? 1f : 1f - (fireballCooldownTimer / fireballCooldown);
     public float TimeSlowCooldownProgress => timeSlowCooldownTimer <= 0 ? 1f : 1f - (timeSlowCooldownTimer / timeSlowCooldown);
     public float ShockwaveCooldownProgress => shockwaveCooldownTimer <= 0 ? 1f : 1f - (shockwaveCooldownTimer / shockwaveCooldown);
+    public float UltimateCooldownProgress => ultimateCooldownTimer <= 0 ? 1f : 1f - (ultimateCooldownTimer / ultimateCooldown);
 
     public bool IsHealReady => healCooldownTimer <= 0f;
     public bool IsFireballReady => fireballCooldownTimer <= 0f;
     public bool IsTimeSlowReady => timeSlowCooldownTimer <= 0f;
     public bool IsShockwaveReady => shockwaveCooldownTimer <= 0f;
+    public bool IsUltimateReady => ultimateCooldownTimer <= 0f;
 
     public enum SkillType
     {
@@ -122,7 +126,8 @@ public class GuitarSkillSystem : MonoBehaviour
         Heal,       // F tuşu - 3 input - Mavi efekt
         Fireball,   // Q tuşu - 3 input
         TimeSlow,   // R tuşu - 3 input - Zaman yavaşlatma
-        Shockwave   // Kullanılmıyor şu an
+        Shockwave,  // Kullanılmıyor şu an
+        Ultimate    // U tuşu - 3 input - Ultimate skill
     }
 
     public enum ArrowDirection
@@ -228,6 +233,14 @@ public class GuitarSkillSystem : MonoBehaviour
             else
                 TriggerNoSoulFeedback(SkillType.TimeSlow);
         }
+        //ulti
+        else if (Input.GetKeyDown(KeyCode.U) && IsUltimateReady)
+        {
+            if (CanUseAbility())
+                ActivateSkill(SkillType.Ultimate, 3);
+            else
+                TriggerNoSoulFeedback(SkillType.Ultimate);
+        }
     }
     
     /// <summary>
@@ -288,6 +301,9 @@ public class GuitarSkillSystem : MonoBehaviour
             
         if (shockwaveCooldownTimer > 0)
             shockwaveCooldownTimer -= Time.unscaledDeltaTime;
+            
+        if (ultimateCooldownTimer > 0)
+            ultimateCooldownTimer -= Time.unscaledDeltaTime;
     }
 
     private void ActivateSkill(SkillType skillType, int inputCount)
@@ -502,6 +518,10 @@ public class GuitarSkillSystem : MonoBehaviour
                 break;
             case SkillType.Shockwave:
                 ExecuteShockwave();
+                break;
+            // Ultimate durumunu buraya ekle
+            case SkillType.Ultimate:
+                StartCoroutine(UseUlti());
                 break;
         }
     }
@@ -722,6 +742,25 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             Color timeSlowColor = new Color(0.6f, 0.4f, 1f, 1f); // Mor
             yield return StartCoroutine(ColorTintEffect(timeSlowColor));
+        }
+    }
+
+    public IEnumerator UseUlti()
+    {
+        // Cooldown başlat [5, 6]
+        ultimateCooldownTimer = ultimateCooldown;
+
+        if (GameManager.Instance.ultiObject != null)
+        {
+            GameManager.Instance.ultiObject.SetActive(true);
+            GameManager.Instance.ultiAnimator.SetTrigger("Ulti");
+        }
+        
+        yield return new WaitForSeconds(2f);
+
+        if (GameManager.Instance.ultiObject != null)
+        {
+            GameManager.Instance.ultiObject.SetActive(false);
         }
     }
 

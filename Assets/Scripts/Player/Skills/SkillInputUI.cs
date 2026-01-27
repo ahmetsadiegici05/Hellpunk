@@ -426,6 +426,7 @@ public class SkillInputUI : MonoBehaviour
             case GuitarSkillSystem.SkillType.Fireball: return fireballColor;
             case GuitarSkillSystem.SkillType.TimeSlow: return timeSlowColor;
             case GuitarSkillSystem.SkillType.Shockwave: return shockwaveColor;
+            case GuitarSkillSystem.SkillType.Ultimate: return Color.red;
             default: return Color.white;
         }
     }
@@ -639,6 +640,7 @@ public class SkillInputUI : MonoBehaviour
             case GuitarSkillSystem.SkillType.Fireball: return "FIREBALL";
             case GuitarSkillSystem.SkillType.TimeSlow: return "TIME SLOW";
             case GuitarSkillSystem.SkillType.Shockwave: return "SHOCKWAVE";
+            case GuitarSkillSystem.SkillType.Ultimate: return "ULTIMATE";
             default: return "";
         }
     }

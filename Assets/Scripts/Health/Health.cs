@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.Tilemaps;
 
 public class Health : MonoBehaviour
 {
@@ -20,6 +21,9 @@ public class Health : MonoBehaviour
 
     public int reviveCount = 0;
 
+    private static int darkStep = 0;
+    private const int maxSteps = 10;
+
     private void Awake()
     {
         currentHealth = startingHealth;
@@ -27,36 +31,31 @@ public class Health : MonoBehaviour
         anim = GetComponent<Animator>();
         spriteRend = GetComponent<SpriteRenderer>();
 
-        if (uiManager == null)
-        {
 #if UNITY_2023_1_OR_NEWER
+        if (uiManager == null)
             uiManager = FindAnyObjectByType<UIManager>(FindObjectsInactive.Include);
 #else
+        if (uiManager == null)
             uiManager = FindObjectOfType<UIManager>(true);
 #endif
-        }
     }
 
     public void TakeDamage(float _damage)
     {
+        if (dead) return;
+
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.PlayPlayerHitSound();
-        }
-        
-        // Ekran efektleri
+
         if (ScreenEffects.Instance != null)
-        {
             ScreenEffects.Instance.UpdateHealthVignette(currentHealth / startingHealth);
-        }
-        
-        // Ekran sarsıntısı
+
         if (ScreenShake.Instance != null)
-        {
             ScreenShake.Instance.ShakeMedium();
-        }
+
+        DarkenWorld();
 
         if (currentHealth > 0)
         {
@@ -67,32 +66,48 @@ public class Health : MonoBehaviour
         }
         else
         {
-            if (!dead)
-            {
-                anim.SetTrigger("die");
-                GetComponent<PlayerMovement>().enabled = false;
-                GetComponent<PlayerMovement>().lockMovement = true;
-                Invoke(nameof(UnlockMovement), 0.35f);
-                dead = true;
+            dead = true;
+            anim.SetTrigger("die");
 
-                StartCoroutine(DeathSequence());
-            }
+            GetComponent<PlayerMovement>().enabled = false;
+            GetComponent<PlayerMovement>().lockMovement = true;
+
+            StartCoroutine(DeathSequence());
+        }
+    }
+
+    private void DarkenWorld()
+    {
+        if (darkStep < maxSteps)
+            darkStep++;
+
+        float t = (float)darkStep / maxSteps;
+        Color targetColor = Color.Lerp(Color.white, Color.black, t);
+
+        if (GameManager.Instance == null) return;
+
+        foreach (var sr in GameManager.Instance.sprites)
+        {
+            if (sr != null)
+                sr.color = targetColor;
+        }
+
+        foreach (var tm in GameManager.Instance.tilemaps)
+        {
+            if (tm != null)
+                tm.color = targetColor;
         }
     }
 
     public void AddHealth(float _value)
     {
         currentHealth = Mathf.Clamp(currentHealth + _value, 0, startingHealth);
+
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.PlayHealSound();
-        }
-        
-        // İyileşme efektleri
+
         if (ScreenEffects.Instance != null)
-        {
             ScreenEffects.Instance.UpdateHealthVignette(currentHealth / startingHealth);
-        }
     }
 
     private IEnumerator DeathSequence()
@@ -108,6 +123,7 @@ public class Health : MonoBehaviour
     private IEnumerator Invunerability()
     {
         Physics2D.IgnoreLayerCollision(8, 9, true);
+
         for (int i = 0; i < numberOfFlashes; i++)
         {
             spriteRend.color = new Color(1, 0, 0, 0.5f);
@@ -115,6 +131,7 @@ public class Health : MonoBehaviour
             spriteRend.color = Color.white;
             yield return new WaitForSeconds(iFramesDuration / (numberOfFlashes * 2));
         }
+
         Physics2D.IgnoreLayerCollision(8, 9, false);
     }
 

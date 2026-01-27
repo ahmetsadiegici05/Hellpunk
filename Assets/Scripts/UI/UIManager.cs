@@ -33,6 +33,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Shop")]
     public GameObject shopPanel;
+    public ShopManager shopManager;
 
     private void Awake()
     {
@@ -245,6 +246,7 @@ public class UIManager : MonoBehaviour
         shopPanel.SetActive(true);
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+        shopManager.UpdateCoinText();
     }
 
     public void CloseShopPanel()

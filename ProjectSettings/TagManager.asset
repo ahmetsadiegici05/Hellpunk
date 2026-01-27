@@ -7,6 +7,9 @@ TagManager:
   - Ground
   - Trap
   - Shop
+  - Ulti
+  - Chest
+  - ChestPoint
   layers:
   - Default
   - TransparentFX
