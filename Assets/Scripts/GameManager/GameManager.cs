@@ -16,6 +16,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private AudioClip bossDeathSound;
     [SerializeField] private AudioClip enemyHitSound;
     [SerializeField] private AudioClip playerHitSound;
+    [SerializeField] public AudioClip guitarSound1;
+    [SerializeField] public AudioClip guitarSound2;
+    [SerializeField] public AudioClip guitarSound3;
 
     [Header("Data")]
     public int coin;

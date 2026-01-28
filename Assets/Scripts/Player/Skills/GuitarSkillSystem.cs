@@ -427,6 +427,10 @@ public class GuitarSkillSystem : MonoBehaviour
             {
                 currentInputIndex++;
 
+                if (currentInputIndex == 1) audioSource.PlayOneShot(GameManager.Instance.guitarSound1);
+                else if (currentInputIndex == 2) audioSource.PlayOneShot(GameManager.Instance.guitarSound2);
+                else if (currentInputIndex == 3) audioSource.PlayOneShot(GameManager.Instance.guitarSound3);
+
                 // Tüm inputlar doğru girildi mi?
                 if (currentInputIndex >= requiredSequence.Count)
                 {
@@ -754,6 +758,7 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             GameManager.Instance.ultiObject.SetActive(true);
             GameManager.Instance.ultiAnimator.SetTrigger("Ulti");
+            anim.SetTrigger("attack");
         }
         
         yield return new WaitForSeconds(2f);

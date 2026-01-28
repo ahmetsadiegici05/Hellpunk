@@ -100,6 +100,7 @@ public class EnemyHealth : MonoBehaviour
             particleSystem.Play();
             ShopManager.Instance.UpdateCoinText();
             Destroy(healthBar.gameObject);
+            StartCoroutine(FadeAndDestroy());
             return;
         }
 
@@ -113,7 +114,6 @@ public class EnemyHealth : MonoBehaviour
         }
 
         if (animator != null) animator.SetTrigger("Die");
-
 
         if (isBoss)
         {
