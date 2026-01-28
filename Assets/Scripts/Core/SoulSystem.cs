@@ -2,32 +2,37 @@ using UnityEngine;
 using System;
 
 /// <summary>
-/// Ruh toplama sistemi - düşman öldürüldüğünde ruh kazanılır
-/// Belirli sayıda ruh toplandığında ability kullanma hakkı verir
+/// Ultimate için Kill sayacı sistemi
+/// 7 düşman öldürüldüğünde Ultimate kullanılabilir
 /// </summary>
 public class SoulSystem : MonoBehaviour
 {
     public static SoulSystem Instance { get; private set; }
 
-    [Header("Soul Settings")]
-    [SerializeField] private int soulsPerCharge = 3; // Kaç ruh = 1 ability hakkı (Test için 1'e düşürüldü)
-    [SerializeField] private int maxCharges = 3; // Maksimum biriktirebileceği hak sayısı
+    [Header("Ultimate Settings")]
+    [SerializeField] private int killsForUltimate = 7; // 7 kill = 1 Ultimate hakkı
 
-    private int currentSouls = 0;
-    private int currentCharges = 0;
+    private int currentKills = 0;
+    private bool ultimateReady = false;
 
     // Events
-    public event Action<int, int> OnSoulCollected; // (currentSouls, soulsPerCharge)
-    public event Action<int> OnChargeGained; // (totalCharges)
-    public event Action<int> OnChargeUsed; // (remainingCharges)
+    public event Action<int, int> OnKillCountChanged; // (currentKills, killsForUltimate)
+    public event Action OnUltimateReady; // Ultimate hazır olduğunda
+    public event Action OnUltimateUsed; // Ultimate kullanıldığında
 
     // Properties
-    public int CurrentSouls => currentSouls;
-    public int SoulsPerCharge => soulsPerCharge;
-    public int CurrentCharges => currentCharges;
-    public int MaxCharges => maxCharges;
-    public bool CanUseAbility => currentCharges > 0;
-    public float SoulProgress => (float)currentSouls / soulsPerCharge;
+    public int CurrentKills => currentKills;
+    public int KillsRequired => killsForUltimate;
+    public bool IsUltimateReady => ultimateReady;
+    public float UltimateProgress => (float)currentKills / killsForUltimate;
+    
+    // Eski API uyumluluğu için
+    public int CurrentSouls => currentKills;
+    public int SoulsPerCharge => killsForUltimate;
+    public int CurrentCharges => ultimateReady ? 1 : 0;
+    public int MaxCharges => 1;
+    public bool CanUseAbility => ultimateReady; // Sadece Ultimate için kullanılacak
+    public float SoulProgress => UltimateProgress;
 
     private void Awake()
     {
@@ -47,61 +52,65 @@ public class SoulSystem : MonoBehaviour
     /// </summary>
     public void CollectSoul(int amount = 1)
     {
-        if (currentCharges >= maxCharges)
+        if (ultimateReady)
         {
-            // Maksimum hak sayısına ulaşıldı
+            // Ultimate zaten hazır, kill sayma
             return;
         }
 
-        currentSouls += amount;
-        OnSoulCollected?.Invoke(currentSouls, soulsPerCharge);
+        currentKills += amount;
+        OnKillCountChanged?.Invoke(currentKills, killsForUltimate);
 
-        // Yeterli ruh toplandı mı?
-        while (currentSouls >= soulsPerCharge && currentCharges < maxCharges)
+        // 7 kill'e ulaştı mı?
+        if (currentKills >= killsForUltimate)
         {
-            currentSouls -= soulsPerCharge;
-            currentCharges++;
-            OnChargeGained?.Invoke(currentCharges);
-            Debug.Log($"Ability hakkı kazanıldı! Toplam: {currentCharges}");
+            ultimateReady = true;
+            OnUltimateReady?.Invoke();
+            Debug.Log("🔥 ULTIMATE HAZIR! 7 düşman öldürüldü!");
+        }
+        else
+        {
+            Debug.Log($"Kill: {currentKills}/{killsForUltimate}");
         }
     }
 
     /// <summary>
-    /// Ability kullanıldığında çağrılır
+    /// Ultimate kullanıldığında çağrılır
     /// </summary>
     public bool UseCharge()
     {
-        if (currentCharges <= 0)
+        if (!ultimateReady)
         {
-            Debug.Log("Ability kullanmak için yeterli ruh yok!");
+            Debug.Log($"Ultimate için {killsForUltimate - currentKills} kill daha gerekli!");
             return false;
         }
 
-        currentCharges--;
-        OnChargeUsed?.Invoke(currentCharges);
-        Debug.Log($"Ability kullanıldı! Kalan hak: {currentCharges}");
+        ultimateReady = false;
+        currentKills = 0;
+        OnUltimateUsed?.Invoke();
+        OnKillCountChanged?.Invoke(currentKills, killsForUltimate);
+        Debug.Log("⚡ ULTIMATE KULLANILDI! Sayaç sıfırlandı.");
         return true;
     }
 
     /// <summary>
-    /// Test için - ruh ekle
+    /// Test için - kill ekle
     /// </summary>
-    [ContextMenu("Add Soul")]
-    public void DebugAddSoul()
+    [ContextMenu("Add Kill")]
+    public void DebugAddKill()
     {
         CollectSoul(1);
     }
 
     /// <summary>
-    /// Test için - hak ekle
+    /// Test için - Ultimate hazır yap
     /// </summary>
-    [ContextMenu("Add Charge")]
-    public void DebugAddCharge()
+    [ContextMenu("Make Ultimate Ready")]
+    public void DebugMakeUltimateReady()
     {
-        if (currentCharges < maxCharges)
-        {
-            currentCharges++;
-            OnChargeGained?.Invoke(currentCharges);
-        }
+        currentKills = killsForUltimate;
+        ultimateReady = true;
+        OnUltimateReady?.Invoke();
+        OnKillCountChanged?.Invoke(currentKills, killsForUltimate);
     }
 }

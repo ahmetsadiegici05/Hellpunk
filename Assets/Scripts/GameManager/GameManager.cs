@@ -112,11 +112,30 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < spawnCount; i++)
         {
-            Instantiate(
+            GameObject chest = Instantiate(
                 chestPrefab,
                 shuffledPoints[i].position,
                 Quaternion.identity
             );
+            
+            // Puzzle tipini ağırlıklı random ata (GuitarRiff daha sık)
+            EnemyHealth enemyHealth = chest.GetComponent<EnemyHealth>();
+            if (enemyHealth != null)
+            {
+                enemyHealth.hasPuzzle = true;
+                enemyHealth.puzzleDifficulty = Random.Range(1, 3);
+                
+                // Ağırlıklı random: GuitarRiff %50, Memory %25, Rhythm %25
+                int roll = Random.Range(0, 100);
+                enemyHealth.puzzleType = roll switch
+                {
+                    < 50 => EnemyHealth.PuzzleType.GuitarRiff,  // 0-49: %50
+                    < 75 => EnemyHealth.PuzzleType.Memory,      // 50-74: %25
+                    _ => EnemyHealth.PuzzleType.Rhythm          // 75-99: %25
+                };
+                
+                Debug.Log($"[GameManager] Sandık {i+1}: {enemyHealth.puzzleType}");
+            }
         }
     }
 
@@ -220,9 +239,117 @@ public class GameManager : MonoBehaviour
         audioSource.pitch = 1f;
     }
 
+    public void PlayGuitarSound(int index)
+    {
+        AudioClip clip = index switch
+        {
+            1 => guitarSound1,
+            2 => guitarSound2,
+            3 => guitarSound3,
+            _ => guitarSound1
+        };
+        
+        if (clip != null && audioSource != null)
+        {
+            audioSource.pitch = Random.Range(0.95f, 1.05f);
+            audioSource.PlayOneShot(clip);
+            audioSource.pitch = 1f;
+        }
+    }
+
     private void PlayOneShot(AudioClip clip)
     {
         if (clip != null && audioSource != null)
             audioSource.PlayOneShot(clip);
+    }
+
+    // ================= PUZZLE SYSTEM =================
+    
+    private bool isPuzzleActive = false;
+    private float savedTimeScale = 1f;
+    private Vector2 savedPlayerVelocity;
+    private Rigidbody2D playerRigidbody;
+    
+    /// <summary>
+    /// Global static flag - PlayerMovement ve diğer scriptler bunu kontrol eder
+    /// </summary>
+    public static bool IsPuzzleActive { get; private set; } = false;
+    
+    /// <summary>
+    /// Puzzle açıldığında çağrılır - oyunu durdurur, müziği kısar
+    /// </summary>
+    public void OnPuzzleStart()
+    {
+        if (isPuzzleActive) return;
+        isPuzzleActive = true;
+        IsPuzzleActive = true; // Static flag'i de set et
+        
+        // Oyunu durdur (puzzle UI'lar WaitForSecondsRealtime kullanıyor)
+        savedTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+        
+        // Müziği yarıya indir
+        if (TimeSlowAudioController.Instance != null)
+        {
+            TimeSlowAudioController.Instance.SetPuzzleVolume(true);
+        }
+        else
+        {
+            Debug.LogWarning("[GameManager] TimeSlowAudioController.Instance null!");
+        }
+        
+        // Oyuncuyu durdur ve velocity'yi sıfırla
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null)
+        {
+            player.lockMovement = true;
+            
+            // Rigidbody velocity'yi kaydet ve sıfırla (havada donmasın)
+            playerRigidbody = player.GetComponent<Rigidbody2D>();
+            if (playerRigidbody != null)
+            {
+                savedPlayerVelocity = playerRigidbody.linearVelocity;
+                playerRigidbody.linearVelocity = Vector2.zero;
+                playerRigidbody.bodyType = RigidbodyType2D.Kinematic; // Tamamen durdur
+            }
+        }
+        
+        Debug.Log("[GameManager] Puzzle başladı - oyun durdu, müzik kısıldı");
+    }
+    
+    /// <summary>
+    /// Puzzle kapandığında çağrılır - oyunu devam ettirir, müziği normale döndürür
+    /// </summary>
+    public void OnPuzzleEnd()
+    {
+        if (!isPuzzleActive) return;
+        isPuzzleActive = false;
+        IsPuzzleActive = false; // Static flag'i de sıfırla
+        
+        // Oyuncuyu serbest bırak (Time.timeScale'den ÖNCE yap)
+        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null)
+        {
+            player.lockMovement = false;
+            
+            // Rigidbody'yi geri aç ve gravity'yi restore et
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.bodyType = RigidbodyType2D.Dynamic;
+                playerRigidbody.gravityScale = 7f; // groundGravity default değeri
+                // Önceki velocity'yi geri yüklemiyoruz, sıfırdan başlasın
+            }
+        }
+        
+        // Oyunu devam ettir
+        Time.timeScale = savedTimeScale;
+        
+        // Müziği normale döndür
+        if (TimeSlowAudioController.Instance != null)
+        {
+            TimeSlowAudioController.Instance.SetPuzzleVolume(false);
+        }
+        
+        Debug.Log("[GameManager] Puzzle bitti - oyun devam ediyor, müzik normale döndü");
     }
 }

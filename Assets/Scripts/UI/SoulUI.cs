@@ -72,9 +72,9 @@ public class SoulUI : MonoBehaviour
     {
         if (soulSystem != null)
         {
-            soulSystem.OnSoulCollected += OnSoulCollected;
-            soulSystem.OnChargeGained += OnChargeGained;
-            soulSystem.OnChargeUsed += OnChargeUsed;
+            soulSystem.OnKillCountChanged += OnKillCountChanged;
+            soulSystem.OnUltimateReady += OnUltimateReady;
+            soulSystem.OnUltimateUsed += OnUltimateUsed;
         }
     }
 
@@ -82,9 +82,9 @@ public class SoulUI : MonoBehaviour
     {
         if (soulSystem != null)
         {
-            soulSystem.OnSoulCollected -= OnSoulCollected;
-            soulSystem.OnChargeGained -= OnChargeGained;
-            soulSystem.OnChargeUsed -= OnChargeUsed;
+            soulSystem.OnKillCountChanged -= OnKillCountChanged;
+            soulSystem.OnUltimateReady -= OnUltimateReady;
+            soulSystem.OnUltimateUsed -= OnUltimateUsed;
         }
     }
 
@@ -416,19 +416,19 @@ public class SoulUI : MonoBehaviour
         }
     }
 
-    private void OnSoulCollected(int current, int max)
+    private void OnKillCountChanged(int current, int max)
     {
         UpdateUI();
         StartCoroutine(SoulCollectAnimation());
     }
 
-    private void OnChargeGained(int charges)
+    private void OnUltimateReady()
     {
         UpdateUI();
         StartCoroutine(ChargeGainedAnimation());
     }
 
-    private void OnChargeUsed(int charges)
+    private void OnUltimateUsed()
     {
         UpdateUI();
     }

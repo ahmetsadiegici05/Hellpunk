@@ -809,7 +809,7 @@ public class SkillInputUI : MonoBehaviour
 
         skillCanvas = canvasObj.AddComponent<Canvas>();
         skillCanvas.renderMode = RenderMode.WorldSpace;
-        skillCanvas.sortingOrder = 200;
+        skillCanvas.sortingOrder = 1000; // Platformların üstünde olsun
 
         RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
         canvasRect.sizeDelta = new Vector2(500, 150);

@@ -333,16 +333,72 @@ public class SkillCooldownUI : MonoBehaviour
             playerAttack = FindFirstObjectByType<PlayerAttack>();
         }
 
-        UpdateSkillIcon(healSkill, skillSystem.HealCooldownProgress, skillSystem.IsHealReady,
-            skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Heal);
+        // Heal için sayı bazlı güncelleme
+        UpdateHealSkillIcon();
         
-        // Fireball için özel güncelleme (fireball modu aktifken farklı göster)
+        // Fireball için sayı bazlı güncelleme
         UpdateFireballSkillIcon();
         
         // TimeSlow için özel güncelleme (aktifken kalan süreyi göster)
         UpdateTimeSlowSkillIcon();
 
         UpdateUltimateSkillIcon();
+    }
+    
+    private void UpdateHealSkillIcon()
+    {
+        if (healSkill == null || healSkill.container == null) return;
+        if (skillSystem == null) return;
+        
+        int charges = skillSystem.HealCharges;
+        bool isReady = skillSystem.IsHealReady;
+        bool isActive = skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Heal;
+        
+        // Fill amount - sayı bazlı (her zaman dolu veya boş)
+        if (healSkill.cooldownFill != null)
+        {
+            healSkill.cooldownFill.fillAmount = isReady ? 1f : 0f;
+            
+            if (isActive)
+                healSkill.cooldownFill.color = activeColor;
+            else if (isReady)
+                healSkill.cooldownFill.color = healSkill.skillColor;
+            else
+                healSkill.cooldownFill.color = cooldownColor;
+        }
+        
+        // Kalan sayıyı göster - ikonun üstünde (üst üste binmez)
+        if (healSkill.cooldownText != null)
+        {
+            healSkill.cooldownText.text = charges.ToString();
+            healSkill.cooldownText.color = isReady ? readyColor : cooldownColor;
+            healSkill.cooldownText.fontSize = 18;
+            healSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, 45f); // İkonun üstünde
+        }
+        
+        // Icon - ortalanmış
+        if (healSkill.icon != null)
+        {
+            healSkill.icon.rectTransform.anchoredPosition = Vector2.zero; // Ortada
+            
+            if (isActive)
+            {
+                healSkill.icon.color = activeColor;
+                float pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.15f;
+                healSkill.icon.transform.localScale = Vector3.one * pulse;
+            }
+            else if (isReady)
+            {
+                healSkill.icon.color = readyColor;
+                float breathe = 1f + Mathf.Sin(Time.time * 2f) * 0.05f;
+                healSkill.icon.transform.localScale = Vector3.one * breathe;
+            }
+            else
+            {
+                healSkill.icon.color = cooldownColor;
+                healSkill.icon.transform.localScale = Vector3.one;
+            }
+        }
     }
     
     private void UpdateTimeSlowSkillIcon()
@@ -430,31 +486,72 @@ public class SkillCooldownUI : MonoBehaviour
                 fireballSkill.icon.rectTransform.anchoredPosition = new Vector2(0, 8f); // Yukarı kaydır
             }
             
-            // Kalan süreyi göster (altta)
+            // Kalan süreyi ve sayıyı göster (altta)
             if (fireballSkill.cooldownText != null)
             {
-                fireballSkill.cooldownText.text = timeRemaining.ToString("F1");
+                int charges = skillSystem.FireballCharges;
+                fireballSkill.cooldownText.text = timeRemaining.ToString("F1"); // Sadece süre
                 fireballSkill.cooldownText.color = new Color(1f, 0.9f, 0.3f, 1f); // Sarı
-                fireballSkill.cooldownText.fontSize = 18; // Biraz küçük
-                fireballSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, -8f); // Aşağı kaydır
+                fireballSkill.cooldownText.fontSize = 18;
+                fireballSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, 45f); // İkonun üstünde
             }
         }
         else
         {
-            // Normal mod - pozisyonları sıfırla
+            // Normal mod - sayıyı ikonun üstünde göster
             if (fireballSkill.icon != null)
             {
-                fireballSkill.icon.rectTransform.anchoredPosition = Vector2.zero;
+                fireballSkill.icon.rectTransform.anchoredPosition = Vector2.zero; // Ortada
             }
             if (fireballSkill.cooldownText != null)
             {
-                fireballSkill.cooldownText.rectTransform.anchoredPosition = Vector2.zero;
-                fireballSkill.cooldownText.fontSize = 24; // Normal boyut
+                fireballSkill.cooldownText.rectTransform.anchoredPosition = new Vector2(0, 45f); // İkonun üstünde
+                fireballSkill.cooldownText.fontSize = 18;
             }
             
-            // Standart skill icon güncelleme
-            UpdateSkillIcon(fireballSkill, skillSystem.FireballCooldownProgress, skillSystem.IsFireballReady,
-                skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Fireball);
+            // Standart skill icon güncelleme - sayı bazlı
+            int charges = skillSystem.FireballCharges;
+            bool isReady = skillSystem.IsFireballReady;
+            bool isActive = skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Fireball;
+            
+            if (fireballSkill.cooldownFill != null)
+            {
+                fireballSkill.cooldownFill.fillAmount = isReady ? 1f : 0f;
+                
+                if (isActive)
+                    fireballSkill.cooldownFill.color = activeColor;
+                else if (isReady)
+                    fireballSkill.cooldownFill.color = fireballSkill.skillColor;
+                else
+                    fireballSkill.cooldownFill.color = cooldownColor;
+            }
+            
+            if (fireballSkill.cooldownText != null)
+            {
+                fireballSkill.cooldownText.text = charges.ToString();
+                fireballSkill.cooldownText.color = isReady ? readyColor : cooldownColor;
+            }
+            
+            if (fireballSkill.icon != null)
+            {
+                if (isActive)
+                {
+                    fireballSkill.icon.color = activeColor;
+                    float pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.15f;
+                    fireballSkill.icon.transform.localScale = Vector3.one * pulse;
+                }
+                else if (isReady)
+                {
+                    fireballSkill.icon.color = readyColor;
+                    float breathe = 1f + Mathf.Sin(Time.time * 2f) * 0.05f;
+                    fireballSkill.icon.transform.localScale = Vector3.one * breathe;
+                }
+                else
+                {
+                    fireballSkill.icon.color = cooldownColor;
+                    fireballSkill.icon.transform.localScale = Vector3.one;
+                }
+            }
         }
     }
 
@@ -571,9 +668,54 @@ public class SkillCooldownUI : MonoBehaviour
                 ultimateSkill.cooldownText.fontSize = 24;
             }
 
-            // DÜZELTME: Kaynaktaki SkillType.TimeSlow hatası SkillType.Ultimate ile değiştirildi [6]
-            UpdateSkillIcon(ultimateSkill, skillSystem.UltimateCooldownProgress, skillSystem.IsUltimateReady, 
-                skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Ultimate);
+            // DÜZELTME: Ultimate artık 7 kill bazlı - SoulSystem'den al
+            bool isReady = skillSystem.IsUltimateReady;
+            bool isActive = skillSystem.CurrentSkill == GuitarSkillSystem.SkillType.Ultimate;
+            
+            // Kill sayısını göster
+            int currentKills = SoulSystem.Instance != null ? SoulSystem.Instance.CurrentKills : 0;
+            int requiredKills = SoulSystem.Instance != null ? SoulSystem.Instance.KillsRequired : 7;
+            float progress = (float)currentKills / requiredKills;
+            
+            if (ultimateSkill.cooldownFill != null)
+            {
+                ultimateSkill.cooldownFill.fillAmount = progress;
+                
+                if (isActive)
+                    ultimateSkill.cooldownFill.color = activeColor;
+                else if (isReady)
+                    ultimateSkill.cooldownFill.color = ultimateSkill.skillColor;
+                else
+                    ultimateSkill.cooldownFill.color = cooldownColor;
+            }
+            
+            if (ultimateSkill.cooldownText != null)
+            {
+                ultimateSkill.cooldownText.text = isReady ? "!" : $"{currentKills}/{requiredKills}";
+                ultimateSkill.cooldownText.color = isReady ? readyColor : cooldownColor;
+            }
+            
+            if (ultimateSkill.icon != null)
+            {
+                if (isActive)
+                {
+                    ultimateSkill.icon.color = activeColor;
+                    float pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.15f;
+                    ultimateSkill.icon.transform.localScale = Vector3.one * pulse;
+                }
+                else if (isReady)
+                {
+                    ultimateSkill.icon.color = readyColor;
+                    // Ultimate hazır - parlama efekti
+                    float breathe = 1f + Mathf.Sin(Time.time * 4f) * 0.1f;
+                    ultimateSkill.icon.transform.localScale = Vector3.one * breathe;
+                }
+                else
+                {
+                    ultimateSkill.icon.color = cooldownColor;
+                    ultimateSkill.icon.transform.localScale = Vector3.one;
+                }
+            }
         }
     }
 
@@ -670,14 +812,20 @@ public class SkillCooldownUI : MonoBehaviour
     {
         if (skillSystem == null) return 0f;
         
+        // Heal ve Fireball artık sayı bazlı - cooldown yok
         if (skill == healSkill)
-            return (1f - skillSystem.HealCooldownProgress) * 10f; // healCooldown
+            return skillSystem.HealCharges; // Kalan sayı
         else if (skill == fireballSkill)
-            return (1f - skillSystem.FireballCooldownProgress) * 5f; // fireballCooldown
+            return skillSystem.FireballCharges; // Kalan sayı
         else if (skill == timeSlowSkill)
             return (1f - skillSystem.TimeSlowCooldownProgress) * 15f; // timeSlowCooldown
         else if (skill == ultimateSkill)
-            return (1f - skillSystem.UltimateCooldownProgress) * 20f; // ultimateCooldown
+        {
+            // Ultimate için kalan kill sayısı
+            int current = SoulSystem.Instance != null ? SoulSystem.Instance.CurrentKills : 0;
+            int required = SoulSystem.Instance != null ? SoulSystem.Instance.KillsRequired : 7;
+            return required - current;
+        }
         
         return 0f;
     }

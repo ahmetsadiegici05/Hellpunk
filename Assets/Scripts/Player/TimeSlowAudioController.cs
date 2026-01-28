@@ -225,6 +225,33 @@ public class TimeSlowAudioController : MonoBehaviour
     {
         bgmSource = source;
     }
+    
+    // Puzzle için volume kontrol
+    private float puzzleSavedVolume = 1f;
+    
+    /// <summary>
+    /// Puzzle başladığında müziği yarıya indir
+    /// </summary>
+    public void SetPuzzleVolume(bool puzzleActive)
+    {
+        if (bgmSource == null) 
+        {
+            Debug.LogWarning("[TimeSlowAudioController] bgmSource null - Inspector'da ata!");
+            return;
+        }
+        
+        if (puzzleActive)
+        {
+            puzzleSavedVolume = bgmSource.volume;
+            bgmSource.volume = puzzleSavedVolume * 0.5f;
+            Debug.Log($"[TimeSlowAudioController] Puzzle müzik: {puzzleSavedVolume} -> {bgmSource.volume}");
+        }
+        else
+        {
+            bgmSource.volume = puzzleSavedVolume;
+            Debug.Log($"[TimeSlowAudioController] Müzik normale döndü: {bgmSource.volume}");
+        }
+    }
 
     /// <summary>
     /// Time slow aktif mi?

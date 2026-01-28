@@ -86,6 +86,20 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        // Puzzle aktifken tüm input'ları engelle
+        if (GameManager.IsPuzzleActive || Time.timeScale == 0f)
+        {
+            horizontalInput = 0f;
+            rawHorizontalInput = 0f;
+            anim.SetBool("Run", false);
+            // Velocity'yi de sıfırla ki havada kalmasın
+            if (body != null && GameManager.IsPuzzleActive)
+            {
+                body.linearVelocity = Vector2.zero;
+            }
+            return;
+        }
+        
         if (lockMovement)
         {
             horizontalInput = 0f;
@@ -184,6 +198,18 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Puzzle aktifken hareket yapma
+        if (GameManager.IsPuzzleActive || Time.timeScale == 0f)
+        {
+            // Gravity'yi de sıfırla ki düşmesin
+            if (GameManager.IsPuzzleActive && body != null)
+            {
+                body.linearVelocity = Vector2.zero;
+                body.gravityScale = 0f;
+            }
+            return;
+        }
+        
         bool grounded = IsGrounded();
         bool touchingWall = OnWall();
 

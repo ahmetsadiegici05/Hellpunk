@@ -51,6 +51,10 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
+        // Puzzle aktifken hiçbir saldırı input'u kabul etme
+        if (GameManager.IsPuzzleActive)
+            return;
+            
         bool isAttackHeld = Input.GetButton("Fire1") || Input.GetKey(KeyCode.RightControl);
         bool isInSkillInput = GuitarSkillSystem.Instance != null && GuitarSkillSystem.Instance.IsInSkillInput;
 

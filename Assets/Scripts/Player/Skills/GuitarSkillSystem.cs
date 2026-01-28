@@ -21,12 +21,12 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private float shockwaveRadius = 4f;
     [SerializeField] private float shockwaveForce = 15f;
 
-    [Header("Cooldowns")]
-    [SerializeField] private float healCooldown = 10f;
-    [SerializeField] private float fireballCooldown = 5f;
+    [Header("Ability Charges (Sayı Bazlı)")]
+    [SerializeField] private int healCharges = 2;      // Başlangıçta 2 heal hakkı
+    [SerializeField] private int fireballCharges = 2;  // Başlangıçta 2 fireball hakkı
+    
+    [Header("Cooldowns (Sadece Time Slow)")]
     [SerializeField] private float timeSlowCooldown = 15f;
-    [SerializeField] private float shockwaveCooldown = 12f;
-    [SerializeField] private float ultimateCooldown = 20f;
     
     [Header("Input Timeout")]
     [SerializeField] private float inputTimeout = 3f;
@@ -62,12 +62,8 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private Color skillInputOverlayColor = new Color(0.1f, 0.2f, 0.5f, 0.6f); // Koyu mavi
     [SerializeField] private float skillInputDuration = 3f; // Input için verilen süre (3 saniye)
 
-    // Cooldown timers
-    private float healCooldownTimer = 0f;
-    private float fireballCooldownTimer = 0f;
+    // Cooldown timers (sadece Time Slow için)
     private float timeSlowCooldownTimer = 0f;
-    private float shockwaveCooldownTimer = 0f;
-    private float ultimateCooldownTimer = 0f;
     
     // TimeSlow state
     private bool isTimeSlowActive = false;
@@ -108,17 +104,20 @@ public class GuitarSkillSystem : MonoBehaviour
     public List<ArrowDirection> RequiredSequence => requiredSequence;
     public int CurrentInputIndex => currentInputIndex;
 
-    public float HealCooldownProgress => healCooldownTimer <= 0 ? 1f : 1f - (healCooldownTimer / healCooldown);
-    public float FireballCooldownProgress => fireballCooldownTimer <= 0 ? 1f : 1f - (fireballCooldownTimer / fireballCooldown);
+    // Sayı bazlı ability'ler için
+    public int HealCharges => healCharges;
+    public int FireballCharges => fireballCharges;
+    
+    // Time Slow cooldown
     public float TimeSlowCooldownProgress => timeSlowCooldownTimer <= 0 ? 1f : 1f - (timeSlowCooldownTimer / timeSlowCooldown);
-    public float ShockwaveCooldownProgress => shockwaveCooldownTimer <= 0 ? 1f : 1f - (shockwaveCooldownTimer / shockwaveCooldown);
-    public float UltimateCooldownProgress => ultimateCooldownTimer <= 0 ? 1f : 1f - (ultimateCooldownTimer / ultimateCooldown);
-
-    public bool IsHealReady => healCooldownTimer <= 0f;
-    public bool IsFireballReady => fireballCooldownTimer <= 0f;
     public bool IsTimeSlowReady => timeSlowCooldownTimer <= 0f;
-    public bool IsShockwaveReady => shockwaveCooldownTimer <= 0f;
-    public bool IsUltimateReady => ultimateCooldownTimer <= 0f;
+    
+    // Sayı bazlı kontroller
+    public bool IsHealReady => healCharges > 0;
+    public bool IsFireballReady => fireballCharges > 0;
+    
+    // Ultimate için SoulSystem kontrolü
+    public bool IsUltimateReady => SoulSystem.Instance != null && SoulSystem.Instance.IsUltimateReady;
 
     public enum SkillType
     {
@@ -192,6 +191,10 @@ public class GuitarSkillSystem : MonoBehaviour
 
     private void Update()
     {
+        // Puzzle aktifken hiçbir skill input kabul etme
+        if (GameManager.IsPuzzleActive)
+            return;
+            
         UpdateCooldowns();
 
         // Skill aktivasyon cooldown'u güncelle (unscaled çünkü oyun duraklayabilir)
@@ -209,37 +212,38 @@ public class GuitarSkillSystem : MonoBehaviour
             return;
 
         // Skill aktivasyonu
-        // F: Heal (3 input)
+        // F: Heal (sayı bazlı)
         if (Input.GetKeyDown(KeyCode.F) && IsHealReady)
         {
-            if (CanUseAbility())
-                ActivateSkill(SkillType.Heal, 3);
-            else
-                TriggerNoSoulFeedback(SkillType.Heal);
+            ActivateSkill(SkillType.Heal, 3);
         }
-        // Q: Fireball (3 input) - Fireball modu aktif değilse ability sistemi ile
+        // Q: Fireball (sayı bazlı) - Fireball modu aktif değilse
         else if (Input.GetKeyDown(KeyCode.Q) && IsFireballReady && !IsFireballModeActive())
         {
-            if (CanUseAbility())
-                ActivateSkill(SkillType.Fireball, 3);
-            else
-                TriggerNoSoulFeedback(SkillType.Fireball);
+            ActivateSkill(SkillType.Fireball, 3);
         }
-        // R: Time Slow (3 input)
+        // R: Time Slow (cooldown bazlı)
         else if (Input.GetKeyDown(KeyCode.R) && IsTimeSlowReady)
         {
-            if (CanUseAbility())
-                ActivateSkill(SkillType.TimeSlow, 3);
-            else
-                TriggerNoSoulFeedback(SkillType.TimeSlow);
+            ActivateSkill(SkillType.TimeSlow, 3);
         }
-        //ulti
+        // U: Ultimate (7 kill gerekli)
         else if (Input.GetKeyDown(KeyCode.U) && IsUltimateReady)
         {
-            if (CanUseAbility())
-                ActivateSkill(SkillType.Ultimate, 3);
-            else
-                TriggerNoSoulFeedback(SkillType.Ultimate);
+            ActivateSkill(SkillType.Ultimate, 3);
+        }
+        // Yeterli hak/kill yoksa feedback ver
+        else if (Input.GetKeyDown(KeyCode.F) && !IsHealReady)
+        {
+            TriggerNoChargeFeedback(SkillType.Heal, healCharges);
+        }
+        else if (Input.GetKeyDown(KeyCode.Q) && !IsFireballReady && !IsFireballModeActive())
+        {
+            TriggerNoChargeFeedback(SkillType.Fireball, fireballCharges);
+        }
+        else if (Input.GetKeyDown(KeyCode.U) && !IsUltimateReady)
+        {
+            TriggerNoUltimateFeedback();
         }
     }
     
@@ -253,57 +257,37 @@ public class GuitarSkillSystem : MonoBehaviour
     }
     
     /// <summary>
-    /// Ruh sistemi kontrolü - ability kullanılabilir mi?
+    /// Yeterli charge olmadığında feedback (Heal/Fireball için)
     /// </summary>
-    private bool CanUseAbility()
+    private void TriggerNoChargeFeedback(SkillType skillType, int remaining)
     {
-        if (SoulSystem.Instance == null) return true; // Sistem yoksa izin ver
-        return SoulSystem.Instance.CanUseAbility;
-    }
-    
-    /// <summary>
-    /// Yeterli ruh olmadığında görsel/ses feedback tetikle
-    /// </summary>
-    private void TriggerNoSoulFeedback(SkillType skillType)
-    {
-        Debug.Log($"Yeterli ruh yok! {skillType} kullanılamaz.");
+        Debug.Log($"{skillType} hakkı kalmadı! Kalan: {remaining}");
         OnAbilityFailedNoSoul?.Invoke(skillType);
         
-        // Olumsuz ses efekti çal
         if (audioSource != null && skillFailSound != null)
             audioSource.PlayOneShot(skillFailSound, 0.5f);
     }
     
     /// <summary>
-    /// Ruh harcama - skill başarılı olunca çağrılır
+    /// Ultimate için yeterli kill olmadığında feedback
     /// </summary>
-    private void ConsumeAbilityCharge()
+    private void TriggerNoUltimateFeedback()
     {
-        if (SoulSystem.Instance != null)
-        {
-            SoulSystem.Instance.UseCharge();
-        }
+        int currentKills = SoulSystem.Instance != null ? SoulSystem.Instance.CurrentKills : 0;
+        int required = SoulSystem.Instance != null ? SoulSystem.Instance.KillsRequired : 7;
+        Debug.Log($"Ultimate için {required - currentKills} kill daha gerekli! ({currentKills}/{required})");
+        OnAbilityFailedNoSoul?.Invoke(SkillType.Ultimate);
+        
+        if (audioSource != null && skillFailSound != null)
+            audioSource.PlayOneShot(skillFailSound, 0.5f);
     }
 
     private void UpdateCooldowns()
     {
-        // unscaledDeltaTime kullan - time slow aktifken de normal hızda say
-        if (healCooldownTimer > 0)
-            healCooldownTimer -= Time.unscaledDeltaTime;
-        if (fireballCooldownTimer > 0)
-            fireballCooldownTimer -= Time.unscaledDeltaTime;
-        
         // TimeSlow cooldown'u sadece TimeSlow aktif DEĞİLKEN say
-        // Böylece cooldown aktif süre bittikten sonra başlar
         bool isTimeSlowActive = TimeSlowAbility.Instance != null && TimeSlowAbility.Instance.IsSlowMotionActive;
         if (timeSlowCooldownTimer > 0 && !isTimeSlowActive)
             timeSlowCooldownTimer -= Time.unscaledDeltaTime;
-            
-        if (shockwaveCooldownTimer > 0)
-            shockwaveCooldownTimer -= Time.unscaledDeltaTime;
-            
-        if (ultimateCooldownTimer > 0)
-            ultimateCooldownTimer -= Time.unscaledDeltaTime;
     }
 
     private void ActivateSkill(SkillType skillType, int inputCount)
@@ -456,8 +440,8 @@ public class GuitarSkillSystem : MonoBehaviour
         // Aktivasyon cooldown'u başlat - hemen yeni skill önleme
         skillActivationCooldown = SKILL_ACTIVATION_DELAY;
 
-        // Ruh harcama - skill başarılı oldu
-        ConsumeAbilityCharge();
+        // Skill tipine göre harcama yap
+        ConsumeSkillCharge(currentSkillType);
 
         // Ses çal
         if (skillSuccessSound != null && audioSource != null)
@@ -470,6 +454,32 @@ public class GuitarSkillSystem : MonoBehaviour
         OnSkillComplete?.Invoke(true);
 
         currentSkillType = SkillType.None;
+    }
+    
+    /// <summary>
+    /// Skill tipine göre doğru harcama yap
+    /// </summary>
+    private void ConsumeSkillCharge(SkillType skillType)
+    {
+        switch (skillType)
+        {
+            case SkillType.Heal:
+                healCharges--;
+                Debug.Log($"Heal kullanıldı! Kalan: {healCharges}");
+                break;
+            case SkillType.Fireball:
+                fireballCharges--;
+                Debug.Log($"Fireball kullanıldı! Kalan: {fireballCharges}");
+                break;
+            case SkillType.TimeSlow:
+                timeSlowCooldownTimer = timeSlowCooldown;
+                Debug.Log($"Time Slow kullanıldı! Cooldown: {timeSlowCooldown}sn");
+                break;
+            case SkillType.Ultimate:
+                if (SoulSystem.Instance != null)
+                    SoulSystem.Instance.UseCharge();
+                break;
+        }
     }
 
     private void FailSkill()
@@ -552,8 +562,7 @@ public class GuitarSkillSystem : MonoBehaviour
         else if (GameManager.Instance != null)
             GameManager.Instance.PlayHealSound();
 
-        healCooldownTimer = healCooldown;
-        Debug.Log("Heal executed!");
+        Debug.Log($"Heal executed! Kalan: {healCharges}");
     }
 
     private void ExecuteShockwave()
@@ -609,7 +618,6 @@ public class GuitarSkillSystem : MonoBehaviour
         if (shockwaveSound != null && audioSource != null)
             audioSource.PlayOneShot(shockwaveSound);
 
-        shockwaveCooldownTimer = shockwaveCooldown;
         Debug.Log($"Shockwave executed! Hit {hitEnemies.Length} enemies");
     }
 
@@ -705,8 +713,7 @@ public class GuitarSkillSystem : MonoBehaviour
         else if (GameManager.Instance != null)
             GameManager.Instance.PlayAttackSound();
 
-        // Cooldown başlat
-        fireballCooldownTimer = fireballCooldown;
+        Debug.Log($"Fireball executed! Kalan: {fireballCharges}");
     }
 
     private void ExecuteTimeSlow()
@@ -751,8 +758,7 @@ public class GuitarSkillSystem : MonoBehaviour
 
     public IEnumerator UseUlti()
     {
-        // Cooldown başlat [5, 6]
-        ultimateCooldownTimer = ultimateCooldown;
+        // Ultimate SoulSystem tarafından yönetiliyor, cooldown yok
 
         if (GameManager.Instance.ultiObject != null)
         {
@@ -767,6 +773,26 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             GameManager.Instance.ultiObject.SetActive(false);
         }
+    }
+    
+    // ================= MARKET SİSTEMİ =================
+    
+    /// <summary>
+    /// Market'ten Heal satın alındığında çağrılır
+    /// </summary>
+    public void AddHealCharges(int amount)
+    {
+        healCharges += amount;
+        Debug.Log($"Heal satın alındı! +{amount}, Toplam: {healCharges}");
+    }
+    
+    /// <summary>
+    /// Market'ten Fireball satın alındığında çağrılır
+    /// </summary>
+    public void AddFireballCharges(int amount)
+    {
+        fireballCharges += amount;
+        Debug.Log($"Fireball satın alındı! +{amount}, Toplam: {fireballCharges}");
     }
 
     // Debug görselleştirme

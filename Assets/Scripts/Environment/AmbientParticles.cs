@@ -166,6 +166,8 @@ public class AmbientParticles : MonoBehaviour
     
     private void UpdateParticles()
     {
+        if (particles == null) return;
+        
         float time = Time.time;
         
         for (int i = 0; i < particles.Length; i++)

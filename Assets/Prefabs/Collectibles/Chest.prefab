@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4674197494415471138}
   - component: {fileID: 416363190953001793}
   - component: {fileID: 1012722358243716319}
+  - component: {fileID: 502230478826207311}
   m_Layer: 9
   m_Name: Chest
   m_TagString: Chest
@@ -180,11 +181,33 @@ MonoBehaviour:
   maxHealth: 9
   deathEffect: {fileID: 0}
   isDamagableObject: 1
+  hasPuzzle: 1
+  puzzleType: 2
+  puzzleDifficulty: 1
+  puzzleRewardCoins: 25
   showHealthBar: 1
   healthBarOffset: {x: 0, y: 1.5, z: 0}
   animator: {fileID: 0}
   spriteRenderer: {fileID: 0}
   particleSystem: {fileID: 718412030619687696}
+--- !u!114 &502230478826207311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2173611967504282835}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20ef0df3cf10a10438e266ebfbe46b5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enablePuzzle: 1
+  randomPuzzleType: 0
+  specificPuzzleType: 2
+  minDifficulty: 1
+  maxDifficulty: 2
+  rewardCoins: 25
 --- !u!1 &7138618112123193343
 GameObject:
   m_ObjectHideFlags: 0

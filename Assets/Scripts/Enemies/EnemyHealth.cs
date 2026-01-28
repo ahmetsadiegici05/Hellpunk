@@ -3,11 +3,19 @@ using System.Collections;
 
 public class EnemyHealth : MonoBehaviour
 {
+    public enum PuzzleType { None, GuitarRiff, Rhythm, Memory }
+    
     [Header("Settings")]
     [SerializeField] private bool isBoss = false;
     [SerializeField] private float maxHealth = 9f; // 3 yumrukta ölsün (hasar 3 x 3 = 9)
     [SerializeField] private GameObject deathEffect;
     public bool isDamagableObject = false;
+
+    [Header("Puzzle Settings (for Damagable Objects)")]
+    [SerializeField] public bool hasPuzzle = false;
+    [SerializeField] public PuzzleType puzzleType = PuzzleType.None;
+    [SerializeField] public int puzzleDifficulty = 1; // 1-3
+    [SerializeField] public int puzzleRewardCoins = 25;
 
     [Header("Health Bar")]
     [SerializeField] private bool showHealthBar = true;
@@ -20,6 +28,7 @@ public class EnemyHealth : MonoBehaviour
 
     private float currentHealth;
     private bool isDead = false;
+    private bool puzzleStarted = false;
     private Color defaultColor;
     private SimpleEnemyHealthBar healthBar; // Yeni basit can barı
 
@@ -86,7 +95,121 @@ public class EnemyHealth : MonoBehaviour
             GameManager.Instance.PlayEnemyHitSound();
         }
 
-        if (currentHealth <= 0) Die();
+        // Puzzle'lı damagable object ise, can 0'a düştüğünde puzzle başlat (kırılmayı beklet)
+        if (currentHealth <= 0)
+        {
+            if (isDamagableObject && hasPuzzle && puzzleType != PuzzleType.None)
+            {
+                // Puzzle başlat, kırılma puzzle sonucuna bağlı
+                StartPuzzleBeforeBreak();
+            }
+            else
+            {
+                Die();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Puzzle'ı başlat, kırılma puzzle sonucuna bağlı
+    /// </summary>
+    private void StartPuzzleBeforeBreak()
+    {
+        if (puzzleStarted) return;
+        puzzleStarted = true;
+        
+        switch (puzzleType)
+        {
+            case PuzzleType.GuitarRiff:
+                var guitarRiffUI = FindPuzzleUI<GuitarRiffPuzzleUI>();
+                if (guitarRiffUI != null)
+                    guitarRiffUI.InitializeFromPrefab(puzzleDifficulty, OnPuzzleSolvedBreak, OnPuzzleFailedNoBreak);
+                else
+                {
+                    Debug.LogWarning("[EnemyHealth] GuitarRiffPuzzleUI bulunamadı! Direkt kırılıyor.");
+                    GiveDirectRewardAndDie();
+                }
+                break;
+                
+            case PuzzleType.Rhythm:
+                var rhythmUI = FindPuzzleUI<RhythmPuzzleUI>();
+                if (rhythmUI != null)
+                    rhythmUI.InitializeFromPrefab(puzzleDifficulty, OnPuzzleSolvedBreak, OnPuzzleFailedNoBreak);
+                else
+                {
+                    Debug.LogWarning("[EnemyHealth] RhythmPuzzleUI bulunamadı! Direkt kırılıyor.");
+                    GiveDirectRewardAndDie();
+                }
+                break;
+                
+            case PuzzleType.Memory:
+                var memoryUI = FindPuzzleUI<MemoryPuzzleUI>();
+                if (memoryUI != null)
+                    memoryUI.InitializeFromPrefab(puzzleDifficulty, OnPuzzleSolvedBreak, OnPuzzleFailedNoBreak);
+                else
+                {
+                    Debug.LogWarning("[EnemyHealth] MemoryPuzzleUI bulunamadı! Direkt kırılıyor.");
+                    GiveDirectRewardAndDie();
+                }
+                break;
+                
+            default:
+                GiveDirectRewardAndDie();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Puzzle UI yoksa direkt ödül ver ve kır
+    /// </summary>
+    private void GiveDirectRewardAndDie()
+    {
+        GameManager.Instance.coin += 10;
+        puzzleStarted = false;
+        Die();
+    }
+
+    private T FindPuzzleUI<T>() where T : MonoBehaviour
+    {
+        // Önce aktif olanı ara
+        T ui = FindFirstObjectByType<T>();
+        if (ui != null) return ui;
+
+        // İnaktif olanları da ara
+        T[] allUIs = Resources.FindObjectsOfTypeAll<T>();
+        foreach (var foundUI in allUIs)
+        {
+            if (foundUI != null && foundUI.gameObject.scene.isLoaded)
+            {
+                return foundUI;
+            }
+        }
+        
+        return null;
+    }
+
+    /// <summary>
+    /// Puzzle başarılı - chest kırılsın ve ödül verilsin
+    /// </summary>
+    private void OnPuzzleSolvedBreak()
+    {
+        GameManager.Instance.coin += puzzleRewardCoins;
+        Debug.Log($"[EnemyHealth] Puzzle çözüldü! Chest kırılıyor, Ödül: {puzzleRewardCoins} coin");
+        puzzleStarted = false;
+        Die();
+    }
+
+    /// <summary>
+    /// Puzzle başarısız - chest kırılmasın, tekrar denenebilir
+    /// </summary>
+    private void OnPuzzleFailedNoBreak()
+    {
+        Debug.Log("[EnemyHealth] Puzzle başarısız! Chest kırılmadı, tekrar dene.");
+        puzzleStarted = false;
+        // Canı geri yükle (tekrar vurulabilsin)
+        currentHealth = 1f;
+        if (healthBar != null)
+            healthBar.SetHealth(currentHealth);
     }
 
     private void Die()
@@ -96,16 +219,19 @@ public class EnemyHealth : MonoBehaviour
 
         if (isDamagableObject) 
         {
-            GameManager.Instance.coin += 10;
-            particleSystem.Play();
-            ShopManager.Instance.UpdateCoinText();
-            Destroy(healthBar.gameObject);
+            if (particleSystem != null) particleSystem.Play();
+            if (healthBar != null) Destroy(healthBar.gameObject);
+            
+            // Puzzle zaten çözüldüyse veya puzzle yoksa direkt ödül
+            if (!hasPuzzle || puzzleType == PuzzleType.None)
+            {
+                GiveDirectReward();
+            }
             StartCoroutine(FadeAndDestroy());
             return;
         }
 
         GameManager.Instance.coin += 10;
-        ShopManager.Instance.UpdateCoinText();
         
         // Can barını yok et
         if (healthBar != null)
@@ -173,7 +299,53 @@ public class EnemyHealth : MonoBehaviour
 
     private IEnumerator FadeAndDestroy()
     {
-        yield return new WaitForSeconds(1f);
+        if (spriteRenderer == null)
+        {
+            yield return new WaitForSeconds(0.5f);
+            gameObject.SetActive(false);
+            yield break;
+        }
+
+        float fadeDuration = 0.8f;
+        float scaleDuration = 0.5f;
+        float elapsed = 0f;
+        
+        Color startColor = spriteRenderer.color;
+        Vector3 startScale = transform.localScale;
+        Vector3 targetScale = startScale * 0.3f;
+        
+        // Hafif yukarı zıplama efekti
+        Vector3 startPos = transform.position;
+        float jumpHeight = 0.3f;
+        
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / fadeDuration;
+            float smoothT = t * t * (3f - 2f * t); // Smoothstep
+            
+            // Fade out
+            Color newColor = startColor;
+            newColor.a = Mathf.Lerp(1f, 0f, smoothT);
+            spriteRenderer.color = newColor;
+            
+            // Scale down (sadece ilk yarısında)
+            if (t < 0.6f)
+            {
+                float scaleT = t / 0.6f;
+                float scaleSmooth = scaleT * scaleT;
+                transform.localScale = Vector3.Lerp(startScale, targetScale, scaleSmooth);
+            }
+            
+            // Hafif yukarı hareket (bounce efekti)
+            float bounce = Mathf.Sin(t * Mathf.PI) * jumpHeight;
+            transform.position = startPos + Vector3.up * bounce;
+            
+            yield return null;
+        }
+        
+        // Son temizlik
+        spriteRenderer.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
         gameObject.SetActive(false);
     }
 
@@ -182,4 +354,14 @@ public class EnemyHealth : MonoBehaviour
         if (collision.tag == "Ulti")
             TakeDamage(100);
     }
+
+    #region Puzzle System
+    
+    private void GiveDirectReward()
+    {
+        GameManager.Instance.coin += 10;
+        Debug.Log($"[EnemyHealth] Direkt ödül verildi: 10 coin");
+    }
+    
+    #endregion
 }

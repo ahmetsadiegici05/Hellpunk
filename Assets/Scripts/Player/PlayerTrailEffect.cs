@@ -151,10 +151,12 @@ public class PlayerTrailEffect : MonoBehaviour
     
     private void UpdateGhosts()
     {
+        if (ghosts == null) return;
+        
         for (int i = 0; i < ghosts.Length; i++)
         {
             TrailGhost ghost = ghosts[i];
-            if (ghost == null || !ghost.obj.activeSelf) continue;
+            if (ghost == null || ghost.obj == null || !ghost.obj.activeSelf) continue;
             
             ghost.lifetime -= Time.deltaTime;
             
