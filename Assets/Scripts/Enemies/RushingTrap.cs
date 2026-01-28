@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -31,6 +32,11 @@ public class RushingTrap : MonoBehaviour
 
     private const string ANIM_RUN = "Run";
     private const string ANIM_ATTACK = "Attack";
+
+    [Header("Boss Skill Settings")]
+    [SerializeField] private float bossSkillCooldown = 10f;
+    private Coroutine bossSkillRoutine;
+    public bool isBoss = false;
 
     private void Start()
     {
@@ -137,6 +143,11 @@ public class RushingTrap : MonoBehaviour
     {
         if (animator != null) animator.SetTrigger(ANIM_ATTACK);
 
+        if (isBoss)
+        {
+            bossSkillRoutine = StartCoroutine(BossSkillLoop());
+        }
+
         Health playerHealth = targetPlayer.GetComponent<Health>();
         if (playerHealth != null)
         {
@@ -166,6 +177,23 @@ public class RushingTrap : MonoBehaviour
     public void StopAndDisable()
     {
         TriggerDeath();
+    }
+
+    private IEnumerator BossSkillLoop()
+    {
+        yield return new WaitForSeconds(2f);
+
+        while (!isDead)
+        {
+            yield return new WaitForSeconds(bossSkillCooldown);
+
+            int randomSkill = Random.Range(0, 2);
+
+            // if (randomSkill == 0)
+            //     BossSkill_Charge();
+            // else
+            //     BossSkill_Shockwave();
+        }
     }
 
     private void OnDrawGizmosSelected()

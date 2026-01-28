@@ -22,8 +22,8 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private float shockwaveForce = 15f;
 
     [Header("Ability Charges (Sayı Bazlı)")]
-    [SerializeField] private int healCharges = 2;      // Başlangıçta 2 heal hakkı
-    [SerializeField] private int fireballCharges = 2;  // Başlangıçta 2 fireball hakkı
+    [SerializeField] public int healCharges = 2;      // Başlangıçta 2 heal hakkı
+    [SerializeField] public int fireballCharges = 2;  // Başlangıçta 2 fireball hakkı
     
     [Header("Cooldowns (Sadece Time Slow)")]
     [SerializeField] private float timeSlowCooldown = 15f;

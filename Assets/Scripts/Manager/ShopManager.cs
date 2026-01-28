@@ -12,8 +12,11 @@ public class ShopManager : MonoBehaviour
     public PlayerMovement playerMovement;
 
     [Header("UI Components")]
-    public TextMeshProUGUI coinText;
-    public TextMeshProUGUI coinTextGame;
+    public TMP_Text coinText;
+    public TMP_Text coinTextGame;
+    public TMP_Text healChargesText;
+    public TMP_Text fireballChargesText;
+
 
     private void Awake()
     {
@@ -72,6 +75,29 @@ public class ShopManager : MonoBehaviour
         {
             playerHealth.reviveCount += 1;
             GameManager.Instance.coin -= 10;
+        }
+        UpdateCoinText();
+    }
+
+    public void AddHealSkill()
+    {
+        if (GameManager.Instance.coin >= 100)
+        {
+            GuitarSkillSystem.Instance.healCharges += 1;
+            GameManager.Instance.coin -= 100;
+            healChargesText.text = GuitarSkillSystem.Instance.healCharges.ToString();
+        }
+        UpdateCoinText();
+
+    }
+
+    public void AddFireballSkill()
+    {
+        if (GameManager.Instance.coin >= 100)
+        {
+            GuitarSkillSystem.Instance.fireballCharges += 1;
+            GameManager.Instance.coin -= 100;
+            fireballChargesText.text = GuitarSkillSystem.Instance.fireballCharges.ToString();
         }
         UpdateCoinText();
     }

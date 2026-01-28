@@ -10,6 +10,7 @@ TagManager:
   - Ulti
   - Chest
   - ChestPoint
+  - Boss
   layers:
   - Default
   - TransparentFX
@@ -56,11 +57,11 @@ TagManager:
   - name: Ground
     uniqueID: 2837122663
     locked: 0
-  - name: Player
-    uniqueID: 1065293349
-    locked: 0
   - name: Enemy
     uniqueID: 3714006241
+    locked: 0
+  - name: Player
+    uniqueID: 1065293349
     locked: 0
   - name: Lava
     uniqueID: 1352109019
