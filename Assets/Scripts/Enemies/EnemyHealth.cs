@@ -232,11 +232,9 @@ public class EnemyHealth : MonoBehaviour
             StartCoroutine(ReturnToSavedPosition());
             if (healthBar != null) Destroy(healthBar.gameObject);
             
-            // Puzzle zaten çözüldüyse veya puzzle yoksa direkt ödül
-            if (!hasPuzzle || puzzleType == PuzzleType.None)
-            {
-                GiveDirectReward();
-            }
+            // Sandık kırıldığında coin ver
+            GiveDirectReward();
+            
             StartCoroutine(FadeAndDestroy());
             return;
         }

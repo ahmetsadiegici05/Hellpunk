@@ -82,20 +82,33 @@ public class Health : MonoBehaviour
             darkStep++;
 
         float t = (float)darkStep / maxSteps;
-        Color targetColor = Color.Lerp(Color.white, Color.black, t);
+        float darkenAmount = Mathf.Lerp(1f, 0.3f, t); // 1 = normal, 0.3 = karanlık
 
         if (GameManager.Instance == null) return;
 
         foreach (var sr in GameManager.Instance.sprites)
         {
             if (sr != null)
-                sr.color = targetColor;
+            {
+                // Mevcut rengi koru, sadece parlaklığı düşür
+                Color c = sr.color;
+                sr.color = new Color(c.r * darkenAmount, c.g * darkenAmount, c.b * darkenAmount, c.a);
+            }
         }
 
+        // Tilemap'leri karartma - özel renkleri bozmasın
         foreach (var tm in GameManager.Instance.tilemaps)
         {
             if (tm != null)
-                tm.color = targetColor;
+            {
+                // TilemapColorKeeper varsa ona bırak
+                var keeper = tm.GetComponent<TilemapColorKeeper>();
+                if (keeper == null || !keeper.enforceColor)
+                {
+                    Color c = tm.color;
+                    tm.color = new Color(c.r * darkenAmount, c.g * darkenAmount, c.b * darkenAmount, c.a);
+                }
+            }
         }
     }
 

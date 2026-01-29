@@ -22,6 +22,11 @@ public class GameManager : MonoBehaviour
 
     [Header("Data")]
     public int coin;
+    
+    // Level geçişinde oyuncu verilerini sakla
+    [HideInInspector] public float savedPlayerHealth = -1f;
+    [HideInInspector] public float savedPlayerMaxHealth = -1f;
+    [HideInInspector] public bool isTransitioningLevel = false;
 
     [Header("World Renderers")]
     public List<SpriteRenderer> sprites;
@@ -78,6 +83,53 @@ public class GameManager : MonoBehaviour
         EnsureGuitarSkillSystem();
 
         SpawnRandomChests(); // 🔥 HER SAHNE YÜKLENDİĞİNDE
+        
+        // Level geçişinden sonra oyuncu sağlığını geri yükle
+        RestorePlayerHealth();
+    }
+    
+    private void RestorePlayerHealth()
+    {
+        if (!isTransitioningLevel) return;
+        
+        // Oyuncuyu bul
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            Health playerHealth = playerObj.GetComponent<Health>();
+            if (playerHealth != null && savedPlayerHealth > 0)
+            {
+                // Oyuncunun canını geri yükle
+                playerHealth.maxHealth = savedPlayerMaxHealth;
+                // currentHealth public setter yok, AddHealth kullan
+                float healthDiff = savedPlayerHealth - playerHealth.currentHealth;
+                if (healthDiff > 0)
+                    playerHealth.AddHealth(healthDiff);
+                    
+                Debug.Log($"[GameManager] Oyuncu canı geri yüklendi: {savedPlayerHealth}/{savedPlayerMaxHealth}");
+            }
+        }
+        
+        // Reset transition flag
+        isTransitioningLevel = false;
+        savedPlayerHealth = -1f;
+        savedPlayerMaxHealth = -1f;
+    }
+    
+    public void SavePlayerHealthForTransition()
+    {
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+        {
+            Health playerHealth = playerObj.GetComponent<Health>();
+            if (playerHealth != null)
+            {
+                savedPlayerHealth = playerHealth.currentHealth;
+                savedPlayerMaxHealth = playerHealth.maxHealth;
+                isTransitioningLevel = true;
+                Debug.Log($"[GameManager] Oyuncu canı kaydedildi: {savedPlayerHealth}/{savedPlayerMaxHealth}");
+            }
+        }
     }
 
     // ================= CHEST SPAWN =================
@@ -123,23 +175,20 @@ public class GameManager : MonoBehaviour
                 Quaternion.identity
             );
             
-            // Puzzle tipini ağırlıklı random ata (GuitarRiff daha sık)
+            // Puzzle devre dışı - sandıklar vurarak kırılacak
             EnemyHealth enemyHealth = chest.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
             {
-                enemyHealth.hasPuzzle = true;
-                enemyHealth.puzzleDifficulty = Random.Range(1, 3);
+                enemyHealth.hasPuzzle = false; // Puzzle kapalı
+                enemyHealth.puzzleType = EnemyHealth.PuzzleType.None;
                 
-                // Ağırlıklı random: GuitarRiff %50, Memory %25, Rhythm %25
-                int roll = Random.Range(0, 100);
-                enemyHealth.puzzleType = roll switch
-                {
-                    < 50 => EnemyHealth.PuzzleType.GuitarRiff,  // 0-49: %50
-                    < 75 => EnemyHealth.PuzzleType.Memory,      // 50-74: %25
-                    _ => EnemyHealth.PuzzleType.Rhythm          // 75-99: %25
-                };
+                // NOT: Puzzle'ı tekrar aktif etmek için:
+                // enemyHealth.hasPuzzle = true;
+                // enemyHealth.puzzleDifficulty = Random.Range(1, 3);
+                // int roll = Random.Range(0, 100);
+                // enemyHealth.puzzleType = roll switch { <50 => GuitarRiff, <75 => Memory, _ => Rhythm };
                 
-                Debug.Log($"[GameManager] Sandık {i+1}: {enemyHealth.puzzleType}");
+                Debug.Log($"[GameManager] Sandık {i+1} oluşturuldu (Puzzle: Kapalı)");
             }
         }
     }

@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2073745216573219889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3322476548058771874}
+  - component: {fileID: 1304203844316461730}
+  m_Layer: 0
+  m_Name: HellFireEffects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3322476548058771874
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073745216573219889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.2, y: -1.8, z: 50}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1304203844316461730
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073745216573219889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a9f691cb0eabc041975ba86a584dec5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enableFireballs: 1
+  fireballInterval: 2
+  fireballSpeed: 4
+  fireballSize: 0.8
+  fireballGlowIntensity: 3
+  enableEmbers: 1
+  emberCount: 19
+  emberSpeed: 1.5
+  enableLavaGlow: 1
+  lavaPulseSpeed: 1
+  lavaGlowIntensity: 2
+  fireColor: {r: 1, g: 0.4, b: 0.1, a: 1}
+  emberColor: {r: 1, g: 0.6, b: 0.2, a: 1}
+  lavaColor: {r: 1, g: 0.2, b: 0.05, a: 1}
+  spawnWidth: 30
+  spawnHeight: 15
+  despawnY: -10
+  zDepth: 50
+  sortingOrder: -40
+  distanceScale: 0.4
+  fireballSprite: {fileID: 0}
+  emberSprite: {fileID: 0}
+  followCamera: 1

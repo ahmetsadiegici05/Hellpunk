@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.72, y: -3.61, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 4, y: 4, z: 4}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3969501968803256126}
@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: -580961055
   m_SortingLayer: 5
   m_SortingOrder: 0
-  m_Sprite: {fileID: 698564970121448246, guid: 0516563323c104524bbc993c26020ad9, type: 3}
+  m_Sprite: {fileID: 8328269760850406872, guid: f1999907dbeeb4fae9b4868f22281fa6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -157,7 +157,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.62, y: 0.48}
+    oldSize: {x: 0.3, y: 0.22}
     newSize: {x: 17.18, y: 12.5}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -181,8 +181,8 @@ MonoBehaviour:
   maxHealth: 9
   deathEffect: {fileID: 0}
   isDamagableObject: 1
-  hasPuzzle: 1
-  puzzleType: 2
+  hasPuzzle: 0
+  puzzleType: 0
   puzzleDifficulty: 1
   puzzleRewardCoins: 25
   showHealthBar: 1

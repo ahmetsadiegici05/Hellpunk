@@ -10,8 +10,6 @@ TagManager:
   - Ulti
   - Chest
   - ChestPoint
-  - Boss
-  - RotateMap
   layers:
   - Default
   - TransparentFX
@@ -24,7 +22,7 @@ TagManager:
   - Player
   - Enemy
   - Background
-  - 
+  - Midground
   - 
   - 
   - 
@@ -52,19 +50,19 @@ TagManager:
   - name: Background
     uniqueID: 960112703
     locked: 0
-  - name: Foreground
+  - name: Midground
     uniqueID: 338431391
     locked: 0
-  - name: Ground
+  - name: Gameplay
     uniqueID: 2837122663
-    locked: 0
-  - name: Enemy
-    uniqueID: 3714006241
     locked: 0
   - name: Player
     uniqueID: 1065293349
     locked: 0
-  - name: Lava
+  - name: Foreground
+    uniqueID: 3714006241
+    locked: 0
+  - name: UI
     uniqueID: 1352109019
     locked: 0
   m_RenderingLayers:

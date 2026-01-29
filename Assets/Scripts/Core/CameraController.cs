@@ -9,7 +9,13 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float catchUpSpeed = 15f;
 
     [Header("Y Offset")]
-    [SerializeField] private float yOffset = 3f;
+    [SerializeField] private float yOffset = 2f; // Oyuncunun biraz üstünde
+
+    [Header("Y Bounds (Kamera Y sınırları)")]
+    [Tooltip("Kameranın Y pozisyonunu sınırla")]
+    [SerializeField] private bool useYBounds = false; // Varsayılan kapalı - oyuncuyu takip etsin
+    [SerializeField] private float minY = -50f;
+    [SerializeField] private float maxY = 100f;
 
     [Header("Zoom")]
     [SerializeField] private bool overrideOrthographicSize = true;
@@ -39,6 +45,19 @@ public class CameraController : MonoBehaviour
                 player = playerObj.transform;
             else
                 Debug.LogWarning("CameraController: Player bulunamadı!");
+        }
+    }
+    
+    private void Start()
+    {
+        // Oyun başladığında kamerayı hemen oyuncuya konumla
+        if (player != null)
+        {
+            transform.position = new Vector3(
+                player.position.x,
+                player.position.y + yOffset,
+                transform.position.z
+            );
         }
     }
 
@@ -98,6 +117,14 @@ public class CameraController : MonoBehaviour
                 targetPos,
                 Time.deltaTime * dynamicSpeed
             );
+        }
+        
+        // Y sınırlarını uygula
+        if (useYBounds)
+        {
+            Vector3 clampedPos = transform.position;
+            clampedPos.y = Mathf.Clamp(clampedPos.y, minY, maxY);
+            transform.position = clampedPos;
         }
     }
 

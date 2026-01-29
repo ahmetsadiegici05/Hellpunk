@@ -13,6 +13,21 @@ public class LevelExit : MonoBehaviour
         if (!hasTriggered && collision.CompareTag("Player"))
         {
             hasTriggered = true;
+            
+            // Oyuncu sağlığını kaydet (ölmemesi için)
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SavePlayerHealthForTransition();
+            }
+            
+            // Oyuncuyu invincible yap
+            Health playerHealth = collision.GetComponent<Health>();
+            if (playerHealth != null)
+            {
+                // Geçiş sırasında hasar almasın
+                playerHealth.enabled = false;
+            }
+            
             // Yeni geçiş kontrolcüsünü kullan
             if (SceneTransitionController.Instance != null)
             {

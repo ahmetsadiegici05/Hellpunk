@@ -7,13 +7,42 @@ using UnityEngine;
 public class ParallaxBackground : MonoBehaviour
 {
     [Header("Parallax Ayarları")]
-    [Range(0f, 1f)] public float parallaxEffectX = 0.5f;
-    [Range(0f, 1f)] public float parallaxEffectY = 0.2f;
+    [Range(0f, 1f)] 
+    [Tooltip("0 = kamerayla birlikte hareket (ön plan), 1 = sabit durur (çok uzak). Background: 0.9, Midground: 0.5")]
+    public float parallaxEffectX = 0.9f;
+    [Range(0f, 1f)] 
+    [Tooltip("Dikey parallax. Genelde yataydan düşük tutulur.")]
+    public float parallaxEffectY = 0.5f;
 
     [Header("Ölçekleme")]
-    public bool autoScaleToCamera = true;
+    [Tooltip("Kapalıyken scale değiştirmez, açıkken kameraya göre otomatik scale yapar")]
+    public bool autoScaleToCamera = false;
     public float manualScale = 5f;
+    [Tooltip("Auto scale açıkken ekstra çarpan")]
     public float extraScale = 1.2f;
+    
+    [Header("Pozisyon")]
+    [Tooltip("Açıkken başlangıçta kamera pozisyonuna taşır, kapalıyken mevcut pozisyonu korur")]
+    public bool followCameraOnStart = true;
+    [Tooltip("Y offset - negatif = aşağı, pozitif = yukarı")]
+    public float yOffset = 0f;
+
+    [Header("Derinlik Ayarları")]
+    [Tooltip("Z pozisyonu - büyük değer = daha uzak")]
+    public float zDepth = 20f;
+    [Tooltip("Sorting Layer adı (Background, Midground, vb.)")]
+    public string sortingLayerName = "Default";
+    [Tooltip("Sorting Order - negatif değerler daha arkada. Background için -100, Midground için -50 önerilir")]
+    public int sortingOrder = -100;
+
+    [Header("Şeffaflık (Midground için)")]
+    [Range(0f, 1f)]
+    [Tooltip("0 = tamamen şeffaf, 1 = tamamen opak. Midground için 0.6-0.8 önerilir")]
+    public float alpha = 1f;
+
+    [Header("Tile Tekrar")]
+    [Tooltip("Açıkken 3x3 tile oluşturur (sonsuz arka plan için). Midground için KAPALI tutun!")]
+    public bool createTiles = true;
 
     private Transform cameraTransform;
     private Camera mainCamera;
@@ -37,17 +66,69 @@ public class ParallaxBackground : MonoBehaviour
             return;
         }
 
-        CalculateAndApplyScale();
+        // Sorting Layer ve Order ayarla
+        ApplySortingSettings();
 
-        transform.position = new Vector3(
-            cameraTransform.position.x,
-            cameraTransform.position.y,
-            transform.position.z
-        );
+        // Scale ayarla (autoScaleToCamera açıksa)
+        if (autoScaleToCamera)
+        {
+            CalculateAndApplyScale();
+        }
+        else
+        {
+            // Manuel scale - mevcut scale'i koru, sadece texture size hesapla
+            Sprite sprite = spriteRenderer.sprite;
+            appliedScale = transform.localScale.x;
+            textureUnitSizeX = sprite.bounds.size.x * appliedScale;
+            textureUnitSizeY = sprite.bounds.size.y * appliedScale;
+        }
+
+        // Pozisyon ayarla
+        if (followCameraOnStart)
+        {
+            transform.position = new Vector3(
+                cameraTransform.position.x,
+                cameraTransform.position.y + yOffset,
+                zDepth
+            );
+        }
+        else
+        {
+            // Sadece Z derinliğini ayarla, X ve Y koru
+            Vector3 pos = transform.position;
+            pos.z = zDepth;
+            transform.position = pos;
+        }
 
         lastCameraPosition = cameraTransform.position;
 
-        CreateTiles2D();
+        // Tile oluştur (opsiyonel)
+        if (createTiles)
+        {
+            CreateTiles2D();
+        }
+    }
+
+    void ApplySortingSettings()
+    {
+        // Sorting Layer kontrolü - layer yoksa Default kullan
+        if (!string.IsNullOrEmpty(sortingLayerName) && SortingLayer.NameToID(sortingLayerName) != 0)
+        {
+            spriteRenderer.sortingLayerName = sortingLayerName;
+        }
+        else
+        {
+            spriteRenderer.sortingLayerName = "Default";
+        }
+        
+        spriteRenderer.sortingOrder = sortingOrder;
+        
+        // Alpha/şeffaflık uygula
+        Color color = spriteRenderer.color;
+        color.a = alpha;
+        spriteRenderer.color = color;
+        
+        Debug.Log($"[ParallaxBackground] {gameObject.name} - Layer: {spriteRenderer.sortingLayerName}, Order: {sortingOrder}, Alpha: {alpha}");
     }
 
     void CalculateAndApplyScale()
@@ -105,11 +186,14 @@ public class ParallaxBackground : MonoBehaviour
 
         Vector3 deltaMovement = cameraTransform.position - lastCameraPosition;
 
-        transform.position += new Vector3(
-            deltaMovement.x * parallaxEffectX,
-            deltaMovement.y * parallaxEffectY,
-            0
-        );
+        // Parallax efekti: background kameradan DAHA YAVAŞ hareket etmeli
+        // parallaxEffectX = 0 → background kamerayla aynı hızda (sabit kalır ekranda)
+        // parallaxEffectX = 1 → background hiç hareket etmez (dünyada sabit)
+        // parallaxEffectX = 0.5 → background kameranın yarı hızında hareket eder
+        float parallaxX = deltaMovement.x * (1 - parallaxEffectX);
+        float parallaxY = deltaMovement.y * (1 - parallaxEffectY);
+
+        transform.position += new Vector3(parallaxX, parallaxY, 0);
 
         lastCameraPosition = cameraTransform.position;
 
