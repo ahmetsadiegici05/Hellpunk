@@ -32,6 +32,14 @@ public class EnemyHealth : MonoBehaviour
     private Color defaultColor;
     private SimpleEnemyHealthBar healthBar; // Yeni basit can barı
 
+    [Header("Damage Text")]
+    [SerializeField] private Vector3 damageTextOffset = new Vector3(0f, 1.2f, 0f);
+
+    [Header("World Space Canvas")]
+    [SerializeField] private Canvas enemyCanvas;
+
+
+
     private void Start()
     {
         if (animator == null) animator = GetComponent<Animator>();
@@ -68,6 +76,7 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
 
         currentHealth -= amount;
+        ShowDamageText(amount);
         
         Debug.Log($"{gameObject.name} hasar aldı: {amount}, Kalan can: {currentHealth}");
         
@@ -220,6 +229,7 @@ public class EnemyHealth : MonoBehaviour
         if (isDamagableObject) 
         {
             if (particleSystem != null) particleSystem.Play();
+            StartCoroutine(ReturnToSavedPosition());
             if (healthBar != null) Destroy(healthBar.gameObject);
             
             // Puzzle zaten çözüldüyse veya puzzle yoksa direkt ödül
@@ -353,6 +363,41 @@ public class EnemyHealth : MonoBehaviour
     {
         if (collision.tag == "Ulti")
             TakeDamage(100);
+    }
+
+    private void ShowDamageText(float damage)
+    {
+        if (enemyCanvas == null)
+        {
+            Debug.LogWarning("Enemy canvas atanmadı!");
+            return;
+        }
+
+        GameObject prefab = Resources.Load<GameObject>("FloatingDamageText");
+        if (prefab == null) return;
+
+        // Canvas içinde spawn
+        GameObject dmgTextObj = Instantiate(prefab, enemyCanvas.transform);
+
+        RectTransform rect = dmgTextObj.GetComponent<RectTransform>();
+
+        // Düşmana göre pozisyon (LOCAL)
+        Vector3 localPos = enemyCanvas.transform.InverseTransformPoint(
+            transform.position + damageTextOffset
+        );
+
+        rect.localPosition = localPos;
+        rect.localRotation = Quaternion.identity;
+
+        FloatingDamageText dmgText = dmgTextObj.GetComponent<FloatingDamageText>();
+        if (dmgText != null)
+            dmgText.Initialize(damage);
+    }
+
+    IEnumerator ReturnToSavedPosition()
+    {
+        yield return new WaitForSeconds(1f);
+        GameManager.Instance.ReturnPlayerToSavedPosition();
     }
 
     #region Puzzle System

@@ -34,9 +34,11 @@ public class RushingTrap : MonoBehaviour
     private const string ANIM_ATTACK = "Attack";
 
     [Header("Boss Skill Settings")]
-    [SerializeField] private float bossSkillCooldown = 10f;
+    [SerializeField] private float bossSkillCooldown = 1f;
     private Coroutine bossSkillRoutine;
     public bool isBoss = false;
+    public ParticleSystem shockwaveEffect;
+    public TrailRenderer trailRenderer;
 
     private void Start()
     {
@@ -49,6 +51,11 @@ public class RushingTrap : MonoBehaviour
 
         if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
         if (animator == null) animator = GetComponent<Animator>();
+
+        if (isBoss)
+        {
+            bossSkillRoutine = StartCoroutine(BossSkillLoop());
+        }
     }
 
     private void Update()
@@ -143,11 +150,6 @@ public class RushingTrap : MonoBehaviour
     {
         if (animator != null) animator.SetTrigger(ANIM_ATTACK);
 
-        if (isBoss)
-        {
-            bossSkillRoutine = StartCoroutine(BossSkillLoop());
-        }
-
         Health playerHealth = targetPlayer.GetComponent<Health>();
         if (playerHealth != null)
         {
@@ -189,10 +191,10 @@ public class RushingTrap : MonoBehaviour
 
             int randomSkill = Random.Range(0, 2);
 
-            // if (randomSkill == 0)
-            //     BossSkill_Charge();
-            // else
-            //     BossSkill_Shockwave();
+            if (randomSkill == 0)
+                BossSkill_Charge();
+            else
+                BossSkill_Shockwave();
         }
     }
 
@@ -203,4 +205,48 @@ public class RushingTrap : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, stopDistance);
     }
+
+    private void BossSkill_Charge()
+    {
+        trailRenderer.emitting = true;
+        if (targetPlayer == null) return;
+
+        float dir = Mathf.Sign(targetPlayer.position.x - transform.position.x);
+
+    #if UNITY_6000_0_OR_NEWER
+        rb.linearVelocity = new Vector2(dir * moveSpeed * 10f, rb.linearVelocity.y);
+    #else
+        rb.velocity = new Vector2(dir * moveSpeed * 10f, rb.velocity.y);
+    #endif
+
+        StartCoroutine(ResetTrail());
+    }
+
+    private void BossSkill_Shockwave()
+    {
+        shockwaveEffect.Play();
+
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, 3f, playerLayer);
+        if (hit != null)
+        {
+            Rigidbody2D prb = hit.GetComponent<Rigidbody2D>();
+            Health hp = hit.GetComponent<Health>();
+
+            if (hp != null)
+                hp.TakeDamage(damage * 2);
+
+            if (prb != null)
+            {
+                Vector2 force = (hit.transform.position - transform.position).normalized * pushForce;
+                prb.AddForce(force, ForceMode2D.Impulse);
+            }
+        }
+    }
+
+    public IEnumerator ResetTrail()
+    {
+        yield return new WaitForSeconds(0.5f);
+        trailRenderer.emitting = false;
+    }
+
 }

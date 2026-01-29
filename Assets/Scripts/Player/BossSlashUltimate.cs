@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class BossSlashUltimate : MonoBehaviour
 {
+
+    public static BossSlashUltimate Instance;
+
     [Header("Detection")]
     [SerializeField] private float activateDistance = 6f;
 
@@ -25,6 +28,11 @@ public class BossSlashUltimate : MonoBehaviour
     private bool ultiUsed = false;
     private Vector3 startPosition;
 
+    void Awake()
+    {
+        Instance = this;
+    }
+
     void Start()
     {
         startPosition = transform.position;
@@ -37,11 +45,21 @@ public class BossSlashUltimate : MonoBehaviour
         StartCoroutine(FindPlayerHealthBarRoutine());
     }
 
-    void Update()
-    {
-        if (bossTarget == null || ultiUsed)
-            return;
+    // void Update()
+    // {
+    //     if (bossTarget == null || ultiUsed)
+    //         return;
 
+    //     float dist = Vector2.Distance(transform.position, bossTarget.position);
+
+    //     if (dist <= activateDistance)
+    //     {
+    //         StartCoroutine(UltiSlashSequence());
+    //     }
+    // }
+
+    public void ActivateUltimate()
+    {
         float dist = Vector2.Distance(transform.position, bossTarget.position);
 
         if (dist <= activateDistance)
@@ -57,19 +75,14 @@ public class BossSlashUltimate : MonoBehaviour
             playerHealthBar = GameObject.Find("PlayerHealthBar");
             yield return new WaitForSeconds(0.2f);
         }
-
-        Debug.Log("✅ PlayerHealthBar bulundu");
     }
 
     IEnumerator UltiSlashSequence()
     {
         ultiUsed = true;
 
-        // 🔴 Health bar kapat
         if (playerHealthBar != null)
             playerHealthBar.SetActive(false);
-
-        // ⏳ 2 saniye sonra tekrar aç
         StartCoroutine(EnableHealthBarAfterDelay());
 
         transform.position = bossTarget.position;

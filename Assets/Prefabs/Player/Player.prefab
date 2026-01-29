@@ -339,9 +339,10 @@ MonoBehaviour:
   speed: 7
   jumpPower: 23
   footstepInterval: 0.3
-  groundGravity: 7
+  groundGravity: 5
   wallSlideGravity: 1.5
   movementSmoothTime: 0.05
+  groundHitParticle: {fileID: 6951298611590521855, guid: 1331ef98dcf544a37a90264094947018, type: 3}
   coyoteTime: 0.15
   jumpBufferTime: 0.1
   variableJumpMultiplier: 0.5
@@ -351,7 +352,7 @@ MonoBehaviour:
     m_Bits: 64
   wallLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 128
   lockMovement: 0
 --- !u!95 &8711647060432032710
 Animator:

@@ -35,6 +35,11 @@ public class GameManager : MonoBehaviour
     public GameObject ultiObject;
     public Animator ultiAnimator;
 
+    [Header("Portal Transforms")]
+    public Transform chestRoomSpawnPoint;
+    public Transform enemySpawnPoint;
+    public Transform chestSpawnPoint;
+
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -352,4 +357,41 @@ public class GameManager : MonoBehaviour
         
         Debug.Log("[GameManager] Puzzle bitti - oyun devam ediyor, müzik normale döndü");
     }
+
+    #region PORTAL RETURN SYSTEM
+
+    private Transform cachedPlayer;
+    private Vector3 cachedPlayerPosition;
+    private bool hasReturnPosition = false;
+
+    public void SavePlayerReturnPoint(Transform player)
+    {
+        cachedPlayer = player;
+        cachedPlayerPosition = player.position;
+        hasReturnPosition = true;
+
+        Debug.Log($"[GameManager] Geri dönüş pozisyonu kaydedildi: {cachedPlayerPosition}");
+    }
+
+    public void ReturnPlayerToSavedPosition()
+    {
+        if (!hasReturnPosition || cachedPlayer == null)
+        {
+            Debug.LogWarning("[GameManager] Geri dönüş bilgisi yok!");
+            return;
+        }
+
+        cachedPlayer.position = cachedPlayerPosition;
+
+        Rigidbody2D rb = cachedPlayer.GetComponent<Rigidbody2D>();
+        if (rb != null)
+            rb.linearVelocity = Vector2.zero;
+
+        Debug.Log("[GameManager] Player eski pozisyona döndü");
+
+        hasReturnPosition = false;
+    }
+
+    #endregion
+
 }

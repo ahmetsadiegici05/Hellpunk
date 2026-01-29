@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public static PlayerMovement Instance;
+
     [Header("Movement Settings")]
     [SerializeField] public float speed = 10f;
     [SerializeField] public float jumpPower = 15f;
@@ -9,6 +11,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float groundGravity = 7f;
     [SerializeField] private float wallSlideGravity = 1.5f;
     [SerializeField] private float movementSmoothTime = 0.05f;
+    [SerializeField] private ParticleSystem groundHitParticle;
+    private bool wasGrounded;
 
     [Header("Game Feel Settings")]
     [SerializeField] private float coyoteTime = 0.15f; 
@@ -82,6 +86,7 @@ public class PlayerMovement : MonoBehaviour
         anim = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
         defaultWorldScale = transform.lossyScale;
+        Instance = this;
     }
 
     private void Update()
@@ -306,7 +311,11 @@ public class PlayerMovement : MonoBehaviour
 
     private bool IsGrounded()
     {
-        Vector2 boxSize = new Vector2(boxCollider.bounds.size.x * 0.9f, boxCollider.bounds.size.y);
+        Vector2 boxSize = new Vector2(
+            boxCollider.bounds.size.x * 0.9f,
+            boxCollider.bounds.size.y
+        );
+
         RaycastHit2D hit = Physics2D.BoxCast(
             boxCollider.bounds.center,
             boxSize,
@@ -315,7 +324,16 @@ public class PlayerMovement : MonoBehaviour
             0.1f,
             groundLayer
         );
-        return hit.collider != null;
+
+        bool grounded = hit.collider != null;
+
+        if (grounded && !wasGrounded)
+        {
+            SpawnGroundParticle(hit.point, hit.normal);
+        }
+
+        wasGrounded = grounded;
+        return grounded;
     }
 
     private bool OnWall()
@@ -341,4 +359,21 @@ public class PlayerMovement : MonoBehaviour
     {
         return true;
     }
+
+    private void SpawnGroundParticle(Vector2 position, Vector2 normal)
+    {
+        if (groundHitParticle == null) return;
+
+        Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normal);
+
+        ParticleSystem ps = Instantiate(
+            groundHitParticle,
+            position,
+            rotation
+        );
+
+        ps.Play();
+        Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
+    }
+
 }

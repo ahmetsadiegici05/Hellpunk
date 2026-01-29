@@ -535,7 +535,7 @@ public class GuitarSkillSystem : MonoBehaviour
                 break;
             // Ultimate durumunu buraya ekle
             case SkillType.Ultimate:
-                StartCoroutine(UseUlti());
+                UseUlti();
                 break;
         }
     }
@@ -756,23 +756,10 @@ public class GuitarSkillSystem : MonoBehaviour
         }
     }
 
-    public IEnumerator UseUlti()
+    public void UseUlti()
     {
         // Ultimate SoulSystem tarafından yönetiliyor, cooldown yok
-
-        if (GameManager.Instance.ultiObject != null)
-        {
-            GameManager.Instance.ultiObject.SetActive(true);
-            GameManager.Instance.ultiAnimator.SetTrigger("Ulti");
-            anim.SetTrigger("attack");
-        }
-        
-        yield return new WaitForSeconds(2f);
-
-        if (GameManager.Instance.ultiObject != null)
-        {
-            GameManager.Instance.ultiObject.SetActive(false);
-        }
+        BossSlashUltimate.Instance.ActivateUltimate();
     }
     
     // ================= MARKET SİSTEMİ =================
