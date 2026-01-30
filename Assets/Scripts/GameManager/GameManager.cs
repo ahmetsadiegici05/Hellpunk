@@ -172,9 +172,10 @@ public class GameManager : MonoBehaviour
             GameObject chest = Instantiate(
                 chestPrefab,
                 shuffledPoints[i].position,
-                Quaternion.identity
+                Quaternion.identity,
+                shuffledPoints[i]
             );
-            
+
             // Puzzle devre dışı - sandıklar vurarak kırılacak
             EnemyHealth enemyHealth = chest.GetComponent<EnemyHealth>();
             if (enemyHealth != null)
@@ -439,6 +440,22 @@ public class GameManager : MonoBehaviour
         Debug.Log("[GameManager] Player eski pozisyona döndü");
 
         hasReturnPosition = false;
+    }
+
+    public void OnSceneChanged()
+    {
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.RefreshAllComponents();
+        }
+    }
+    
+    public void UpdateCoinUI()
+    {
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.UpdateCoinText();
+        }
     }
 
     #endregion

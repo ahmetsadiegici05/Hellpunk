@@ -229,7 +229,6 @@ public class EnemyHealth : MonoBehaviour
         if (isDamagableObject) 
         {
             if (particleSystem != null) particleSystem.Play();
-            StartCoroutine(ReturnToSavedPosition());
             if (healthBar != null) Destroy(healthBar.gameObject);
             
             // Sandık kırıldığında coin ver
@@ -351,6 +350,8 @@ public class EnemyHealth : MonoBehaviour
             
             yield return null;
         }
+
+        if (isDamagableObject) GameManager.Instance.ReturnPlayerToSavedPosition();
         
         // Son temizlik
         spriteRenderer.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
