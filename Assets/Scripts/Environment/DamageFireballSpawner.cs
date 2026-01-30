@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Oyuncuya zarar veren ateş toplarını spawn eden sistem
@@ -10,13 +11,16 @@ public class DamageFireballSpawner : MonoBehaviour
     [Tooltip("Ateş topu spawn'ını aktif et")]
     public bool enableSpawning = true;
     
+    [Tooltip("Level bazlı otomatik ayar kullan")]
+    public bool useAutoLevelSettings = true;
+    
     [Tooltip("İki ateş topu arası minimum süre")]
-    [Range(1f, 10f)]
-    public float minSpawnInterval = 2f;
+    [Range(0.5f, 10f)]
+    public float minSpawnInterval = 1.5f;
     
     [Tooltip("İki ateş topu arası maksimum süre")]
-    [Range(2f, 15f)]
-    public float maxSpawnInterval = 5f;
+    [Range(1f, 15f)]
+    public float maxSpawnInterval = 3.5f;
     
     [Tooltip("Spawn alanı genişliği (kamera etrafında)")]
     public float spawnWidth = 20f;
@@ -26,7 +30,7 @@ public class DamageFireballSpawner : MonoBehaviour
     
     [Header("Ateş Topu Özellikleri")]
     [Range(1f, 15f)]
-    public float fireballSpeed = 6f;
+    public float fireballSpeed = 9f; // Daha hızlı
     
     [Range(0.1f, 1f)]
     public float fireballSize = 0.3f; // Küçük boyut
@@ -49,6 +53,17 @@ public class DamageFireballSpawner : MonoBehaviour
     [Range(0f, 3f)]
     public float aimRandomness = 1f;
     
+    [Tooltip("Rastgele düşme şansı (0 = hep hedefli, 1 = hep rastgele)")]
+    [Range(0f, 1f)]
+    public float randomFallChance = 0.3f;
+    
+    [Tooltip("Oyuncu hareketi tahminini kullan")]
+    public bool usePrediction = true;
+    
+    [Tooltip("Tahmin çarpanı (yüksek = daha ileriyi hedefler)")]
+    [Range(0.5f, 3f)]
+    public float predictionMultiplier = 1.5f;
+    
     [Header("Uyarı Sistemi")]
     [Tooltip("Ateş topu düşmeden önce uyarı göster")]
     public bool showWarning = true;
@@ -70,7 +85,59 @@ public class DamageFireballSpawner : MonoBehaviour
             cameraTransform = Camera.main.transform;
         }
         
+        // Level bazlı ayarları uygula
+        if (useAutoLevelSettings)
+        {
+            ApplyLevelSettings();
+        }
+        
         ScheduleNextSpawn();
+    }
+    
+    void ApplyLevelSettings()
+    {
+        string sceneName = SceneManager.GetActiveScene().name.ToLower();
+        
+        if (sceneName.Contains("level1") || sceneName.Contains("level 1"))
+        {
+            // Level 1: Normal zorluk
+            minSpawnInterval = 1.5f;
+            maxSpawnInterval = 3.5f;
+            fireballSpeed = 9f;
+            randomFallChance = 0.3f;
+            predictionMultiplier = 1.5f;
+            Debug.Log("[DamageFireballSpawner] Level 1 ayarları uygulandı");
+        }
+        else if (sceneName.Contains("level2") || sceneName.Contains("level 2"))
+        {
+            // Level 2: Daha zor - daha sık spawn
+            minSpawnInterval = 0.8f;
+            maxSpawnInterval = 2f;
+            fireballSpeed = 11f;
+            randomFallChance = 0.25f;
+            predictionMultiplier = 1.8f;
+            Debug.Log("[DamageFireballSpawner] Level 2 ayarları uygulandı - DAHA SIK!");
+        }
+        else if (sceneName.Contains("level3") || sceneName.Contains("level 3"))
+        {
+            // Level 3: Çok zor
+            minSpawnInterval = 0.5f;
+            maxSpawnInterval = 1.5f;
+            fireballSpeed = 13f;
+            randomFallChance = 0.2f;
+            predictionMultiplier = 2f;
+            Debug.Log("[DamageFireballSpawner] Level 3 ayarları uygulandı - ÇOK SIK!");
+        }
+        else if (sceneName.Contains("level4") || sceneName.Contains("level 4"))
+        {
+            // Level 4: Cehennem modu
+            minSpawnInterval = 0.3f;
+            maxSpawnInterval = 1f;
+            fireballSpeed = 15f;
+            randomFallChance = 0.15f;
+            predictionMultiplier = 2.2f;
+            Debug.Log("[DamageFireballSpawner] Level 4 ayarları uygulandı - CEHENNEM!");
+        }
     }
     
     void Update()
@@ -99,25 +166,40 @@ public class DamageFireballSpawner : MonoBehaviour
     
     void SpawnFireball()
     {
-        // Rastgele X pozisyonu
+        // Kamera rotasyonunu al
+        float cameraAngle = 0f;
+        if (cameraTransform != null)
+        {
+            cameraAngle = cameraTransform.eulerAngles.z;
+        }
+        
+        // Kameranın "yukarı" yönünü hesapla (rotasyona göre)
+        Vector2 cameraUp = Quaternion.Euler(0, 0, cameraAngle) * Vector2.up;
+        Vector2 cameraRight = Quaternion.Euler(0, 0, cameraAngle) * Vector2.right;
+        
+        // Rastgele X pozisyonu (kamera koordinatında)
         float randomX = Random.Range(-spawnWidth / 2f, spawnWidth / 2f);
+        
+        // Spawn pozisyonu: kameranın yukarısında, kamera rotasyonuna göre
         Vector3 spawnPos = new Vector3(
-            transform.position.x + randomX,
-            transform.position.y + spawnHeightAboveCamera,
+            transform.position.x + cameraRight.x * randomX + cameraUp.x * spawnHeightAboveCamera,
+            transform.position.y + cameraRight.y * randomX + cameraUp.y * spawnHeightAboveCamera,
             0
         );
         
         if (showWarning)
         {
-            StartCoroutine(SpawnWithWarning(spawnPos));
+            float angle = cameraTransform != null ? cameraTransform.eulerAngles.z : 0f;
+            StartCoroutine(SpawnWithWarning(spawnPos, angle));
         }
         else
         {
-            CreateFireball(spawnPos);
+            float angle = cameraTransform != null ? cameraTransform.eulerAngles.z : 0f;
+            CreateFireball(spawnPos, angle);
         }
     }
     
-    System.Collections.IEnumerator SpawnWithWarning(Vector3 spawnPos)
+    System.Collections.IEnumerator SpawnWithWarning(Vector3 spawnPos, float cameraAngle)
     {
         // Uyarı işareti oluştur
         GameObject warning = CreateWarningIndicator(spawnPos);
@@ -129,7 +211,7 @@ public class DamageFireballSpawner : MonoBehaviour
         if (warning != null) Destroy(warning);
         
         // Ateş topunu spawn et
-        CreateFireball(spawnPos);
+        CreateFireball(spawnPos, cameraAngle);
     }
     
     GameObject CreateWarningIndicator(Vector3 spawnPos)
@@ -234,7 +316,7 @@ public class DamageFireballSpawner : MonoBehaviour
         }
     }
     
-    void CreateFireball(Vector3 position)
+    void CreateFireball(Vector3 position, float cameraAngle)
     {
         // Z pozisyonunu 0 yap - oyuncu seviyesinde olmalı!
         Vector3 spawnPos = new Vector3(position.x, position.y, 0f);
@@ -250,8 +332,18 @@ public class DamageFireballSpawner : MonoBehaviour
         fb.knockbackForce = knockbackForce;
         fb.fireColor = fireColor;
         fb.glowIntensity = glowIntensity;
-        fb.targetPlayer = targetPlayer;
+        
+        // Kamera rotasyonuna göre düşme yönünü ayarla
+        fb.fallDirection = Quaternion.Euler(0, 0, cameraAngle) * Vector2.down;
+        
+        // Rastgele düşme şansı kontrol et
+        bool shouldTargetPlayer = targetPlayer && (Random.value > randomFallChance);
+        fb.targetPlayer = shouldTargetPlayer;
         fb.aimRandomness = aimRandomness;
+        
+        // Prediction ayarları
+        fb.predictPlayerMovement = usePrediction && shouldTargetPlayer;
+        fb.predictionMultiplier = predictionMultiplier;
     }
     
     void OnDrawGizmosSelected()

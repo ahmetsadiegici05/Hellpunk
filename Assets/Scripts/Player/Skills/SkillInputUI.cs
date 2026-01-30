@@ -809,7 +809,8 @@ public class SkillInputUI : MonoBehaviour
 
         skillCanvas = canvasObj.AddComponent<Canvas>();
         skillCanvas.renderMode = RenderMode.WorldSpace;
-        skillCanvas.sortingOrder = 1000; // Platformların üstünde olsun
+        skillCanvas.sortingLayerName = "UI"; // UI sorting layer kullan (en üstte)
+        skillCanvas.sortingOrder = 32767; // Maximum sorting order
 
         RectTransform canvasRect = canvasObj.GetComponent<RectTransform>();
         canvasRect.sizeDelta = new Vector2(500, 150);

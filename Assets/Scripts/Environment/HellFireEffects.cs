@@ -104,8 +104,8 @@ public class HellFireEffects : MonoBehaviour
         main.loop = true;
         main.startLifetime = spawnHeight / fireballSpeed + 2f;
         main.startSpeed = fireballSpeed * distanceScale; // Uzakta daha yavaş görünsün
-        main.startSize = fireballSize * distanceScale; // Uzakta daha küçük görünsün
-        main.maxParticles = 50;
+        main.startSize = new ParticleSystem.MinMaxCurve(fireballSize * distanceScale * 0.8f, fireballSize * distanceScale * 1.2f); // Sabit boyut aralığı
+        main.maxParticles = 20; // Daha az parçacık - birikmesini önle
         main.simulationSpace = ParticleSystemSimulationSpace.World;
         main.gravityModifier = 0.3f;
 
@@ -113,9 +113,9 @@ public class HellFireEffects : MonoBehaviour
         Color hdrFireColor = fireColor * fireballGlowIntensity;
         main.startColor = new ParticleSystem.MinMaxGradient(hdrFireColor);
 
-        // Emission
+        // Emission - daha az sıklık
         var emission = fireballPS.emission;
-        emission.rateOverTime = 1f / fireballInterval;
+        emission.rateOverTime = 0.3f / fireballInterval; // Daha az spawn
 
         // Shape - üstten yatay çizgi
         var shape = fireballPS.shape;
@@ -128,13 +128,13 @@ public class HellFireEffects : MonoBehaviour
         velocity.enabled = true;
         velocity.y = new ParticleSystem.MinMaxCurve(-fireballSpeed);
 
-        // Size over lifetime - biraz küçülsün
+        // Size over lifetime - SABİT BOYUT (büyüme yok, sadece sonunda küçül)
         var sizeOverLife = fireballPS.sizeOverLifetime;
         sizeOverLife.enabled = true;
         AnimationCurve sizeCurve = new AnimationCurve();
         sizeCurve.AddKey(0f, 1f);
-        sizeCurve.AddKey(0.8f, 0.8f);
-        sizeCurve.AddKey(1f, 0.3f);
+        sizeCurve.AddKey(0.9f, 1f);  // %90'a kadar sabit boyut
+        sizeCurve.AddKey(1f, 0f);    // Sonunda kaybol
         sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
 
         // Color over lifetime - parlama efekti
@@ -282,19 +282,19 @@ public class HellFireEffects : MonoBehaviour
         lavaGlowPS = lavaObj.AddComponent<ParticleSystem>();
         var main = lavaGlowPS.main;
         main.loop = true;
-        main.startLifetime = new ParticleSystem.MinMaxCurve(1f, 2f);
-        main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 2f);
-        main.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.5f);
-        main.maxParticles = 30;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.5f); // Biraz daha uzun ömür
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 1.5f); // Biraz daha hızlı
+        main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.25f); // Biraz daha büyük
+        main.maxParticles = 25; // Daha fazla parçacık
         main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.gravityModifier = -0.3f;
+        main.gravityModifier = -0.2f;
 
-        // HDR renk - çok parlak
-        Color hdrLavaColor = lavaColor * lavaGlowIntensity * 2f;
+        // HDR renk - parlak ama küçük
+        Color hdrLavaColor = lavaColor * lavaGlowIntensity;
         main.startColor = new ParticleSystem.MinMaxGradient(hdrLavaColor);
 
         var emission = lavaGlowPS.emission;
-        emission.rateOverTime = 10f;
+        emission.rateOverTime = 8f; // Daha fazla spawn
 
         // Shape - alt çizgi (lav yüzeyi)
         var shape = lavaGlowPS.shape;
@@ -306,13 +306,13 @@ public class HellFireEffects : MonoBehaviour
         velocity.enabled = true;
         velocity.y = new ParticleSystem.MinMaxCurve(1f, 3f);
 
-        // Size over lifetime
+        // Size over lifetime - SABİT BOYUT (büyüme yok)
         var sizeOverLife = lavaGlowPS.sizeOverLifetime;
         sizeOverLife.enabled = true;
         AnimationCurve curve = new AnimationCurve();
-        curve.AddKey(0f, 0.5f);
-        curve.AddKey(0.5f, 1f);
-        curve.AddKey(1f, 0f);
+        curve.AddKey(0f, 1f);   // Başlangıçta tam boyut
+        curve.AddKey(0.8f, 1f); // %80'e kadar sabit
+        curve.AddKey(1f, 0f);   // Sonunda kaybol
         sizeOverLife.size = new ParticleSystem.MinMaxCurve(1f, curve);
 
         // Color - fade out
@@ -477,26 +477,34 @@ public class HellFireEffects : MonoBehaviour
     
     Texture2D CreateCircleTexture(int size)
     {
-        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        float center = size / 2f;
-        float radius = size / 2f;
+        // Daha büyük boyut = daha yumuşak kenarlar
+        int textureSize = Mathf.Max(size, 128);
+        Texture2D texture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        float center = textureSize / 2f;
+        float radius = textureSize / 2f - 1f; // Kenardan 1 piksel içeride
         
-        for (int y = 0; y < size; y++)
+        for (int y = 0; y < textureSize; y++)
         {
-            for (int x = 0; x < size; x++)
+            for (int x = 0; x < textureSize; x++)
             {
                 float distance = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
                 
                 if (distance < radius)
                 {
                     // Kenardan merkeze doğru parlama (gradient)
-                    float alpha = 1f - (distance / radius);
-                    alpha = Mathf.Pow(alpha, 0.5f); // Daha yumuşak geçiş
+                    float normalizedDist = distance / radius;
+                    float alpha = 1f - normalizedDist;
+                    alpha = Mathf.Pow(alpha, 0.7f); // Daha yumuşak geçiş
                     
-                    // Merkez daha parlak
-                    float brightness = Mathf.Pow(1f - (distance / radius), 2f);
-                    Color color = Color.Lerp(Color.white, new Color(1f, 0.6f, 0.2f), distance / radius);
-                    color.a = alpha;
+                    // Anti-aliasing için kenar yumuşatma
+                    if (distance > radius - 2f)
+                    {
+                        alpha *= 1f - ((distance - (radius - 2f)) / 2f);
+                    }
+                    
+                    // Merkez daha parlak, kenarlar turuncu
+                    Color color = Color.Lerp(new Color(1f, 0.6f, 0.2f), Color.white, Mathf.Pow(1f - normalizedDist, 2f));
+                    color.a = Mathf.Clamp01(alpha);
                     
                     texture.SetPixel(x, y, color);
                 }
@@ -508,7 +516,8 @@ public class HellFireEffects : MonoBehaviour
         }
         
         texture.Apply();
-        texture.filterMode = FilterMode.Bilinear;
+        texture.filterMode = FilterMode.Trilinear; // Daha iyi filtreleme
+        texture.wrapMode = TextureWrapMode.Clamp;
         return texture;
     }
 

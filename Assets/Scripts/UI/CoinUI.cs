@@ -36,6 +36,12 @@ public class CoinUI : MonoBehaviour
 
     private void Update()
     {
+        // Her frame'de güncelle (Time.timeScale = 0 olsa bile)
+        UpdateCoinDisplay();
+    }
+    
+    private void UpdateCoinDisplay()
+    {
         if (GameManager.Instance == null) return;
         
         // Coin değişti mi kontrol et
@@ -51,6 +57,16 @@ public class CoinUI : MonoBehaviour
                 PlayPunchAnimation();
             }
         }
+    }
+    
+    /// <summary>
+    /// Dışarıdan coin gösterimini zorla güncelle (Shop için)
+    /// </summary>
+    public void ForceUpdateDisplay()
+    {
+        if (GameManager.Instance != null)
+            lastCoinValue = GameManager.Instance.coin;
+        UpdateDisplay();
     }
 
     private void UpdateDisplay()

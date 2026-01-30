@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float variableJumpMultiplier = 0.5f; 
 
     [Header("Double Jump Settings")]
-    [SerializeField] private float doubleJumpPower = 15f; 
+    [SerializeField] private float doubleJumpPower = 18f; 
 
     [Header("Physics Settings")]
     [SerializeField] private LayerMask groundLayer;

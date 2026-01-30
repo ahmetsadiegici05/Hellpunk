@@ -17,11 +17,12 @@ public class ShopManager : MonoBehaviour
     private const string FIRST_LAUNCH = "FIRST_LAUNCH";
 
     // Base değerler (başlangıç değerleri)
+    // NOT: Bu değerler Player prefab'ındaki Inspector değerleriyle eşleşmeli!
     [Header("Base Values")]
-    public float baseMaxHealth = 100f;
-    public float baseDamage = 10f;
-    public float baseJumpPower = 5f;
-    public float baseSpeed = 5f;
+    public float baseMaxHealth = 3f;  // Player'ın başlangıç canı (Inspector'daki startingHealth ile aynı olmalı)
+    public float baseDamage = 3f;     // Player'ın başlangıç hasarı
+    public float baseJumpPower = 14f; // Player'ın başlangıç zıplama gücü
+    public float baseSpeed = 7f;      // Player'ın başlangıç hızı
     public int baseReviveCount = 0;
 
     [Header("Player Components")]
@@ -73,12 +74,62 @@ public class ShopManager : MonoBehaviour
     // Yeni sahne yüklendiğinde çağrılır
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Level 1'e girildiğinde ability'leri ve canı sıfırla (yeni oyun başlangıcı)
+        bool isLevel1 = scene.name == "Level1" || scene.name == "Level 1";
+        if (isLevel1)
+        {
+            ResetAbilitiesForNewGame();
+        }
+        
         RefreshAllComponents();
+        
+        // Level 1'de canı tam doldur (yeni oyun başlangıcı)
+        if (isLevel1 && playerHealth != null)
+        {
+            playerHealth.currentHealth = playerHealth.maxHealth;
+            Debug.Log($"[ShopManager] Level 1 - Can tam dolduruldu: {playerHealth.currentHealth}/{playerHealth.maxHealth}");
+        }
+    }
+    
+    /// <summary>
+    /// Yeni oyun başladığında ability'leri başlangıç değerlerine sıfırla
+    /// Level 1'e her girildiğinde çağrılır
+    /// </summary>
+    private void ResetAbilitiesForNewGame()
+    {
+        PlayerPrefs.SetInt(HEAL, 3);      // Başlangıçta 3 Heal
+        PlayerPrefs.SetInt(FIREBALL, 2);  // Başlangıçta 2 Fireball
+        PlayerPrefs.Save();
+        
+        // Soul (kill sayacı) sıfırla
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetKills();
+        }
+        
+        // Coin sıfırla (başlangıç değerine)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetCoin();
+        }
+        
+        Debug.Log("[ShopManager] Yeni oyun - Ability'ler, Souls ve Coin sıfırlandı: Heal=3, Fireball=2");
     }
 
     // İlk oyun başlatıldığında PlayerPrefs'i başlat
+    private const int SAVE_VERSION = 4; // Bu değeri artırarak zorla reset yapabilirsiniz
+    
     void InitializeFirstLaunch()
     {
+        // Versiyon kontrolü - eski kayıtları temizle
+        int savedVersion = PlayerPrefs.GetInt("SAVE_VERSION", 0);
+        if (savedVersion < SAVE_VERSION)
+        {
+            Debug.Log($"Save version güncelleniyor: {savedVersion} -> {SAVE_VERSION}");
+            PlayerPrefs.DeleteAll();
+            PlayerPrefs.SetInt("SAVE_VERSION", SAVE_VERSION);
+        }
+        
         if (!PlayerPrefs.HasKey(FIRST_LAUNCH))
         {
             PlayerPrefs.SetInt(MAX_HEALTH, 0);
@@ -86,12 +137,12 @@ public class ShopManager : MonoBehaviour
             PlayerPrefs.SetInt(JUMP, 0);
             PlayerPrefs.SetInt(SPEED, 0);
             PlayerPrefs.SetInt(REVIVE, 0);
-            PlayerPrefs.SetInt(HEAL, 0);
-            PlayerPrefs.SetInt(FIREBALL, 0);
+            PlayerPrefs.SetInt(HEAL, 3);      // Başlangıçta 3 Heal hakkı
+            PlayerPrefs.SetInt(FIREBALL, 2);  // Başlangıçta 2 Fireball hakkı
             PlayerPrefs.SetInt(FIRST_LAUNCH, 1);
             PlayerPrefs.Save();
             
-            Debug.Log("PlayerPrefs initialized for first launch");
+            Debug.Log("PlayerPrefs initialized for first launch - Heal: 2, Fireball: 2");
         }
     }
 
@@ -126,18 +177,43 @@ public class ShopManager : MonoBehaviour
 
     void FindUIComponents()
     {
-        // Coin UI'larını bul
-        GameObject[] coinUIs = GameObject.FindGameObjectsWithTag("CoinUI");
-        foreach (GameObject obj in coinUIs)
+        // Shop panelini bul
+        GameObject shopPanel = GameObject.Find("ShopPanel");
+        
+        // Shop panelindeki TÜM text'leri tara ve "COIN" içereni bul
+        if (shopPanel != null)
         {
-            TMP_Text text = obj.GetComponent<TMP_Text>();
-            if (text != null)
+            TMP_Text[] allTexts = shopPanel.GetComponentsInChildren<TMP_Text>(true);
+            foreach (TMP_Text text in allTexts)
             {
-                if (obj.name.Contains("Shop") || obj.name.Contains("Menu"))
+                // Text içeriği veya ismi "coin" içeriyorsa
+                string textContent = text.text.ToUpper();
+                string textName = text.name.ToUpper();
+                
+                if (textContent.Contains("COIN") || textName.Contains("COIN"))
+                {
                     coinText = text;
-                else if (obj.name.Contains("Game") || obj.name.Contains("HUD"))
-                    coinTextGame = text;
+                    Debug.Log($"[ShopManager] Shop coin text bulundu: {text.name} = '{text.text}'");
+                    break;
+                }
             }
+        }
+        
+        // Bulunamadıysa isimle dene
+        if (coinText == null)
+        {
+            GameObject shopCoinObj = GameObject.Find("CoinText");
+            if (shopCoinObj != null)
+            {
+                coinText = shopCoinObj.GetComponent<TMP_Text>();
+            }
+        }
+        
+        // Game HUD coin text - CoinUI script'i bunu yönetiyor
+        GameObject gameCoinObj = GameObject.Find("CoinTextGame");
+        if (gameCoinObj != null)
+        {
+            coinTextGame = gameCoinObj.GetComponent<TMP_Text>();
         }
 
         // Skill UI'larını bul
@@ -148,6 +224,8 @@ public class ShopManager : MonoBehaviour
         GameObject fireballUI = GameObject.Find("FireballChargesText");
         if (fireballUI != null)
             fireballChargesText = fireballUI.GetComponent<TMP_Text>();
+            
+        Debug.Log($"[ShopManager] UI Components: coinText={coinText != null}, coinTextGame={coinTextGame != null}");
     }
 
     // -------- LOAD --------
@@ -162,10 +240,14 @@ public class ShopManager : MonoBehaviour
             playerHealth.maxHealth = baseMaxHealth + maxHealthUpgrades;
             playerHealth.reviveCount = baseReviveCount + reviveUpgrades;
             
-            // Sağlığı tam doldur
-            playerHealth.currentHealth = playerHealth.maxHealth;
+            // Level geçişinde GameManager canı geri yükleyecek, burada sadece max health ayarla
+            // Eğer level geçişi değilse veya can çok düşükse, canı doldur
+            if (playerHealth.currentHealth <= 0 || playerHealth.currentHealth > playerHealth.maxHealth)
+            {
+                playerHealth.currentHealth = playerHealth.maxHealth;
+            }
             
-            Debug.Log($"Health loaded: Max={playerHealth.maxHealth}, Revives={playerHealth.reviveCount}");
+            Debug.Log($"Health loaded: Max={playerHealth.maxHealth}, Current={playerHealth.currentHealth}, Revives={playerHealth.reviveCount}");
         }
 
         // Damage yükseltmelerini yükle
@@ -235,7 +317,7 @@ public class ShopManager : MonoBehaviour
     // -------- SHOP ACTIONS --------
     public void AddMaxHealth()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 10) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(10)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -250,14 +332,13 @@ public class ShopManager : MonoBehaviour
             playerHealth.currentHealth += 1;
         }
         
-        GameManager.Instance.coin -= 10;
         UpdateCoinText();
         Debug.Log("Max Health upgraded!");
     }
 
     public void AddDamage()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 10) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(10)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -269,14 +350,13 @@ public class ShopManager : MonoBehaviour
         if (playerAttack != null)
             playerAttack.damage += 1;
         
-        GameManager.Instance.coin -= 10;
         UpdateCoinText();
         Debug.Log("Damage upgraded!");
     }
 
     public void AddJumpForce()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 10) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(10)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -288,14 +368,13 @@ public class ShopManager : MonoBehaviour
         if (playerMovement != null)
             playerMovement.jumpPower += 0.5f;
         
-        GameManager.Instance.coin -= 10;
         UpdateCoinText();
         Debug.Log("Jump Force upgraded!");
     }
 
     public void AddSpeed()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 10) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(10)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -307,14 +386,13 @@ public class ShopManager : MonoBehaviour
         if (playerMovement != null)
             playerMovement.speed += 0.3f;
         
-        GameManager.Instance.coin -= 10;
         UpdateCoinText();
         Debug.Log("Speed upgraded!");
     }
 
     public void AddRevive()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 10) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(10)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -326,14 +404,13 @@ public class ShopManager : MonoBehaviour
         if (playerHealth != null)
             playerHealth.reviveCount += 1;
         
-        GameManager.Instance.coin -= 10;
         UpdateCoinText();
         Debug.Log("Revive upgraded!");
     }
 
     public void AddHealSkill()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 100) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(100)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -352,14 +429,13 @@ public class ShopManager : MonoBehaviour
         if (healChargesText != null)
             healChargesText.text = newHealCount.ToString();
         
-        GameManager.Instance.coin -= 100;
-        UpdateCoinText();
+        UpdateCoinText(); // Shop coin'i güncelle
         Debug.Log("Heal Skill upgraded!");
     }
 
     public void AddFireballSkill()
     {
-        if (GameManager.Instance == null || GameManager.Instance.coin < 100) 
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(100)) 
         {
             Debug.Log("Not enough coins or GameManager not found!");
             return;
@@ -378,8 +454,7 @@ public class ShopManager : MonoBehaviour
         if (fireballChargesText != null)
             fireballChargesText.text = newFireballCount.ToString();
         
-        GameManager.Instance.coin -= 100;
-        UpdateCoinText();
+        UpdateCoinText(); // Shop coin'i güncelle
         Debug.Log("Fireball Skill upgraded!");
     }
 
@@ -387,12 +462,34 @@ public class ShopManager : MonoBehaviour
     {
         if (GameManager.Instance == null) 
         {
-            Debug.LogWarning("GameManager not found!");
+            Debug.LogWarning("[ShopManager] GameManager not found!");
             return;
+        }
+        
+        // CoinUI script'ini bul ve güncelle (sol üst köşe)
+        CoinUI coinUI = FindObjectOfType<CoinUI>();
+        if (coinUI != null)
+        {
+            coinUI.ForceUpdateDisplay();
+        }
+        
+        // UIManager'dan shop coin text'i güncelle
+        UIManager uiManager = FindObjectOfType<UIManager>();
+        if (uiManager != null)
+        {
+            uiManager.UpdateShopCoinText();
+        }
+        
+        // Eğer coinText null ise tekrar bulmayı dene
+        if (coinText == null)
+        {
+            FindUIComponents();
         }
 
         if (coinText != null)
-            coinText.text = "Coin: " + GameManager.Instance.coin;
+        {
+            coinText.text = "COIN:" + GameManager.Instance.coin;
+        }
 
         if (coinTextGame != null)
             coinTextGame.text = "Coin: " + GameManager.Instance.coin;

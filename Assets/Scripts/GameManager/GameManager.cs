@@ -21,7 +21,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] public AudioClip guitarSound3;
 
     [Header("Data")]
+    [SerializeField] private int startingCoin = 500; // Başlangıç coin miktarı (Inspector'dan ayarlanabilir)
     public int coin;
+    
+    private const string COIN_KEY = "PLAYER_COIN";
     
     // Level geçişinde oyuncu verilerini sakla
     [HideInInspector] public float savedPlayerHealth = -1f;
@@ -71,6 +74,9 @@ public class GameManager : MonoBehaviour
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
 
+        // Coin yükle
+        LoadCoin();
+
         EnsureSoulSystem();
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
@@ -97,16 +103,19 @@ public class GameManager : MonoBehaviour
         if (playerObj != null)
         {
             Health playerHealth = playerObj.GetComponent<Health>();
-            if (playerHealth != null && savedPlayerHealth > 0)
+            if (playerHealth != null)
             {
-                // Oyuncunun canını geri yükle
-                playerHealth.maxHealth = savedPlayerMaxHealth;
-                // currentHealth public setter yok, AddHealth kullan
-                float healthDiff = savedPlayerHealth - playerHealth.currentHealth;
-                if (healthDiff > 0)
-                    playerHealth.AddHealth(healthDiff);
+                // Level geçişinde canı koru, ama minimum 1 can olsun (ölü gelmesin)
+                float healthToRestore = savedPlayerHealth > 0 ? savedPlayerHealth : playerHealth.maxHealth;
+                
+                // Eğer kaydedilen can max'tan büyükse (upgrade durumu), max'a ayarla
+                if (healthToRestore > playerHealth.maxHealth)
+                    healthToRestore = playerHealth.maxHealth;
+                
+                // Canı ayarla
+                playerHealth.currentHealth = healthToRestore;
                     
-                Debug.Log($"[GameManager] Oyuncu canı geri yüklendi: {savedPlayerHealth}/{savedPlayerMaxHealth}");
+                Debug.Log($"[GameManager] Oyuncu canı geri yüklendi: {healthToRestore}/{playerHealth.maxHealth}");
             }
         }
         
@@ -138,13 +147,22 @@ public class GameManager : MonoBehaviour
     {
         randomPoints = new List<Transform>();
 
+        // "ChestPoint" tag'li tüm spawn noktalarını bul
         GameObject[] points = GameObject.FindGameObjectsWithTag("ChestPoint");
+        Debug.Log($"[GameManager] ChestPoint sayısı: {points.Length}");
+        
         foreach (var p in points)
             randomPoints.Add(p.transform);
 
-        if (chestPrefab == null || randomPoints.Count == 0)
+        if (chestPrefab == null)
         {
-            Debug.LogWarning("Chest spawn noktası bulunamadı!");
+            Debug.LogWarning("[GameManager] chestPrefab atanmamış! Inspector'dan ata.");
+            return;
+        }
+        
+        if (randomPoints.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] Sahnede 'ChestPoint' tag'li obje bulunamadı! Rastgele sandık spawn edilemedi.");
             return;
         }
 
@@ -166,6 +184,7 @@ public class GameManager : MonoBehaviour
         }
 
         int spawnCount = Mathf.Min(10, shuffledPoints.Count);
+        Debug.Log($"[GameManager] {spawnCount} sandık spawn edilecek (Toplam nokta: {shuffledPoints.Count})");
 
         for (int i = 0; i < spawnCount; i++)
         {
@@ -183,15 +202,11 @@ public class GameManager : MonoBehaviour
                 enemyHealth.hasPuzzle = false; // Puzzle kapalı
                 enemyHealth.puzzleType = EnemyHealth.PuzzleType.None;
                 
-                // NOT: Puzzle'ı tekrar aktif etmek için:
-                // enemyHealth.hasPuzzle = true;
-                // enemyHealth.puzzleDifficulty = Random.Range(1, 3);
-                // int roll = Random.Range(0, 100);
-                // enemyHealth.puzzleType = roll switch { <50 => GuitarRiff, <75 => Memory, _ => Rhythm };
-                
-                Debug.Log($"[GameManager] Sandık {i+1} oluşturuldu (Puzzle: Kapalı)");
+                Debug.Log($"[GameManager] Sandık {i+1} spawn edildi: {shuffledPoints[i].position}");
             }
         }
+        
+        Debug.Log($"[GameManager] ✅ Rastgele {spawnCount} sandık başarıyla spawn edildi!");
     }
 
     // ================= SYSTEMS =================
@@ -458,6 +473,76 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    #region Coin Management
+    
+    /// <summary>
+    /// Coin'i PlayerPrefs'ten yükle
+    /// </summary>
+    public void LoadCoin()
+    {
+        if (PlayerPrefs.HasKey(COIN_KEY))
+        {
+            coin = PlayerPrefs.GetInt(COIN_KEY);
+            Debug.Log($"[GameManager] Coin yüklendi: {coin}");
+        }
+        else
+        {
+            // İlk kez - başlangıç değeri
+            coin = startingCoin;
+            SaveCoin();
+            Debug.Log($"[GameManager] İlk başlangıç - Coin: {coin}");
+        }
+    }
+    
+    /// <summary>
+    /// Coin'i PlayerPrefs'e kaydet
+    /// </summary>
+    public void SaveCoin()
+    {
+        PlayerPrefs.SetInt(COIN_KEY, coin);
+        PlayerPrefs.Save();
+    }
+    
+    /// <summary>
+    /// Coin ekle ve kaydet
+    /// </summary>
+    public void AddCoin(int amount)
+    {
+        coin += amount;
+        SaveCoin();
+        UpdateCoinUI();
+        Debug.Log($"[GameManager] +{amount} coin eklendi. Toplam: {coin}");
+    }
+    
+    /// <summary>
+    /// Coin harca ve kaydet
+    /// </summary>
+    public bool SpendCoin(int amount)
+    {
+        if (coin >= amount)
+        {
+            coin -= amount;
+            SaveCoin();
+            UpdateCoinUI();
+            Debug.Log($"[GameManager] -{amount} coin harcandı. Kalan: {coin}");
+            return true;
+        }
+        Debug.Log($"[GameManager] Yetersiz coin! Gereken: {amount}, Mevcut: {coin}");
+        return false;
+    }
+    
+    /// <summary>
+    /// Coin'i başlangıç değerine sıfırla (yeni oyun için)
+    /// </summary>
+    public void ResetCoin()
+    {
+        coin = startingCoin;
+        SaveCoin();
+        UpdateCoinUI();
+        Debug.Log($"[GameManager] Coin sıfırlandı: {coin}");
+    }
+    
+    #endregion
     #endregion
 
 }

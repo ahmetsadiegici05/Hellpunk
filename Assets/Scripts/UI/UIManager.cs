@@ -210,6 +210,7 @@ public class UIManager : MonoBehaviour
     {
         isPaused = false;
         Time.timeScale = 1f;
+        // Checkpoint'ten devam - ability'ler sıfırlanmaz, checkpoint'teki haliyle yüklenir
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GetComponent<PlayerMovement>().lockMovement = false;
     }
@@ -219,6 +220,7 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         CheckpointData.ResetData();
+        ResetAbilitiesForRestart();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GetComponent<PlayerMovement>().lockMovement = false;
     }
@@ -227,8 +229,32 @@ public class UIManager : MonoBehaviour
     {
         isPaused = false;
         Time.timeScale = 1f;
+        ResetAbilitiesForRestart();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GetComponent<PlayerMovement>().lockMovement = false;
+    }
+    
+    /// <summary>
+    /// Restart yapıldığında ability'leri başlangıç değerlerine sıfırla
+    /// </summary>
+    private void ResetAbilitiesForRestart()
+    {
+        PlayerPrefs.SetInt("HEAL", 3);      // Başlangıçta 3 Heal
+        PlayerPrefs.SetInt("FIREBALL", 2);  // Başlangıçta 2 Fireball
+        PlayerPrefs.Save();
+        Debug.Log("[UIManager] Restart - Ability'ler sıfırlandı: Heal=3, Fireball=2");
+        
+        // Soul (kill sayacı) sıfırla
+        if (SoulSystem.Instance != null)
+        {
+            SoulSystem.Instance.ResetKills();
+        }
+        
+        // Coin sıfırla (başlangıç değerine)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.ResetCoin();
+        }
     }
 
     public void MainMenu()
@@ -246,7 +272,51 @@ public class UIManager : MonoBehaviour
         shopPanel.SetActive(true);
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
-        shopManager.UpdateCoinText();
+        
+        // Oyunu duraklat (opsiyonel - fireball'lar da durur)
+        Time.timeScale = 0f;
+        isPaused = true;
+        
+        // Shop açıldığında tüm bileşenleri yenile - panel aktif olduktan SONRA
+        if (shopManager != null)
+        {
+            shopManager.RefreshAllComponents();
+        }
+        
+        // Shop panelindeki coin text'i direkt güncelle
+        UpdateShopCoinText();
+    }
+    
+    /// <summary>
+    /// Shop panelindeki coin text'ini direkt güncelle
+    /// </summary>
+    public void UpdateShopCoinText()
+    {
+        if (shopPanel == null) return;
+        
+        int coinAmount = 0;
+        if (GameManager.Instance != null)
+        {
+            coinAmount = GameManager.Instance.coin;
+        }
+        
+        // Shop panelindeki tüm text'leri tara
+        TMPro.TMP_Text[] allTexts = shopPanel.GetComponentsInChildren<TMPro.TMP_Text>(true);
+        foreach (var text in allTexts)
+        {
+            string upperText = text.text.ToUpper();
+            string upperName = text.name.ToUpper();
+            
+            // Text içeriği "COIN" ile başlıyorsa veya ismi "COIN" içeriyorsa
+            if (upperText.StartsWith("COIN") || upperName.Contains("COIN"))
+            {
+                text.text = "COIN:" + coinAmount;
+                Debug.Log($"[UIManager] Shop coin text bulundu ve güncellendi: {text.name} = COIN:{coinAmount}");
+                return; // İlkini bulduktan sonra çık
+            }
+        }
+        
+        Debug.LogWarning("[UIManager] Shop panelinde coin text bulunamadı!");
     }
 
     public void CloseShopPanel()
@@ -257,6 +327,10 @@ public class UIManager : MonoBehaviour
         shopPanel.SetActive(false);
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+        
+        // Oyunu devam ettir
+        Time.timeScale = 1f;
+        isPaused = false;
     }
 
     public void Quit()

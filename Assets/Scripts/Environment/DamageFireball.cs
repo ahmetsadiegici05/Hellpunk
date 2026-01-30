@@ -7,8 +7,10 @@ using UnityEngine;
 public class DamageFireball : MonoBehaviour
 {
     [Header("Hareket")]
-    public float fallSpeed = 5f;
+    public float fallSpeed = 11f; // Daha hızlı
     public float rotationSpeed = 180f;
+    [Tooltip("Düşme yönü (kamera rotasyonuna göre ayarlanır)")]
+    public Vector2 fallDirection = Vector2.down;
     
     [Header("Hedefleme")]
     [Tooltip("Oyuncuya doğru hedef alsın mı?")]
@@ -16,6 +18,11 @@ public class DamageFireball : MonoBehaviour
     [Tooltip("Hedefleme hassasiyeti (0 = tam hedef, 1 = büyük sapma)")]
     [Range(0f, 3f)]
     public float aimRandomness = 0.5f;
+    [Tooltip("Oyuncu hareketini tahmin et (prediction)")]
+    public bool predictPlayerMovement = true;
+    [Tooltip("Tahmin çarpanı - yüksek = daha ilerisine nişan al")]
+    [Range(0.5f, 2f)]
+    public float predictionMultiplier = 1.2f;
     
     [Header("Hasar")]
     public float damage = 1f;
@@ -48,7 +55,12 @@ public class DamageFireball : MonoBehaviour
     {
         if (!targetPlayer)
         {
-            moveDirection = Vector2.down;
+            // Hedef yoksa kamera yönünde düş (fallDirection spawner tarafından ayarlanır)
+            moveDirection = fallDirection.normalized;
+            if (rb != null)
+            {
+                rb.linearVelocity = moveDirection * fallSpeed;
+            }
             return;
         }
         
@@ -56,11 +68,27 @@ public class DamageFireball : MonoBehaviour
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            // Oyuncuya doğru yön hesapla
             Vector2 targetPos = player.transform.position;
             
-            // Rastgele sapma ekle (kaçış şansı için)
-            targetPos.x += Random.Range(-aimRandomness, aimRandomness);
+            // Oyuncunun hareketini tahmin et
+            if (predictPlayerMovement)
+            {
+                Rigidbody2D playerRb = player.GetComponent<Rigidbody2D>();
+                if (playerRb != null)
+                {
+                    // Fireball'un oyuncuya ulaşma süresini hesapla
+                    float distance = Vector2.Distance(transform.position, targetPos);
+                    float timeToReach = distance / fallSpeed;
+                    
+                    // Oyuncunun o sürede nerede olacağını tahmin et
+                    Vector2 predictedPos = targetPos + playerRb.linearVelocity * timeToReach * predictionMultiplier;
+                    targetPos = predictedPos;
+                }
+            }
+            
+            // Rastgele sapma ekle (kaçış şansı için) - fallDirection yönünde sapma
+            Vector2 perpendicular = new Vector2(-fallDirection.y, fallDirection.x); // Düşme yönüne dik
+            targetPos += perpendicular * Random.Range(-aimRandomness, aimRandomness);
             
             Vector2 direction = (targetPos - (Vector2)transform.position).normalized;
             moveDirection = direction;
@@ -70,13 +98,15 @@ public class DamageFireball : MonoBehaviour
             {
                 rb.linearVelocity = moveDirection * fallSpeed;
             }
-            
-            Debug.Log($"[DamageFireball] Oyuncuya hedeflendi: {targetPos}");
         }
         else
         {
-            moveDirection = Vector2.down;
-            Debug.LogWarning("[DamageFireball] Player bulunamadı!");
+            // Oyuncu bulunamazsa kamera yönünde düş
+            moveDirection = fallDirection.normalized;
+            if (rb != null)
+            {
+                rb.linearVelocity = moveDirection * fallSpeed;
+            }
         }
     }
     
@@ -137,19 +167,28 @@ public class DamageFireball : MonoBehaviour
     
     void OnTriggerEnter2D(Collider2D other)
     {
-        HandleCollision(other.gameObject, other.transform);
+        // Trigger için contact point yok, hareket yönüne bak
+        HandleCollision(other.gameObject, other.transform, null);
     }
     
     void OnCollisionEnter2D(Collision2D collision)
     {
-        HandleCollision(collision.gameObject, collision.transform);
+        // Contact point'leri HandleCollision'a gönder
+        HandleCollision(collision.gameObject, collision.transform, collision);
     }
     
-    void HandleCollision(GameObject other, Transform otherTransform)
+    void HandleCollision(GameObject other, Transform otherTransform, Collision2D collision)
     {
         // Oyuncuya çarptı mı?
         if (other.CompareTag("Player"))
         {
+            // Shop açıkken hasar verme
+            if (IsShopOpen())
+            {
+                Debug.Log("[DamageFireball] Shop açık - hasar verilmedi");
+                return;
+            }
+            
             Debug.Log("[DamageFireball] Oyuncuya çarptı!");
             
             // Hasar ver - Health component kullan (EnemyDamage ile aynı sistem)
@@ -229,7 +268,7 @@ public class DamageFireball : MonoBehaviour
     
     Sprite CreateCircleSprite()
     {
-        int size = 64;
+        int size = 128; // Daha yüksek çözünürlük
         Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
         float center = size / 2f;
         float radius = size / 2f - 2f;
@@ -242,10 +281,18 @@ public class DamageFireball : MonoBehaviour
                 
                 if (distance < radius)
                 {
-                    float alpha = 1f - (distance / radius);
-                    alpha = Mathf.Pow(alpha, 0.3f);
-                    Color color = Color.Lerp(Color.white, fireColor, distance / radius * 0.5f);
-                    color.a = alpha;
+                    float normalizedDist = distance / radius;
+                    float alpha = 1f - normalizedDist;
+                    alpha = Mathf.Pow(alpha, 0.5f);
+                    
+                    // Anti-aliasing için kenar yumuşatma
+                    if (distance > radius - 3f)
+                    {
+                        alpha *= 1f - ((distance - (radius - 3f)) / 3f);
+                    }
+                    
+                    Color color = Color.Lerp(Color.white, fireColor, normalizedDist * 0.5f);
+                    color.a = Mathf.Clamp01(alpha);
                     texture.SetPixel(x, y, color);
                 }
                 else
@@ -256,7 +303,8 @@ public class DamageFireball : MonoBehaviour
         }
         
         texture.Apply();
-        texture.filterMode = FilterMode.Bilinear;
+        texture.filterMode = FilterMode.Trilinear;
+        texture.wrapMode = TextureWrapMode.Clamp;
         
         return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
@@ -274,22 +322,31 @@ public class DamageFireball : MonoBehaviour
     
     Texture2D CreateCircleTexture(int size)
     {
-        Texture2D texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
-        float center = size / 2f;
-        float radius = size / 2f;
+        int textureSize = Mathf.Max(size, 64); // Minimum 64 piksel
+        Texture2D texture = new Texture2D(textureSize, textureSize, TextureFormat.RGBA32, false);
+        float center = textureSize / 2f;
+        float radius = textureSize / 2f - 1f;
         
-        for (int y = 0; y < size; y++)
+        for (int y = 0; y < textureSize; y++)
         {
-            for (int x = 0; x < size; x++)
+            for (int x = 0; x < textureSize; x++)
             {
                 float distance = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
                 
                 if (distance < radius)
                 {
-                    float alpha = 1f - (distance / radius);
-                    alpha = Mathf.Pow(alpha, 0.5f);
-                    Color color = Color.Lerp(Color.white, fireColor, distance / radius);
-                    color.a = alpha;
+                    float normalizedDist = distance / radius;
+                    float alpha = 1f - normalizedDist;
+                    alpha = Mathf.Pow(alpha, 0.6f);
+                    
+                    // Anti-aliasing
+                    if (distance > radius - 2f)
+                    {
+                        alpha *= 1f - ((distance - (radius - 2f)) / 2f);
+                    }
+                    
+                    Color color = Color.Lerp(Color.white, fireColor, normalizedDist);
+                    color.a = Mathf.Clamp01(alpha);
                     texture.SetPixel(x, y, color);
                 }
                 else
@@ -300,7 +357,34 @@ public class DamageFireball : MonoBehaviour
         }
         
         texture.Apply();
-        texture.filterMode = FilterMode.Bilinear;
+        texture.filterMode = FilterMode.Trilinear;
+        texture.wrapMode = TextureWrapMode.Clamp;
         return texture;
+    }
+    
+    /// <summary>
+    /// Shop paneli açık mı kontrol et
+    /// </summary>
+    private bool IsShopOpen()
+    {
+        // UIManager'dan shop durumunu kontrol et
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            UIManager uiManager = player.GetComponent<UIManager>();
+            if (uiManager != null && uiManager.shopPanel != null)
+            {
+                return uiManager.shopPanel.activeInHierarchy;
+            }
+        }
+        
+        // Alternatif: ShopPanel tag'i ile bul
+        GameObject shopPanel = GameObject.Find("ShopPanel");
+        if (shopPanel != null)
+        {
+            return shopPanel.activeInHierarchy;
+        }
+        
+        return false;
     }
 }

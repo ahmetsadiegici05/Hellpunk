@@ -21,9 +21,9 @@ public class GuitarSkillSystem : MonoBehaviour
     [SerializeField] private float shockwaveRadius = 4f;
     [SerializeField] private float shockwaveForce = 15f;
 
-    [Header("Ability Charges (Sayı Bazlı)")]
-    [SerializeField] public int healCharges = 2;      // Başlangıçta 2 heal hakkı
-    [SerializeField] public int fireballCharges = 2;  // Başlangıçta 2 fireball hakkı
+    [Header("Ability Charges (Shop'tan satın alınır)")]
+    [SerializeField] public int healCharges = 0;      // Shop'tan satın alınır, PlayerPrefs'te saklanır
+    [SerializeField] public int fireballCharges = 0;  // Shop'tan satın alınır, PlayerPrefs'te saklanır
     
     [Header("Cooldowns (Sadece Time Slow)")]
     [SerializeField] private float timeSlowCooldown = 15f;
@@ -157,6 +157,27 @@ public class GuitarSkillSystem : MonoBehaviour
 
         // Skill input overlay oluştur (başlangıçta gizli)
         CreateSkillInputOverlay();
+        
+        // PlayerPrefs'ten ability değerlerini yükle (Shop'tan satın alınanlar)
+        LoadAbilityChargesFromPlayerPrefs();
+    }
+    
+    /// <summary>
+    /// Shop'tan satın alınan ability'leri PlayerPrefs'ten yükle
+    /// Bu sayede level geçişlerinde ability'ler korunur
+    /// </summary>
+    private void LoadAbilityChargesFromPlayerPrefs()
+    {
+        // ShopManager'ın key'lerini kullan
+        int savedHeal = PlayerPrefs.GetInt("HEAL", 0);
+        int savedFireball = PlayerPrefs.GetInt("FIREBALL", 0);
+        
+        // Eğer kaydedilmiş değer varsa onu kullan, yoksa Inspector değeri kalsın
+        // NOT: Başlangıç değeri 0 olmalı, shop'tan satın alınmalı
+        healCharges = savedHeal;
+        fireballCharges = savedFireball;
+        
+        Debug.Log($"[GuitarSkillSystem] Ability'ler yüklendi - Heal: {healCharges}, Fireball: {fireballCharges}");
     }
 
     private void CreateSkillInputOverlay()
@@ -165,8 +186,13 @@ public class GuitarSkillSystem : MonoBehaviour
         GameObject overlayCanvas = new GameObject("SkillInputOverlayCanvas");
         Canvas canvas = overlayCanvas.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 999; // En üstte olsun
-        overlayCanvas.AddComponent<UnityEngine.UI.CanvasScaler>();
+        canvas.sortingOrder = 32767; // Maximum sorting order - her şeyin üstünde olsun
+        
+        // Canvas bileşenlerini ekle
+        var canvasScaler = overlayCanvas.AddComponent<UnityEngine.UI.CanvasScaler>();
+        canvasScaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        canvasScaler.referenceResolution = new Vector2(1920, 1080);
+        overlayCanvas.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
         // Overlay image
         skillInputOverlay = new GameObject("SkillInputOverlay");
@@ -465,10 +491,12 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             case SkillType.Heal:
                 healCharges--;
+                SaveAbilityChargesToPlayerPrefs(); // Değişikliği kaydet
                 Debug.Log($"Heal kullanıldı! Kalan: {healCharges}");
                 break;
             case SkillType.Fireball:
                 fireballCharges--;
+                SaveAbilityChargesToPlayerPrefs(); // Değişikliği kaydet
                 Debug.Log($"Fireball kullanıldı! Kalan: {fireballCharges}");
                 break;
             case SkillType.TimeSlow:
@@ -480,6 +508,17 @@ public class GuitarSkillSystem : MonoBehaviour
                     SoulSystem.Instance.UseCharge();
                 break;
         }
+    }
+    
+    /// <summary>
+    /// Ability değerlerini PlayerPrefs'e kaydet (level geçişlerinde korunsun)
+    /// </summary>
+    private void SaveAbilityChargesToPlayerPrefs()
+    {
+        PlayerPrefs.SetInt("HEAL", healCharges);
+        PlayerPrefs.SetInt("FIREBALL", fireballCharges);
+        PlayerPrefs.Save();
+        Debug.Log($"[GuitarSkillSystem] Ability'ler kaydedildi - Heal: {healCharges}, Fireball: {fireballCharges}");
     }
 
     private void FailSkill()
@@ -770,6 +809,7 @@ public class GuitarSkillSystem : MonoBehaviour
     public void AddHealCharges(int amount)
     {
         healCharges += amount;
+        SaveAbilityChargesToPlayerPrefs(); // Level geçişinde korunsun
         Debug.Log($"Heal satın alındı! +{amount}, Toplam: {healCharges}");
     }
     
@@ -779,6 +819,7 @@ public class GuitarSkillSystem : MonoBehaviour
     public void AddFireballCharges(int amount)
     {
         fireballCharges += amount;
+        SaveAbilityChargesToPlayerPrefs(); // Level geçişinde korunsun
         Debug.Log($"Fireball satın alındı! +{amount}, Toplam: {fireballCharges}");
     }
 

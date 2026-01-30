@@ -122,15 +122,44 @@ public class PlayerAttack : MonoBehaviour
     /// </summary>
     public void FireballAttack()
     {
+        Debug.Log($"[PlayerAttack] FireballAttack çağrıldı!");
+        Debug.Log($"[PlayerAttack] fireballs dizisi: {(fireballs != null ? fireballs.Length.ToString() : "NULL")}");
+        Debug.Log($"[PlayerAttack] firePoint: {(firePoint != null ? firePoint.name : "NULL")}");
+        
         playerMovement.lockMovement = true; 
         anim.SetTrigger("attack");
         fireballCooldownTimer = 0;
 
         int fireballIndex = FindFireball();
+        Debug.Log($"[PlayerAttack] FindFireball sonucu: {fireballIndex}");
+        
         if (fireballIndex != -1 && firePoint != null)
         {
-            fireballs[fireballIndex].transform.position = firePoint.position;
-            fireballs[fireballIndex].GetComponent<Projectile>().SetDirection(Mathf.Sign(transform.localScale.x));
+            GameObject fireball = fireballs[fireballIndex];
+            Debug.Log($"[PlayerAttack] Fireball objesi: {fireball.name}, aktif mi: {fireball.activeInHierarchy}");
+            
+            fireball.transform.position = firePoint.position;
+            fireball.SetActive(true); // Fireball'u aktif et!
+            
+            Projectile projectile = fireball.GetComponent<Projectile>();
+            if (projectile != null)
+            {
+                projectile.SetDirection(Mathf.Sign(transform.localScale.x));
+                Debug.Log($"[PlayerAttack] Fireball atıldı! Pozisyon: {firePoint.position}, Yön: {Mathf.Sign(transform.localScale.x)}");
+            }
+            else
+            {
+                Debug.LogError("[PlayerAttack] Fireball'da Projectile komponenti yok!");
+            }
+        }
+        else
+        {
+            if (fireballs == null || fireballs.Length == 0)
+                Debug.LogError("[PlayerAttack] fireballs dizisi boş! Inspector'da FireballHolder'ı ata!");
+            else if (fireballIndex == -1)
+                Debug.LogWarning("[PlayerAttack] Tüm fireball'lar kullanımda!");
+            if (firePoint == null)
+                Debug.LogError("[PlayerAttack] firePoint null! Inspector'da ata!");
         }
 
         Invoke(nameof(UnlockMovement), 0.35f);

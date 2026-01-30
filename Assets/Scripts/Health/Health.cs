@@ -21,8 +21,9 @@ public class Health : MonoBehaviour
 
     public int reviveCount = 0;
 
-    private static int darkStep = 0;
-    private const int maxSteps = 10;
+    // DarkenWorld sistemi kaldırıldı - sürekli siyahlaşma sorununa neden oluyordu
+    // private static int darkStep = 0;
+    // private const int maxSteps = 10;
 
     private void Awake()
     {
@@ -43,6 +44,9 @@ public class Health : MonoBehaviour
     public void TakeDamage(float _damage)
     {
         if (dead) return;
+        
+        // Shop açıkken hasar alma
+        if (IsShopOpen()) return;
 
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 
@@ -55,7 +59,8 @@ public class Health : MonoBehaviour
         if (ScreenShake.Instance != null)
             ScreenShake.Instance.ShakeMedium();
 
-        DarkenWorld();
+        // DarkenWorld efekti kaldırıldı - kümülatif siyahlaşmaya neden oluyordu
+        // DarkenWorld();
 
         if (currentHealth > 0)
         {
@@ -76,6 +81,10 @@ public class Health : MonoBehaviour
         }
     }
 
+    // DarkenWorld efekti kaldırıldı - kümülatif RGB çarpımı sürekli siyahlaşmaya neden oluyordu
+    // Orijinal renkleri saklamadan çarpma işlemi yapıldığından her hasar alımında renkler kalıcı olarak koyulaşıyordu
+    // Alternatif olarak ScreenEffects.UpdateHealthVignette() kullanılabilir
+    /*
     private void DarkenWorld()
     {
         if (darkStep < maxSteps)
@@ -111,6 +120,7 @@ public class Health : MonoBehaviour
             }
         }
     }
+    */
 
     public void AddHealth(float _value)
     {
@@ -151,5 +161,17 @@ public class Health : MonoBehaviour
     void UnlockMovement()
     {
         GetComponent<PlayerMovement>().lockMovement = false;
+    }
+    
+    /// <summary>
+    /// Shop paneli açık mı kontrol et
+    /// </summary>
+    private bool IsShopOpen()
+    {
+        if (uiManager != null && uiManager.shopPanel != null)
+        {
+            return uiManager.shopPanel.activeInHierarchy;
+        }
+        return false;
     }
 }

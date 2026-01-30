@@ -11,8 +11,8 @@ public class EnemyHealth : MonoBehaviour
     [SerializeField] private GameObject deathEffect;
     public bool isDamagableObject = false;
 
-    [Header("Puzzle Settings (for Damagable Objects)")]
-    [SerializeField] public bool hasPuzzle = false;
+    [Header("Puzzle Settings (Devre Dışı - Kaldırıldı)")]
+    [SerializeField] public bool hasPuzzle = false; // Puzzle kaldırıldı - her zaman false
     [SerializeField] public PuzzleType puzzleType = PuzzleType.None;
     [SerializeField] public int puzzleDifficulty = 1; // 1-3
     [SerializeField] public int puzzleRewardCoins = 25;
@@ -104,18 +104,19 @@ public class EnemyHealth : MonoBehaviour
             GameManager.Instance.PlayEnemyHitSound();
         }
 
-        // Puzzle'lı damagable object ise, can 0'a düştüğünde puzzle başlat (kırılmayı beklet)
+        // Can 0'a düştüğünde direkt öl/kırıl (puzzle kaldırıldı)
         if (currentHealth <= 0)
         {
-            if (isDamagableObject && hasPuzzle && puzzleType != PuzzleType.None)
-            {
-                // Puzzle başlat, kırılma puzzle sonucuna bağlı
-                StartPuzzleBeforeBreak();
-            }
-            else
-            {
-                Die();
-            }
+            // Puzzle kaldırıldı - sandıklar direkt kırılsın
+            // if (isDamagableObject && hasPuzzle && puzzleType != PuzzleType.None)
+            // {
+            //     StartPuzzleBeforeBreak();
+            // }
+            // else
+            // {
+            //     Die();
+            // }
+            Die(); // Direkt kır/öldür
         }
     }
 

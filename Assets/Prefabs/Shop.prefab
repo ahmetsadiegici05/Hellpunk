@@ -98,6 +98,7 @@ GameObject:
   - component: {fileID: 563523299039878381}
   - component: {fileID: 8498996296718867978}
   - component: {fileID: 4199584107087004207}
+  - component: {fileID: 3587911590050550512}
   m_Layer: 0
   m_Name: Shop
   m_TagString: Shop
@@ -225,6 +226,30 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &3587911590050550512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383017248418909069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69175f0da5a704f16b52f9f62db18b7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseMaxHealth: 3
+  baseDamage: 3
+  baseJumpPower: 14
+  baseSpeed: 7
+  baseReviveCount: 0
+  playerHealth: {fileID: 0}
+  playerAttack: {fileID: 0}
+  playerMovement: {fileID: 0}
+  coinText: {fileID: 0}
+  coinTextGame: {fileID: 0}
+  healChargesText: {fileID: 0}
+  fireballChargesText: {fileID: 0}
 --- !u!1 &3019308411607244497
 GameObject:
   m_ObjectHideFlags: 0

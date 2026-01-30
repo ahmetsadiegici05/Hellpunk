@@ -113,4 +113,15 @@ public class SoulSystem : MonoBehaviour
         OnUltimateReady?.Invoke();
         OnKillCountChanged?.Invoke(currentKills, killsForUltimate);
     }
+
+    /// <summary>
+    /// Kill sayacını sıfırlar (Restart için)
+    /// </summary>
+    public void ResetKills()
+    {
+        currentKills = 0;
+        ultimateReady = false;
+        OnKillCountChanged?.Invoke(currentKills, killsForUltimate);
+        Debug.Log("[SoulSystem] Kill sayacı sıfırlandı.");
+    }
 }

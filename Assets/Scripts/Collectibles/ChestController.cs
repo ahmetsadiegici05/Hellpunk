@@ -6,8 +6,8 @@ using UnityEngine;
 /// </summary>
 public class ChestController : MonoBehaviour
 {
-    [Header("Puzzle Settings")]
-    [SerializeField] private bool enablePuzzle = true;
+    [Header("Puzzle Settings (Devre Dışı)")]
+    [SerializeField] private bool enablePuzzle = false; // Puzzle kaldırıldı
     [SerializeField] private bool randomPuzzleType = true;
     [SerializeField] private EnemyHealth.PuzzleType specificPuzzleType = EnemyHealth.PuzzleType.GuitarRiff;
     [SerializeField] private int minDifficulty = 1;
@@ -25,7 +25,10 @@ public class ChestController : MonoBehaviour
             return;
         }
 
-        SetupPuzzle();
+        // Puzzle kaldırıldı - sandık direkt kırılacak
+        enemyHealth.hasPuzzle = false;
+        enemyHealth.puzzleType = EnemyHealth.PuzzleType.None;
+        // SetupPuzzle(); // Puzzle devre dışı
     }
 
     private void SetupPuzzle()
