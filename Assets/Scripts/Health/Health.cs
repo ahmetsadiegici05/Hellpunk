@@ -81,6 +81,11 @@ public class Health : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        dead = false;
+    }
+
     // DarkenWorld efekti kaldırıldı - kümülatif RGB çarpımı sürekli siyahlaşmaya neden oluyordu
     // Orijinal renkleri saklamadan çarpma işlemi yapıldığından her hasar alımında renkler kalıcı olarak koyulaşıyordu
     // Alternatif olarak ScreenEffects.UpdateHealthVignette() kullanılabilir
@@ -174,4 +179,41 @@ public class Health : MonoBehaviour
         }
         return false;
     }
+
+    public void ResetHealthFull()
+    {
+        dead = false;
+
+        currentHealth = startingHealth;
+        maxHealth = startingHealth;
+
+        // Animator reset
+        if (anim != null)
+        {
+            anim.ResetTrigger("die");
+            anim.ResetTrigger("hurt");
+            anim.Play("Idle", 0, 0f);
+        }
+
+        // Sprite rengini düzelt
+        if (spriteRend != null)
+            spriteRend.color = Color.white;
+
+        // Movement tekrar aç
+        var movement = GetComponent<PlayerMovement>();
+        if (movement != null)
+        {
+            movement.enabled = true;
+            movement.lockMovement = false;
+        }
+
+        // UI & ekran efektleri FULL
+        if (ScreenEffects.Instance != null)
+            ScreenEffects.Instance.UpdateHealthVignette(1f);
+
+        // iFrame çakışmasını önle
+        StopAllCoroutines();
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+    }
+
 }

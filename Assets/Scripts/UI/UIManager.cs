@@ -213,6 +213,12 @@ public class UIManager : MonoBehaviour
         // Checkpoint'ten devam - ability'ler sıfırlanmaz, checkpoint'teki haliyle yüklenir
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GetComponent<PlayerMovement>().lockMovement = false;
+
+        Health playerHealth = FindObjectOfType<Health>();
+        if (playerHealth != null)
+        {
+            playerHealth.ResetHealthFull();
+        }
     }
 
     public void RestartFromBeginning()

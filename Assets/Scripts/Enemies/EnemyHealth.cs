@@ -234,6 +234,7 @@ public class EnemyHealth : MonoBehaviour
             
             // Sandık kırıldığında coin ver
             GiveDirectReward();
+            animator.SetTrigger("Open");
             
             StartCoroutine(FadeAndDestroy());
             return;
@@ -307,6 +308,7 @@ public class EnemyHealth : MonoBehaviour
 
     private IEnumerator FadeAndDestroy()
     {
+        yield return new WaitForSeconds(1f);
         if (spriteRenderer == null)
         {
             yield return new WaitForSeconds(0.5f);

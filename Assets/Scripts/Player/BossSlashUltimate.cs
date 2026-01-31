@@ -24,9 +24,13 @@ public class BossSlashUltimate : MonoBehaviour
     [SerializeField] private float healthBarDelay = 2f;
     private GameObject playerHealthBar;
 
-    private Transform bossTarget;
     private bool ultiUsed = false;
     private Vector3 startPosition;
+    public GameObject arrowInputImage;
+    private Vector3 arrowStartPosition;
+
+    [Header("Target Settings")]
+    [SerializeField] private LayerMask ultiTargetLayer; // UseUlti layer
 
     void Awake()
     {
@@ -36,10 +40,7 @@ public class BossSlashUltimate : MonoBehaviour
     void Start()
     {
         startPosition = transform.position;
-
-        GameObject boss = GameObject.FindGameObjectWithTag("Boss");
-        if (boss != null)
-            bossTarget = boss.transform;
+        arrowStartPosition = arrowInputImage.transform.position;
 
         // 🔍 Health bar spawn olana kadar ara
         StartCoroutine(FindPlayerHealthBarRoutine());
@@ -60,13 +61,28 @@ public class BossSlashUltimate : MonoBehaviour
 
     public void ActivateUltimate()
     {
-        float dist = Vector2.Distance(transform.position, bossTarget.position);
-
-        if (dist <= activateDistance)
+        if (ultiUsed)
         {
-            StartCoroutine(UltiSlashSequence());
+            Debug.Log("Ultimate already used!");
+            return;
         }
+
+        Collider2D[] targets = Physics2D.OverlapCircleAll(
+            transform.position,
+            activateDistance,
+            ultiTargetLayer
+        );
+
+        if (targets.Length == 0)
+        {
+            Debug.Log("No ulti targets in range!");
+            return;
+        }
+
+        StartCoroutine(UltiSlashSequence(targets));
+        Debug.Log("Ultimate activated on " + targets.Length + " targets!");
     }
+
 
     IEnumerator FindPlayerHealthBarRoutine()
     {
@@ -77,15 +93,30 @@ public class BossSlashUltimate : MonoBehaviour
         }
     }
 
-    IEnumerator UltiSlashSequence()
+    IEnumerator UltiSlashSequence(Collider2D[] targets)
     {
         ultiUsed = true;
+
+        if (arrowInputImage != null)
+            arrowInputImage.transform.position = arrowStartPosition;
 
         if (playerHealthBar != null)
             playerHealthBar.SetActive(false);
         StartCoroutine(EnableHealthBarAfterDelay());
 
-        transform.position = bossTarget.position;
+        foreach (Collider2D target in targets)
+        {
+            if (target == null) continue;
+
+            yield return StartCoroutine(SlashTarget(target.transform));
+        }
+
+        yield return StartCoroutine(ReturnToStart());
+    }
+
+    IEnumerator SlashTarget(Transform target)
+    {
+        transform.position = target.position;
 
         Vector2[] slashDirections =
         {
@@ -101,14 +132,13 @@ public class BossSlashUltimate : MonoBehaviour
 
         foreach (Vector2 dir in slashDirections)
         {
-            yield return StartCoroutine(SlashMove(dir.normalized));
+            yield return StartCoroutine(SlashMove(dir.normalized, target));
             yield return new WaitForSeconds(slashDelay);
         }
-
-        yield return StartCoroutine(ReturnToStart());
     }
 
-    IEnumerator SlashMove(Vector2 direction)
+
+    IEnumerator SlashMove(Vector2 direction, Transform target)
     {
         slashCollider.enabled = false;
 
@@ -119,13 +149,13 @@ public class BossSlashUltimate : MonoBehaviour
 
         if (slashEffectPrefab != null)
         {
-            Vector3 effectPos = bossTarget.position + (Vector3)(direction * slashEffectOffset);
+            Vector3 effectPos = target.position + (Vector3)(direction * slashEffectOffset);
             GameObject slashFx = Instantiate(slashEffectPrefab, effectPos, Quaternion.identity);
             slashFx.transform.rotation = Quaternion.Euler(0, 0, angle);
         }
 
-        Vector3 startPos = bossTarget.position - (Vector3)(direction * slashRadius);
-        Vector3 endPos   = bossTarget.position + (Vector3)(direction * slashRadius);
+        Vector3 startPos = target.position - (Vector3)(direction * slashRadius);
+        Vector3 endPos   = target.position + (Vector3)(direction * slashRadius);
 
         transform.position = startPos;
 

@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8323335850607733367}
   - component: {fileID: 1285488973751103104}
   - component: {fileID: 5409371315951359306}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Shockwave
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4857,7 +4857,7 @@ ParticleSystemRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -580961055
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 3
   m_RenderMode: 0
   m_MeshDistribution: 0
@@ -4907,7 +4907,7 @@ GameObject:
   - component: {fileID: 5674342560169435572}
   - component: {fileID: 5631053088055572352}
   - component: {fileID: 4927981720416581242}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: BOSS
   m_TagString: Boss
   m_Icon: {fileID: 0}
@@ -4922,7 +4922,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6445674158229014704}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.56, y: -1.47, z: 0}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
@@ -4972,7 +4972,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -580961055
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: 0
   m_Sprite: {fileID: -1808982527863717971, guid: f81db85f072c2044aa71395a28af6cf0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -5111,6 +5111,8 @@ MonoBehaviour:
   animator: {fileID: 0}
   spriteRenderer: {fileID: 0}
   particleSystem: {fileID: 0}
+  damageTextOffset: {x: 0, y: 1.2, z: 0}
+  enemyCanvas: {fileID: 0}
 --- !u!96 &5631053088055572352
 TrailRenderer:
   serializedVersion: 3
@@ -5154,7 +5156,7 @@ TrailRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -580961055
-  m_SortingLayer: 4
+  m_SortingLayer: 5
   m_SortingOrder: -1
   m_Time: 0.5
   m_PreviewTimeScale: 1

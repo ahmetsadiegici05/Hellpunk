@@ -8,17 +8,25 @@ public class RotateOnTrigger : MonoBehaviour
     [SerializeField] private string triggerTag = "Player";
 
     [Header("Rotate Edilecek Ana Obje")]
-    [SerializeField] private Transform rotationRoot; // RotationObjects
+    [SerializeField] private Transform rotationRoot;
 
     [Header("Rotation Settings")]
     [SerializeField] private float rotateZAmount = 90f;
     [SerializeField] private float rotateDuration = 1.5f;
 
+    [Header("QTE Settings")]
+    [SerializeField] private int requiredPressCount = 10;
+    [SerializeField] private GameObject qtePanel; // ekranda açılacak panel
+
     private bool hasRotated = false;
     private Transform player;
     private Rigidbody2D playerRb;
-    public ShakeData rotationShakeData;
+    private Health playerHealth;
 
+    private int currentPressCount = 0;
+    private bool qteActive = false;
+
+    public ShakeData rotationShakeData;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -30,8 +38,19 @@ public class RotateOnTrigger : MonoBehaviour
 
             player = other.transform;
             playerRb = player.GetComponent<Rigidbody2D>();
+            playerHealth = player.GetComponent<Health>();
 
             StartCoroutine(RotateSequence());
+        }
+    }
+
+    private void Update()
+    {
+        if (!qteActive) return;
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            currentPressCount++;
         }
     }
 
@@ -42,6 +61,12 @@ public class RotateOnTrigger : MonoBehaviour
 
         if (playerRb != null)
             playerRb.linearVelocity = Vector2.zero;
+
+        currentPressCount = 0;
+        qteActive = true;
+
+        if (qtePanel != null)
+            qtePanel.SetActive(true);
 
         float elapsed = 0f;
 
@@ -55,6 +80,7 @@ public class RotateOnTrigger : MonoBehaviour
 
             rotationRoot.rotation = Quaternion.Lerp(startRot, endRot, t);
 
+            // oyuncuyu trigger merkezinde tut
             player.position = transform.position;
 
             yield return null;
@@ -62,6 +88,26 @@ public class RotateOnTrigger : MonoBehaviour
 
         rotationRoot.rotation = endRot;
 
+        qteActive = false;
+
+        if (qtePanel != null)
+            qtePanel.SetActive(false);
+
+        // rotation değerini kaydet
+        if (GameManager.Instance != null)
+            GameManager.Instance.lastTransformRotationValue = rotationRoot.eulerAngles.z;
+
+        // ❌ QTE BAŞARISIZ → GAME OVER
+        if (currentPressCount < requiredPressCount)
+        {
+            if (playerHealth != null)
+            {
+                playerHealth.TakeDamage(playerHealth.currentHealth + 999f);
+            }
+            yield break;
+        }
+
+        // ✅ BAŞARILI
         PlayerMovement.Instance.lockMovement = false;
     }
 }

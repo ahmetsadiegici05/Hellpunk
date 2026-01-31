@@ -36,8 +36,10 @@ public class GameManager : MonoBehaviour
     public List<Tilemap> tilemaps;
 
     [Header("Chest System")]
+    public GameObject portalPrefab;
     public GameObject chestPrefab;
     public List<Transform> randomPoints;
+    public List<Transform> randomPoints2;
 
     [Header("Ulti")]
     public GameObject ultiObject;
@@ -47,6 +49,9 @@ public class GameManager : MonoBehaviour
     public Transform chestRoomSpawnPoint;
     public Transform enemySpawnPoint;
     public Transform chestSpawnPoint;
+
+
+    public float lastTransformRotationValue = 0;
 
     private void OnEnable()
     {
@@ -64,11 +69,6 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
         }
 
         if (audioSource == null)
@@ -88,7 +88,8 @@ public class GameManager : MonoBehaviour
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
 
-        SpawnRandomChests(); // 🔥 HER SAHNE YÜKLENDİĞİNDE
+        SpawnRandomChests();
+        SpawnRandomPortals();
         
         // Level geçişinden sonra oyuncu sağlığını geri yükle
         RestorePlayerHealth();
@@ -145,14 +146,14 @@ public class GameManager : MonoBehaviour
 
     private void SpawnRandomChests()
     {
-        randomPoints = new List<Transform>();
+        randomPoints2 = new List<Transform>();
 
         // "ChestPoint" tag'li tüm spawn noktalarını bul
         GameObject[] points = GameObject.FindGameObjectsWithTag("ChestPoint");
         Debug.Log($"[GameManager] ChestPoint sayısı: {points.Length}");
         
         foreach (var p in points)
-            randomPoints.Add(p.transform);
+            randomPoints2.Add(p.transform);
 
         if (chestPrefab == null)
         {
@@ -160,7 +161,7 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        if (randomPoints.Count == 0)
+        if (randomPoints2.Count == 0)
         {
             Debug.LogWarning("[GameManager] Sahnede 'ChestPoint' tag'li obje bulunamadı! Rastgele sandık spawn edilemedi.");
             return;
@@ -172,7 +173,7 @@ public class GameManager : MonoBehaviour
             Destroy(chest);
 
         // Random noktaları kopyala
-        List<Transform> shuffledPoints = new List<Transform>(randomPoints);
+        List<Transform> shuffledPoints = new List<Transform>(randomPoints2);
 
         // Fisher–Yates shuffle
         for (int i = 0; i < shuffledPoints.Count; i++)
@@ -183,7 +184,7 @@ public class GameManager : MonoBehaviour
             shuffledPoints[rnd] = temp;
         }
 
-        int spawnCount = Mathf.Min(10, shuffledPoints.Count);
+        int spawnCount = Mathf.Min(5, shuffledPoints.Count);
         Debug.Log($"[GameManager] {spawnCount} sandık spawn edilecek (Toplam nokta: {shuffledPoints.Count})");
 
         for (int i = 0; i < spawnCount; i++)
@@ -207,6 +208,55 @@ public class GameManager : MonoBehaviour
         }
         
         Debug.Log($"[GameManager] ✅ Rastgele {spawnCount} sandık başarıyla spawn edildi!");
+    }
+
+    // ================= PORTAL SPAWN =================
+
+    private void SpawnRandomPortals()
+    {
+        if (portalPrefab == null)
+        {
+            Debug.LogWarning("[GameManager] portalPrefab atanmamış!");
+            return;
+        }
+
+        if (randomPoints == null || randomPoints.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] randomPoints boş!");
+            return;
+        }
+
+        // Eski portalları temizle
+        GameObject[] oldPortals = GameObject.FindGameObjectsWithTag("Portal");
+        foreach (var portal in oldPortals)
+            Destroy(portal);
+
+        // Random noktaları kopyala
+        List<Transform> shuffledPoints = new List<Transform>(randomPoints);
+
+        // Fisher–Yates shuffle
+        for (int i = 0; i < shuffledPoints.Count; i++)
+        {
+            int rnd = Random.Range(i, shuffledPoints.Count);
+            Transform temp = shuffledPoints[i];
+            shuffledPoints[i] = shuffledPoints[rnd];
+            shuffledPoints[rnd] = temp;
+        }
+
+        int spawnCount = Mathf.Min(5, shuffledPoints.Count);
+        Debug.Log($"[GameManager] {spawnCount} portal spawn edilecek");
+
+        for (int i = 0; i < spawnCount; i++)
+        {
+            GameObject portal = Instantiate(
+                portalPrefab,
+                shuffledPoints[i].position,
+                Quaternion.identity,
+                shuffledPoints[i] // parent olarak point
+            );
+
+            Debug.Log($"[GameManager] Portal {i + 1} spawnlandı: {shuffledPoints[i].position}");
+        }
     }
 
     // ================= SYSTEMS =================
