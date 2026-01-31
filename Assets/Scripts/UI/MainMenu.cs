@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Collections;
 
 public class MainMenu : MonoBehaviour
 {
@@ -10,13 +11,29 @@ public class MainMenu : MonoBehaviour
 
 	[Header("Selection Colors")]
 	[SerializeField] private Color normalColor = new Color(1f, 1f, 1f, 1f);
-	[SerializeField] private Color highlightedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-	[SerializeField] private Color pressedColor = new Color(0.4f, 0.4f, 0.4f, 1f);
-	[SerializeField] private Color selectedColor = new Color(0.5f, 0.5f, 0.5f, 1f);
+	[SerializeField] private Color highlightedColor = new Color(1f, 1f, 1f, 1f);  // Beyaz tut (siyahlaşma yok)
+	[SerializeField] private Color pressedColor = new Color(0.9f, 0.9f, 0.9f, 1f);   // Hafif koyu
+	[SerializeField] private Color selectedColor = new Color(1f, 1f, 1f, 1f);        // Beyaz tut
+
+	[Header("Button Animations")]
+	[SerializeField] private bool autoAddAnimations = true;
+	[SerializeField] private AudioClip buttonHoverSound;
+	[SerializeField] private AudioClip buttonClickSound;
+
+	[Header("Scene Transition")]
+	[SerializeField] private float transitionDuration = 0.8f;
+	[SerializeField] private RectTransform logoTransform;
+	[SerializeField] private CanvasGroup canvasGroup; // Canvas'a CanvasGroup ekle
+
+	private bool isTransitioning = false;
 
 	private void Start()
 	{
 		SetupButtons();
+		if (autoAddAnimations)
+		{
+			SetupButtonAnimations();
+		}
 		SelectFirstButton();
 		GetComponent<PlayerMovement>().lockMovement = false;
 
@@ -54,6 +71,23 @@ public class MainMenu : MonoBehaviour
 		}
 	}
 
+	private void SetupButtonAnimations()
+	{
+		Button[] buttons = GetComponentsInChildren<Button>(true);
+
+		foreach (Button btn in buttons)
+		{
+			// Eğer zaten animasyon yoksa ekle
+			if (btn.GetComponent<MenuButtonAnimation>() == null)
+			{
+				MenuButtonAnimation anim = btn.gameObject.AddComponent<MenuButtonAnimation>();
+				
+				// Ses ayarlarını aktar (reflection ile veya public property ile)
+				// Sesler Inspector'dan da ayarlanabilir
+			}
+		}
+	}
+
 	private void SelectFirstButton()
 	{
 		if (firstSelectedButton != null && EventSystem.current != null)
@@ -65,9 +99,57 @@ public class MainMenu : MonoBehaviour
 
 	public void PlayGame()
 	{
+		if (isTransitioning) return;
+		StartCoroutine(TransitionToLevel("Level1"));
+	}
+
+	private IEnumerator TransitionToLevel(string sceneName)
+	{
+		isTransitioning = true;
 		CheckpointData.ResetData();
-		SceneManager.LoadScene("Level1");
-		GetComponent<PlayerMovement>().lockMovement = false;
+
+		float elapsed = 0f;
+		
+		// Logo başlangıç değerleri
+		Vector2 logoStartPos = logoTransform != null ? logoTransform.anchoredPosition : Vector2.zero;
+		Vector3 logoStartScale = logoTransform != null ? logoTransform.localScale : Vector3.one;
+		Vector2 logoEndPos = logoStartPos + new Vector2(0, 300f); // Yukarı kayar
+		
+		// CanvasGroup başlangıç
+		float startAlpha = 1f;
+
+		while (elapsed < transitionDuration)
+		{
+			elapsed += Time.deltaTime;
+			float t = elapsed / transitionDuration;
+			
+			// Ease out cubic - smooth
+			float easeT = 1f - Mathf.Pow(1f - t, 3f);
+
+			// Logo yukarı kayar ve büyür
+			if (logoTransform != null)
+			{
+				logoTransform.anchoredPosition = Vector2.Lerp(logoStartPos, logoEndPos, easeT);
+				logoTransform.localScale = Vector3.Lerp(logoStartScale, logoStartScale * 1.3f, easeT);
+			}
+
+			// Ekran soluklaşır (fade out)
+			if (canvasGroup != null)
+			{
+				canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
+			}
+
+			yield return null;
+		}
+
+		// Sahneyi yükle
+		var playerMovement = GetComponent<PlayerMovement>();
+		if (playerMovement != null)
+		{
+			playerMovement.lockMovement = false;
+		}
+		
+		SceneManager.LoadScene(sceneName);
 	}
 
 	public void QuitGame()
