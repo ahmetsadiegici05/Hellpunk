@@ -663,6 +663,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 782598603}
   m_CullTransparentMesh: 1
+--- !u!1 &796924886
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 796924888}
+  - component: {fileID: 796924887}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &796924887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796924886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69175f0da5a704f16b52f9f62db18b7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseMaxHealth: 3
+  baseDamage: 3
+  baseJumpPower: 24
+  baseSpeed: 7
+  baseReviveCount: 0
+  playerHealth: {fileID: 0}
+  playerAttack: {fileID: 0}
+  playerMovement: {fileID: 0}
+  coinText: {fileID: 0}
+  coinTextGame: {fileID: 0}
+  healChargesText: {fileID: 0}
+  fireballChargesText: {fileID: 0}
+--- !u!4 &796924888
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 796924886}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 164.4278, y: 15.89832, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1017030545
 GameObject:
   m_ObjectHideFlags: 0
@@ -1157,6 +1213,12 @@ MonoBehaviour:
   highlightedColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
   pressedColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
   selectedColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  autoAddAnimations: 1
+  buttonHoverSound: {fileID: 0}
+  buttonClickSound: {fileID: 0}
+  transitionDuration: 0.8
+  logoTransform: {fileID: 0}
+  canvasGroup: {fileID: 0}
 --- !u!114 &1334634886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1675,3 +1737,4 @@ SceneRoots:
   - {fileID: 1241738109}
   - {fileID: 1334634889}
   - {fileID: 1543555107}
+  - {fileID: 796924888}

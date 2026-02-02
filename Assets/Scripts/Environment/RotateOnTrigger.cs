@@ -64,6 +64,7 @@ public class RotateOnTrigger : MonoBehaviour
 
         currentPressCount = 0;
         qteActive = true;
+        GameManager.Instance.isRotation = true;
 
         if (qtePanel != null)
             qtePanel.SetActive(true);
@@ -94,8 +95,6 @@ public class RotateOnTrigger : MonoBehaviour
             qtePanel.SetActive(false);
 
         // rotation değerini kaydet
-        if (GameManager.Instance != null)
-            GameManager.Instance.lastTransformRotationValue = rotationRoot.eulerAngles.z;
 
         // ❌ QTE BAŞARISIZ → GAME OVER
         if (currentPressCount < requiredPressCount)
@@ -107,7 +106,11 @@ public class RotateOnTrigger : MonoBehaviour
             yield break;
         }
 
+        if (GameManager.Instance != null)
+            GameManager.Instance.lastTransformRotationValue = rotationRoot.eulerAngles.z;
+            
         // ✅ BAŞARILI
         PlayerMovement.Instance.lockMovement = false;
+        GameManager.Instance.isRotation = false;
     }
 }

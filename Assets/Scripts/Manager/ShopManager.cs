@@ -15,7 +15,7 @@ public class ShopManager : MonoBehaviour
     public const string HEAL = "HEAL";
     public const string FIREBALL = "FIREBALL";
     private const string FIRST_LAUNCH = "FIRST_LAUNCH";
-
+    private const string SAVE_VERSION_KEY = "SAVE_VERSION";
     private const int SAVE_VERSION = 4;
 
     [Header("Base Values")]
@@ -36,18 +36,19 @@ public class ShopManager : MonoBehaviour
     public TMP_Text healChargesText;
     public TMP_Text fireballChargesText;
 
+    // ---------------------------------------------------
+    // LIFECYCLE
+    // ---------------------------------------------------
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
+        if (Instance != null)
         {
             Destroy(gameObject);
             return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -74,21 +75,18 @@ public class ShopManager : MonoBehaviour
 
         if (isLevel1)
         {
-            ResetAbilitiesForNewGame();
+            ResetForNewGame();
             LoadUpgrades();
 
             if (playerHealth != null)
-            {
                 playerHealth.currentHealth = playerHealth.maxHealth;
-            }
 
             Debug.Log("[ShopManager] Level1 → Yeni oyun resetlendi");
         }
         else
         {
-            // Level 2+ → SADECE yükle
             LoadUpgrades();
-            Debug.Log("[ShopManager] Level değişti → Prefs KORUNDU");
+            Debug.Log("[ShopManager] Level2+ → Prefs yüklendi");
         }
 
         UpdateCoinText();
@@ -99,11 +97,11 @@ public class ShopManager : MonoBehaviour
     // ---------------------------------------------------
     void InitializeFirstLaunch()
     {
-        int savedVersion = PlayerPrefs.GetInt("SAVE_VERSION", 0);
+        int savedVersion = PlayerPrefs.GetInt(SAVE_VERSION_KEY, 0);
         if (savedVersion < SAVE_VERSION)
         {
             PlayerPrefs.DeleteAll();
-            PlayerPrefs.SetInt("SAVE_VERSION", SAVE_VERSION);
+            PlayerPrefs.SetInt(SAVE_VERSION_KEY, SAVE_VERSION);
         }
 
         if (!PlayerPrefs.HasKey(FIRST_LAUNCH))
@@ -123,18 +121,35 @@ public class ShopManager : MonoBehaviour
     // ---------------------------------------------------
     // RESET (SADECE LEVEL 1)
     // ---------------------------------------------------
-    void ResetAbilitiesForNewGame()
+    public void ResetForNewGame()
     {
+        // --- STAT UPGRADE RESET ---
+        PlayerPrefs.SetInt(MAX_HEALTH, 0);
+        PlayerPrefs.SetInt(DAMAGE, 0);
+        PlayerPrefs.SetInt(JUMP, 0);
+        PlayerPrefs.SetInt(SPEED, 0);
+        PlayerPrefs.SetInt(REVIVE, 0);
+
+        // --- SKILL RESET ---
         PlayerPrefs.SetInt(HEAL, 3);
         PlayerPrefs.SetInt(FIREBALL, 2);
+
+        // --- GAME SYSTEM RESET ---
+        if (GameManager.Instance != null)
+            GameManager.Instance.ResetCoin();
 
         if (SoulSystem.Instance != null)
             SoulSystem.Instance.ResetKills();
 
-        if (GameManager.Instance != null)
-            GameManager.Instance.ResetCoin();
-
         PlayerPrefs.Save();
+
+        // --- ANINDA PLAYER'A YANSIT ---
+        LoadUpgrades();
+
+        if (playerHealth != null)
+            playerHealth.currentHealth = playerHealth.maxHealth;
+
+        Debug.Log("[ShopManager] Yeni oyun → Tüm statlar sıfırlandı");
     }
 
     // ---------------------------------------------------
@@ -166,16 +181,68 @@ public class ShopManager : MonoBehaviour
     void LoadGuitarSkills()
     {
         GuitarSkillSystem guitar = FindObjectOfType<GuitarSkillSystem>();
-        if (guitar != null)
-        {
-            guitar.healCharges = PlayerPrefs.GetInt(HEAL, 0);
-            guitar.fireballCharges = PlayerPrefs.GetInt(FIREBALL, 0);
-            UpdateSkillUI();
-        }
+        if (guitar == null) return;
+
+        guitar.healCharges = PlayerPrefs.GetInt(HEAL, 0);
+        guitar.fireballCharges = PlayerPrefs.GetInt(FIREBALL, 0);
+
+        UpdateSkillUI();
     }
 
     // ---------------------------------------------------
-    // FIND
+    // SHOP ACTIONS
+    // ---------------------------------------------------
+    public void AddMaxHealth() => BuyUpgrade(100, MAX_HEALTH, () =>
+    {
+        playerHealth.maxHealth += 1;
+        playerHealth.currentHealth += 1;
+    });
+
+    public void AddDamage() => BuyUpgrade(100, DAMAGE, () =>
+    {
+        playerAttack.damage += 1;
+    });
+
+    public void AddJumpForce() => BuyUpgrade(100, JUMP, () =>
+    {
+        playerMovement.jumpPower += 0.5f;
+    });
+
+    public void AddSpeed() => BuyUpgrade(100, SPEED, () =>
+    {
+        playerMovement.speed += 0.3f;
+    });
+
+    public void AddRevive() => BuyUpgrade(100, REVIVE, () =>
+    {
+        playerHealth.reviveCount += 1;
+    });
+
+    public void AddHealSkill() => BuyUpgrade(500, HEAL, () =>
+    {
+        UpdateSkillUI();
+    });
+
+    public void AddFireballSkill() => BuyUpgrade(500, FIREBALL, () =>
+    {
+        UpdateSkillUI();
+    });
+
+    void BuyUpgrade(int cost, string key, System.Action apply)
+    {
+        if (GameManager.Instance == null || !GameManager.Instance.SpendCoin(cost))
+            return;
+
+        PlayerPrefs.SetInt(key, PlayerPrefs.GetInt(key, 0) + 1);
+        PlayerPrefs.Save();
+
+        apply?.Invoke();
+        LoadUpgrades();
+        UpdateCoinText();
+    }
+
+    // ---------------------------------------------------
+    // FIND & UI
     // ---------------------------------------------------
     void FindPlayerComponents()
     {
@@ -209,10 +276,10 @@ public class ShopManager : MonoBehaviour
         if (GameManager.Instance == null) return;
 
         if (coinText)
-            coinText.text = "COIN: " + GameManager.Instance.coin;
+            coinText.text = GameManager.Instance.coin.ToString();
 
         if (coinTextGame)
-            coinTextGame.text = "Coin: " + GameManager.Instance.coin;
+            coinTextGame.text = GameManager.Instance.coin.ToString();
     }
 
     public void RefreshAllComponents()

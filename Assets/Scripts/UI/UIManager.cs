@@ -31,6 +31,9 @@ public class UIManager : MonoBehaviour
     public bool IsGameOver => gameOverScreen != null && gameOverScreen.activeSelf;
     public bool IsVictory => victoryScreen != null && victoryScreen.activeSelf;
 
+    public PlayerMovement playerMovement;
+    public Health health;
+
     [Header("Shop")]
     public GameObject shopPanel;
     public ShopManager shopManager;
@@ -226,7 +229,6 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         CheckpointData.ResetData();
-        ResetAbilitiesForRestart();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         GetComponent<PlayerMovement>().lockMovement = false;
     }
@@ -235,33 +237,57 @@ public class UIManager : MonoBehaviour
     {
         isPaused = false;
         Time.timeScale = 1f;
-        ResetAbilitiesForRestart();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (SceneManager.GetActiveScene().name == "Level1")
+            SceneManager.LoadScene("Level1");
+        else if (SceneManager.GetActiveScene().name == "Level2")
+        {
+            gameOverScreen?.SetActive(false);
+
+            // GameManager kontrolü
+            if (GameManager.Instance == null || !GameManager.Instance.hasCheckpoint)
+            {
+                Debug.LogWarning("[UIManager] Checkpoint yok → Scene yeniden yükleniyor");
+                SceneManager.LoadScene("Level2");
+                return;
+            }
+
+            // Player bul
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogError("[UIManager] Player bulunamadı → Scene reload");
+                SceneManager.LoadScene("Level2");
+                return;
+            }
+
+            // Checkpoint pozisyonuna taşı
+            player.transform.position = GameManager.Instance.lastCheckpointPosition;
+            Debug.Log("[UIManager] Player checkpoint pozisyonuna taşındı");
+
+            // Health reset
+            Health playerHealth = player.GetComponent<Health>();
+            if (playerHealth != null)
+            {
+                playerHealth.ReviveFull();
+            }
+
+            // Movement reset
+            PlayerMovement movement = player.GetComponent<PlayerMovement>();
+            if (movement != null)
+            {
+                movement.enabled = true;
+                movement.lockMovement = false;
+            }
+
+            // Cursor & pause
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+            isPaused = false;
+        }
+
         GetComponent<PlayerMovement>().lockMovement = false;
     }
     
-    /// <summary>
-    /// Restart yapıldığında ability'leri başlangıç değerlerine sıfırla
-    /// </summary>
-    private void ResetAbilitiesForRestart()
-    {
-        PlayerPrefs.SetInt("HEAL", 3);      // Başlangıçta 3 Heal
-        PlayerPrefs.SetInt("FIREBALL", 2);  // Başlangıçta 2 Fireball
-        PlayerPrefs.Save();
-        Debug.Log("[UIManager] Restart - Ability'ler sıfırlandı: Heal=3, Fireball=2");
-        
-        // Soul (kill sayacı) sıfırla
-        if (SoulSystem.Instance != null)
-        {
-            SoulSystem.Instance.ResetKills();
-        }
-        
-        // Coin sıfırla (başlangıç değerine)
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.ResetCoin();
-        }
-    }
 
     public void MainMenu()
     {

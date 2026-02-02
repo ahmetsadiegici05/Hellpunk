@@ -12,6 +12,7 @@ TagManager:
   - ChestPoint
   - RotateMap
   - Boss
+  - Portal
   layers:
   - Default
   - TransparentFX

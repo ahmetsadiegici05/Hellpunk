@@ -52,6 +52,9 @@ public class GameManager : MonoBehaviour
 
 
     public float lastTransformRotationValue = 0;
+    public Vector3 lastCheckpointPosition;
+    public bool hasCheckpoint;
+    public bool isRotation = false;
 
     private void OnEnable()
     {

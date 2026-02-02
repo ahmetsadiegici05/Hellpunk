@@ -100,6 +100,7 @@ public class MainMenu : MonoBehaviour
 	public void PlayGame()
 	{
 		if (isTransitioning) return;
+		ShopManager.Instance.ResetForNewGame();
 		StartCoroutine(TransitionToLevel("Level1"));
 	}
 

@@ -216,4 +216,45 @@ public class Health : MonoBehaviour
         Physics2D.IgnoreLayerCollision(8, 9, false);
     }
 
+
+    public void ReviveFull()
+    {
+        dead = false;
+
+        // Canı fulle
+        currentHealth = maxHealth;
+
+        // Animator reset
+        if (anim != null)
+        {
+            anim.ResetTrigger("die");
+            anim.ResetTrigger("hurt");
+            anim.Play("Idle", 0, 0f);
+        }
+
+        // Sprite rengini düzelt
+        if (spriteRend != null)
+            spriteRend.color = Color.white;
+
+        // PlayerMovement tekrar aç
+        PlayerMovement movement = GetComponent<PlayerMovement>();
+        if (movement != null)
+        {
+            movement.enabled = true;
+            movement.lockMovement = false;
+        }
+
+        // Collider çakışmaları sıfırla
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+
+        // iFrame coroutine'lerini durdur
+        StopAllCoroutines();
+
+        // UI & ekran efektleri full
+        if (ScreenEffects.Instance != null)
+            ScreenEffects.Instance.UpdateHealthVignette(1f);
+
+        Debug.Log("[Health] Player revived without scene reload");
+    }
+
 }

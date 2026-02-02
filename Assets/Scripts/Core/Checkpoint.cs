@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class Checkpoint : MonoBehaviour
 {
@@ -14,12 +15,17 @@ public class Checkpoint : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (GameManager.Instance.isRotation)
+            return;
+
         if (collision.CompareTag("Player") && !activated)
         {
             activated = true;
 
             CheckpointData.LastCheckpointPosition = transform.position;
             CheckpointData.HasCheckpoint = true;
+
+            StartCoroutine(HasCheckpoint());
 
             if (unlockSpikeheadShooting)
                 CheckpointData.SpikeheadShootingUnlocked = true;
@@ -29,5 +35,12 @@ public class Checkpoint : MonoBehaviour
 
             Debug.Log("Checkpoint Activated!");
         }
+    }
+
+    IEnumerator HasCheckpoint()
+    {
+        yield return new WaitForSeconds(5.2f);
+        GameManager.Instance.lastCheckpointPosition = transform.position;
+        GameManager.Instance.hasCheckpoint = true;
     }
 }
