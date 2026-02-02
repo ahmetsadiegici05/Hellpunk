@@ -30,8 +30,75 @@ public class CoinUI : MonoBehaviour
         // İlk değeri al
         if (GameManager.Instance != null)
             lastCoinValue = GameManager.Instance.coin;
+        
+        // Sağ üst köşeye taşı
+        PositionToTopRight();
+        
+        // Runtime'da sprite'ları oluştur (prefab'dan yüklendiğinde kaybolabilir)
+        EnsureSprites();
             
         UpdateDisplay();
+    }
+    
+    /// <summary>
+    /// Sprite'ların mevcut olduğundan emin ol, yoksa oluştur
+    /// </summary>
+    private void EnsureSprites()
+    {
+        // Background panel sprite'ı kontrol et
+        if (backgroundPanel != null && backgroundPanel.sprite == null)
+        {
+            backgroundPanel.sprite = CreateRoundedRectSprite(64, 16);
+            backgroundPanel.type = Image.Type.Sliced;
+        }
+        
+        // Inner panel
+        Transform innerPanelT = transform.Find("InnerPanel");
+        if (innerPanelT != null)
+        {
+            Image innerImg = innerPanelT.GetComponent<Image>();
+            if (innerImg != null && innerImg.sprite == null)
+            {
+                innerImg.sprite = CreateRoundedRectSprite(64, 14);
+                innerImg.type = Image.Type.Sliced;
+            }
+        }
+        
+        // Coin icon container background
+        Transform iconContainerT = transform.Find("CoinIconContainer");
+        if (iconContainerT != null)
+        {
+            Image iconBg = iconContainerT.GetComponent<Image>();
+            if (iconBg != null && iconBg.sprite == null)
+            {
+                iconBg.sprite = CreateCircleSprite(64);
+            }
+            
+            // Coin icon
+            Transform coinIconT = iconContainerT.Find("CoinIcon");
+            if (coinIconT != null)
+            {
+                Image iconImg = coinIconT.GetComponent<Image>();
+                if (iconImg != null && iconImg.sprite == null)
+                {
+                    iconImg.sprite = CreateCircleSprite(64);
+                }
+            }
+        }
+    }
+    
+    /// <summary>
+    /// CoinUI'ı sağ üst köşeye taşır (HealthBar sol üstte olduğu için)
+    /// </summary>
+    private void PositionToTopRight()
+    {
+        RectTransform rt = GetComponent<RectTransform>();
+        if (rt == null) return;
+        
+        rt.anchorMin = new Vector2(1, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.pivot = new Vector2(1, 1);
+        rt.anchoredPosition = new Vector2(-20, -20);
     }
 
     private void Update()
@@ -136,11 +203,11 @@ public class CoinUI : MonoBehaviour
         RectTransform myRect = GetComponent<RectTransform>();
         if (myRect == null) myRect = gameObject.AddComponent<RectTransform>();
         
-        // Sol üst köşe
-        myRect.anchorMin = new Vector2(0, 1);
-        myRect.anchorMax = new Vector2(0, 1);
-        myRect.pivot = new Vector2(0, 1);
-        myRect.anchoredPosition = new Vector2(20, -20);
+        // Sağ üst köşe (health bar sol üstte olduğu için)
+        myRect.anchorMin = new Vector2(1, 1);
+        myRect.anchorMax = new Vector2(1, 1);
+        myRect.pivot = new Vector2(1, 1);
+        myRect.anchoredPosition = new Vector2(-20, -20);
         myRect.sizeDelta = new Vector2(180, 60);
         myRect.localScale = Vector3.one;
         
@@ -148,19 +215,8 @@ public class CoinUI : MonoBehaviour
         backgroundPanel = GetComponent<Image>();
         if (backgroundPanel == null) backgroundPanel = gameObject.AddComponent<Image>();
         backgroundPanel.color = bgColor;
-        
-        // Border/Glow efekti
-        GameObject borderObj = new GameObject("Border");
-        borderObj.transform.SetParent(transform, false);
-        RectTransform borderRect = borderObj.AddComponent<RectTransform>();
-        borderRect.anchorMin = Vector2.zero;
-        borderRect.anchorMax = Vector2.one;
-        borderRect.offsetMin = new Vector2(-2, -2);
-        borderRect.offsetMax = new Vector2(2, 2);
-        borderRect.localScale = Vector3.one;
-        Image borderImg = borderObj.AddComponent<Image>();
-        borderImg.color = borderColor;
-        borderObj.transform.SetAsFirstSibling(); // Arkaya al
+        backgroundPanel.sprite = CreateRoundedRectSprite(64, 16);
+        backgroundPanel.type = Image.Type.Sliced;
         
         // İç panel
         GameObject innerPanel = new GameObject("InnerPanel");
@@ -173,6 +229,8 @@ public class CoinUI : MonoBehaviour
         innerRect.localScale = Vector3.one;
         Image innerImg = innerPanel.AddComponent<Image>();
         innerImg.color = new Color(0.08f, 0.04f, 0.12f, 0.95f);
+        innerImg.sprite = CreateRoundedRectSprite(64, 14);
+        innerImg.type = Image.Type.Sliced;
         
         // Coin icon container
         GameObject iconContainer = new GameObject("CoinIconContainer");
@@ -188,6 +246,7 @@ public class CoinUI : MonoBehaviour
         // Coin circle background
         Image iconBg = iconContainer.AddComponent<Image>();
         iconBg.color = new Color(0.15f, 0.1f, 0.2f);
+        iconBg.sprite = CreateCircleSprite(64);
         
         // Coin icon (altın rengi daire)
         GameObject iconObj = new GameObject("CoinIcon");
@@ -201,6 +260,7 @@ public class CoinUI : MonoBehaviour
         iconRect.localScale = Vector3.one;
         coinIcon = iconObj.AddComponent<Image>();
         coinIcon.color = coinGold;
+        coinIcon.sprite = CreateCircleSprite(64);
         
         // Coin sembolu (TMP)
         GameObject coinSymbol = new GameObject("CoinSymbol");
@@ -235,21 +295,68 @@ public class CoinUI : MonoBehaviour
         coinText.alignment = TextAlignmentOptions.Left;
         coinText.color = textColor;
         
-        // Glow/shine efekti (dekoratif çizgi)
-        GameObject shine = new GameObject("Shine");
-        shine.transform.SetParent(transform, false);
-        RectTransform shineRect = shine.AddComponent<RectTransform>();
-        shineRect.anchorMin = new Vector2(0, 1);
-        shineRect.anchorMax = new Vector2(1, 1);
-        shineRect.pivot = new Vector2(0.5f, 1);
-        shineRect.anchoredPosition = new Vector2(0, -3);
-        shineRect.sizeDelta = new Vector2(-20, 2);
-        shineRect.localScale = Vector3.one;
-        Image shineImg = shine.AddComponent<Image>();
-        shineImg.color = new Color(1f, 0.6f, 0.3f, 0.6f); // Turuncu glow
-        
         UnityEditor.EditorUtility.SetDirty(this);
         Debug.Log("CoinUI Generated!");
     }
 #endif
+    
+    private Sprite CreateRoundedRectSprite(int size, int cornerRadius)
+    {
+        Texture2D texture = new Texture2D(size, size);
+        Color[] pixels = new Color[size * size];
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool inside = IsInsideRoundedRect(x, y, size, size, cornerRadius);
+                pixels[y * size + x] = inside ? Color.white : Color.clear;
+            }
+        }
+
+        texture.SetPixels(pixels);
+        texture.Apply();
+        texture.wrapMode = TextureWrapMode.Clamp;
+
+        float border = cornerRadius;
+        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f,
+            0, SpriteMeshType.FullRect, new Vector4(border, border, border, border));
+    }
+
+    private bool IsInsideRoundedRect(int x, int y, int width, int height, int radius)
+    {
+        if (x < radius && y < radius)
+            return Vector2.Distance(new Vector2(x, y), new Vector2(radius, radius)) <= radius;
+        if (x >= width - radius && y < radius)
+            return Vector2.Distance(new Vector2(x, y), new Vector2(width - radius - 1, radius)) <= radius;
+        if (x < radius && y >= height - radius)
+            return Vector2.Distance(new Vector2(x, y), new Vector2(radius, height - radius - 1)) <= radius;
+        if (x >= width - radius && y >= height - radius)
+            return Vector2.Distance(new Vector2(x, y), new Vector2(width - radius - 1, height - radius - 1)) <= radius;
+        return true;
+    }
+
+    private Sprite CreateCircleSprite(int size)
+    {
+        Texture2D texture = new Texture2D(size, size);
+        Color[] pixels = new Color[size * size];
+        Vector2 center = new Vector2(size / 2f, size / 2f);
+        float radius = size / 2f;
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                float alpha = Mathf.Clamp01((radius - dist) / 2f);
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+
+        texture.SetPixels(pixels);
+        texture.Apply();
+        texture.wrapMode = TextureWrapMode.Clamp;
+
+        return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f));
+    }
 }

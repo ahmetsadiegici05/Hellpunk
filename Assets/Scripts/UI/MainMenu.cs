@@ -26,6 +26,8 @@ public class MainMenu : MonoBehaviour
 	[SerializeField] private CanvasGroup canvasGroup; // Canvas'a CanvasGroup ekle
 
 	private bool isTransitioning = false;
+	private CanvasGroup fadeOverlay; // Otomatik oluşturulacak
+	private Vector3 lastMousePosition; // Mouse hareket kontrolü için
 
 	private void Start()
 	{
@@ -35,10 +37,20 @@ public class MainMenu : MonoBehaviour
 			SetupButtonAnimations();
 		}
 		SelectFirstButton();
-		GetComponent<PlayerMovement>().lockMovement = false;
+		lastMousePosition = Input.mousePosition;
+		
+		// PlayerMovement varsa lockMovement'ı kapat
+		var playerMovement = GetComponent<PlayerMovement>();
+		if (playerMovement != null)
+		{
+			playerMovement.lockMovement = false;
+		}
 
 		Cursor.visible = true;
 		Cursor.lockState = CursorLockMode.None;
+		
+		// Otomatik fade overlay oluştur
+		CreateFadeOverlay();
 
 		// DEBUG: Leaderboard'u göster
 		LeaderboardEntry[] entries = LeaderboardData.GetEntries();
@@ -46,6 +58,49 @@ public class MainMenu : MonoBehaviour
 		{
 			Debug.Log($"Leaderboard {i + 1}: {entries[i].name} - {entries[i].score}");
 		}
+	}
+
+	private void Update()
+	{
+		// Klavye navigasyonu kullanılırsa seçili buton yoksa ilkini seç
+		if (Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.DownArrow) || 
+		    Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.S))
+		{
+			if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject == null)
+			{
+				SelectFirstButton();
+			}
+		}
+	}
+	
+	private void CreateFadeOverlay()
+	{
+		// Canvas bul
+		Canvas canvas = GetComponentInParent<Canvas>();
+		if (canvas == null) canvas = FindObjectOfType<Canvas>();
+		if (canvas == null) return;
+		
+		// Siyah overlay oluştur
+		GameObject overlayObj = new GameObject("FadeOverlay");
+		overlayObj.transform.SetParent(canvas.transform, false);
+		overlayObj.transform.SetAsLastSibling(); // En üstte olsun
+		
+		// Image ekle
+		var image = overlayObj.AddComponent<UnityEngine.UI.Image>();
+		image.color = Color.black;
+		image.raycastTarget = false;
+		
+		// Tüm ekranı kapla
+		RectTransform rect = overlayObj.GetComponent<RectTransform>();
+		rect.anchorMin = Vector2.zero;
+		rect.anchorMax = Vector2.one;
+		rect.offsetMin = Vector2.zero;
+		rect.offsetMax = Vector2.zero;
+		
+		// CanvasGroup ekle
+		fadeOverlay = overlayObj.AddComponent<CanvasGroup>();
+		fadeOverlay.alpha = 0f;
+		fadeOverlay.blocksRaycasts = false;
 	}
 
 	// Test için - Inspector'dan çağırabilirsin
@@ -78,12 +133,11 @@ public class MainMenu : MonoBehaviour
 		foreach (Button btn in buttons)
 		{
 			// Eğer zaten animasyon yoksa ekle
-			if (btn.GetComponent<MenuButtonAnimation>() == null)
+			if (btn.GetComponent<MinimalistButtonAnimation>() == null && 
+			    btn.GetComponent<MenuButtonAnimation>() == null)
 			{
-				MenuButtonAnimation anim = btn.gameObject.AddComponent<MenuButtonAnimation>();
-				
-				// Ses ayarlarını aktar (reflection ile veya public property ile)
-				// Sesler Inspector'dan da ayarlanabilir
+				// Minimalist animasyon ekle (premium görünüm)
+				btn.gameObject.AddComponent<MinimalistButtonAnimation>();
 			}
 		}
 	}
@@ -99,8 +153,17 @@ public class MainMenu : MonoBehaviour
 
 	public void PlayGame()
 	{
+		Debug.Log("PlayGame çağrıldı! isTransitioning: " + isTransitioning);
+		
 		if (isTransitioning) return;
-		ShopManager.Instance.ResetForNewGame();
+		
+		// ShopManager varsa reset et
+		if (ShopManager.Instance != null)
+		{
+			ShopManager.Instance.ResetForNewGame();
+		}
+		
+		Debug.Log("TransitionToLevel başlatılıyor...");
 		StartCoroutine(TransitionToLevel("Level1"));
 	}
 
@@ -118,6 +181,13 @@ public class MainMenu : MonoBehaviour
 		
 		// CanvasGroup başlangıç
 		float startAlpha = 1f;
+		
+		// Fade overlay başlangıçta şeffaf
+		if (fadeOverlay != null)
+		{
+			fadeOverlay.alpha = 0f;
+			fadeOverlay.blocksRaycasts = true;
+		}
 
 		while (elapsed < transitionDuration)
 		{
@@ -139,8 +209,20 @@ public class MainMenu : MonoBehaviour
 			{
 				canvasGroup.alpha = Mathf.Lerp(startAlpha, 0f, easeT);
 			}
+			
+			// Siyah overlay fade in (mavi ekranı engeller)
+			if (fadeOverlay != null)
+			{
+				fadeOverlay.alpha = Mathf.Lerp(0f, 1f, easeT);
+			}
 
 			yield return null;
+		}
+		
+		// Overlay'in tam siyah olduğundan emin ol
+		if (fadeOverlay != null)
+		{
+			fadeOverlay.alpha = 1f;
 		}
 
 		// Sahneyi yükle

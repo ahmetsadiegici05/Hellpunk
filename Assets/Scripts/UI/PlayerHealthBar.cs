@@ -10,8 +10,10 @@ public class PlayerHealthBar : MonoBehaviour
     [Header("Ayarlar")]
     [SerializeField] private Vector3 offset = new Vector3(0f, 1.5f, 0f);
     [SerializeField] private Vector2 barSize = new Vector2(1.2f, 0.15f);
-    [SerializeField] private Color healthColor = new Color(0.2f, 0.8f, 0.2f, 1f);
-    [SerializeField] private Color damagedColor = new Color(0.8f, 0.2f, 0.2f, 1f);
+    
+    [Header("Renkler - Klasik Yeşil/Kırmızı")]
+    [SerializeField] private Color healthColor = new Color(0.2f, 0.8f, 0.2f, 1f);        // Yeşil
+    [SerializeField] private Color damagedColor = new Color(0.8f, 0.2f, 0.2f, 1f);       // Kırmızı
     [SerializeField] private Color backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
     [SerializeField] private Color borderColor = new Color(0.1f, 0.1f, 0.1f, 1f);
     

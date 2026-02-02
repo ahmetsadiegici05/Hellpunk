@@ -11,7 +11,7 @@ public class TimeSlowAbility : MonoBehaviour
     [Header("Ability Settings")]
     [SerializeField] private KeyCode activateKey = KeyCode.E; // E tuşu ile zaman yavaşlatma
     [SerializeField] private float slowMotionScale = 0.3f;      // Zaman ne kadar yavaşlasın (0.3 = %30 hız)
-    [SerializeField] private float slowDuration = 10f;          // 10 saniye sürsün (gerçek zamanda)
+    [SerializeField] private float slowDuration = 7f;          // 7 saniye sürsün (gerçek zamanda)
     [SerializeField] private float cooldownTime = 15f;          // Tekrar kullanmak için bekleme
 
     [Header("Visual Effects")]
@@ -41,7 +41,9 @@ public class TimeSlowAbility : MonoBehaviour
     // Vignette UI
     private Canvas vignetteCanvas;
     private UnityEngine.UI.Image vignetteImage;
+    private UnityEngine.UI.Image colorOverlayImage; // Tüm ekranı kaplayan renk overlay'i
     private float currentVignetteAlpha = 0f;
+    private float currentOverlayAlpha = 0f;
 
     // Static instance for easy access
     public static TimeSlowAbility Instance { get; private set; }
@@ -180,32 +182,14 @@ public class TimeSlowAbility : MonoBehaviour
     {
         // Vignette efekti
         if (activate)
-            StartCoroutine(FadeVignette(vignetteIntensity, 0.3f));
-        else
-            StartCoroutine(FadeVignette(0f, 0.5f));
-        
-        if (allSpriteRenderers == null) return;
-
-        for (int i = 0; i < allSpriteRenderers.Length; i++)
         {
-            if (allSpriteRenderers[i] == null) continue;
-
-            if (activate)
-            {
-                // Mavi ton uygula
-                Color original = originalColors[i];
-                allSpriteRenderers[i].color = new Color(
-                    original.r * slowMotionTint.r,
-                    original.g * slowMotionTint.g,
-                    original.b * slowMotionTint.b,
-                    original.a
-                );
-            }
-            else
-            {
-                // Orijinal renge dön
-                allSpriteRenderers[i].color = originalColors[i];
-            }
+            StartCoroutine(FadeVignette(vignetteIntensity, 0.3f));
+            StartCoroutine(FadeColorOverlay(0.06f, 0.3f)); // Çok hafif mavi overlay
+        }
+        else
+        {
+            StartCoroutine(FadeVignette(0f, 0.5f));
+            StartCoroutine(FadeColorOverlay(0f, 0.5f));
         }
     }
     
@@ -218,6 +202,21 @@ public class TimeSlowAbility : MonoBehaviour
         vignetteCanvas.sortingOrder = 50; // Diğer UI'ların altında
         
         canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
+        
+        // Renk overlay oluştur (tüm ekranı eşit şekilde etkiler)
+        GameObject overlayObj = new GameObject("ColorOverlay");
+        overlayObj.transform.SetParent(canvasObj.transform, false);
+        
+        colorOverlayImage = overlayObj.AddComponent<UnityEngine.UI.Image>();
+        colorOverlayImage.color = new Color(0.4f, 0.6f, 1f, 0f); // Hafif mavi, başlangıçta görünmez
+        colorOverlayImage.raycastTarget = false;
+        
+        // Full screen yap
+        RectTransform overlayRect = overlayObj.GetComponent<RectTransform>();
+        overlayRect.anchorMin = Vector2.zero;
+        overlayRect.anchorMax = Vector2.one;
+        overlayRect.sizeDelta = Vector2.zero;
+        overlayRect.anchoredPosition = Vector2.zero;
         
         // Vignette image oluştur
         GameObject imgObj = new GameObject("VignetteImage");
@@ -291,6 +290,29 @@ public class TimeSlowAbility : MonoBehaviour
         
         currentVignetteAlpha = targetAlpha;
         vignetteImage.color = new Color(0f, 0f, 0.05f, currentVignetteAlpha);
+    }
+    
+    private IEnumerator FadeColorOverlay(float targetAlpha, float duration)
+    {
+        if (colorOverlayImage == null) yield break;
+        
+        float startAlpha = currentOverlayAlpha;
+        float time = 0f;
+        
+        while (time < duration)
+        {
+            time += Time.unscaledDeltaTime;
+            float t = time / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep
+            
+            currentOverlayAlpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+            colorOverlayImage.color = new Color(0.4f, 0.6f, 1f, currentOverlayAlpha); // Hafif mavi
+            
+            yield return null;
+        }
+        
+        currentOverlayAlpha = targetAlpha;
+        colorOverlayImage.color = new Color(0.4f, 0.6f, 1f, currentOverlayAlpha);
     }
 
     private void UpdateUI()

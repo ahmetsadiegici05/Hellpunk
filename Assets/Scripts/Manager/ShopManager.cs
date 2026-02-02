@@ -111,8 +111,8 @@ public class ShopManager : MonoBehaviour
             PlayerPrefs.SetInt(JUMP, 0);
             PlayerPrefs.SetInt(SPEED, 0);
             PlayerPrefs.SetInt(REVIVE, 0);
-            PlayerPrefs.SetInt(HEAL, 3);
-            PlayerPrefs.SetInt(FIREBALL, 2);
+            PlayerPrefs.SetInt(HEAL, 5);     // Sunum için - başlangıç heal
+            PlayerPrefs.SetInt(FIREBALL, 4); // Sunum için - başlangıç fireball
             PlayerPrefs.SetInt(FIRST_LAUNCH, 1);
             PlayerPrefs.Save();
         }
@@ -131,8 +131,8 @@ public class ShopManager : MonoBehaviour
         PlayerPrefs.SetInt(REVIVE, 0);
 
         // --- SKILL RESET ---
-        PlayerPrefs.SetInt(HEAL, 3);
-        PlayerPrefs.SetInt(FIREBALL, 2);
+        PlayerPrefs.SetInt(HEAL, 5);     // Sunum için - başlangıç heal
+        PlayerPrefs.SetInt(FIREBALL, 4); // Sunum için - başlangıç fireball
 
         // --- GAME SYSTEM RESET ---
         if (GameManager.Instance != null)
@@ -192,41 +192,101 @@ public class ShopManager : MonoBehaviour
     // ---------------------------------------------------
     // SHOP ACTIONS
     // ---------------------------------------------------
-    public void AddMaxHealth() => BuyUpgrade(100, MAX_HEALTH, () =>
+    public void AddMaxHealth() => BuyUpgrade(75, MAX_HEALTH, () =>
     {
         playerHealth.maxHealth += 1;
         playerHealth.currentHealth += 1;
     });
 
-    public void AddDamage() => BuyUpgrade(100, DAMAGE, () =>
+    public void AddDamage() => BuyUpgrade(75, DAMAGE, () =>
     {
         playerAttack.damage += 1;
     });
 
-    public void AddJumpForce() => BuyUpgrade(100, JUMP, () =>
+    public void AddJumpForce() => BuyUpgrade(75, JUMP, () =>
     {
         playerMovement.jumpPower += 0.5f;
     });
 
-    public void AddSpeed() => BuyUpgrade(100, SPEED, () =>
+    public void AddSpeed() => BuyUpgrade(75, SPEED, () =>
     {
         playerMovement.speed += 0.3f;
     });
 
-    public void AddRevive() => BuyUpgrade(100, REVIVE, () =>
+    public void AddRevive() => BuyUpgrade(100, REVIVE, () => // Revive daha pahalı kalıyor
     {
         playerHealth.reviveCount += 1;
     });
 
-    public void AddHealSkill() => BuyUpgrade(500, HEAL, () =>
+    public void AddHealSkill()
     {
+        int cost = 40; // Dengeli ekonomi - ability fiyatı
+        Debug.Log($"[ShopManager] AddHealSkill çağrıldı. Coin: {(GameManager.Instance != null ? GameManager.Instance.coin : -1)}, Cost: {cost}");
+        
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("[ShopManager] GameManager.Instance NULL!");
+            return;
+        }
+        
+        if (!GameManager.Instance.SpendCoin(cost))
+        {
+            Debug.Log($"[ShopManager] Heal için yeterli coin yok! Mevcut: {GameManager.Instance.coin}");
+            return;
+        }
+        
+        // GuitarSkillSystem'a ekle (kendi PlayerPrefs'ini yönetiyor)
+        GuitarSkillSystem guitar = GuitarSkillSystem.Instance;
+        if (guitar == null)
+            guitar = FindFirstObjectByType<GuitarSkillSystem>();
+            
+        if (guitar != null)
+        {
+            guitar.AddHealCharges(1);
+            Debug.Log($"[ShopManager] ✅ Heal satın alındı! Yeni değer: {guitar.healCharges}");
+        }
+        else
+        {
+            Debug.LogError("[ShopManager] GuitarSkillSystem bulunamadı!");
+        }
         UpdateSkillUI();
-    });
+        UpdateCoinText();
+    }
 
-    public void AddFireballSkill() => BuyUpgrade(500, FIREBALL, () =>
+    public void AddFireballSkill()
     {
+        int cost = 40; // Dengeli ekonomi - ability fiyatı
+        Debug.Log($"[ShopManager] AddFireballSkill çağrıldı. Coin: {(GameManager.Instance != null ? GameManager.Instance.coin : -1)}, Cost: {cost}");
+        
+        if (GameManager.Instance == null)
+        {
+            Debug.LogError("[ShopManager] GameManager.Instance NULL!");
+            return;
+        }
+        
+        if (!GameManager.Instance.SpendCoin(cost))
+        {
+            Debug.Log($"[ShopManager] Fireball için yeterli coin yok! Mevcut: {GameManager.Instance.coin}");
+            return;
+        }
+        
+        // GuitarSkillSystem'a ekle (kendi PlayerPrefs'ini yönetiyor)
+        GuitarSkillSystem guitar = GuitarSkillSystem.Instance;
+        if (guitar == null)
+            guitar = FindFirstObjectByType<GuitarSkillSystem>();
+            
+        if (guitar != null)
+        {
+            guitar.AddFireballCharges(1);
+            Debug.Log($"[ShopManager] ✅ Fireball satın alındı! Yeni değer: {guitar.fireballCharges}");
+        }
+        else
+        {
+            Debug.LogError("[ShopManager] GuitarSkillSystem bulunamadı!");
+        }
         UpdateSkillUI();
-    });
+        UpdateCoinText();
+    }
 
     void BuyUpgrade(int cost, string key, System.Action apply)
     {
@@ -264,11 +324,19 @@ public class ShopManager : MonoBehaviour
 
     void UpdateSkillUI()
     {
+        GuitarSkillSystem guitar = GuitarSkillSystem.Instance;
+        
         if (healChargesText)
-            healChargesText.text = PlayerPrefs.GetInt(HEAL, 0).ToString();
+        {
+            int healCount = guitar != null ? guitar.healCharges : PlayerPrefs.GetInt(HEAL, 0);
+            healChargesText.text = healCount.ToString();
+        }
 
         if (fireballChargesText)
-            fireballChargesText.text = PlayerPrefs.GetInt(FIREBALL, 0).ToString();
+        {
+            int fireballCount = guitar != null ? guitar.fireballCharges : PlayerPrefs.GetInt(FIREBALL, 0);
+            fireballChargesText.text = fireballCount.ToString();
+        }
     }
 
     public void UpdateCoinText()

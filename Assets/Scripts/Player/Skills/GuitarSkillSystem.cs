@@ -14,7 +14,7 @@ public class GuitarSkillSystem : MonoBehaviour
     public static GuitarSkillSystem Instance { get; private set; }
 
     [Header("Skill Settings")]
-    [SerializeField] private float healAmount = 1f;
+    [SerializeField] private float healAmount = 1f; // Heal sadece 1 can veriyor
     [SerializeField] private float fireballDamage = 25f;
     [SerializeField] private float ultimateDamage = 50f;
     [SerializeField] private float ultimateRadius = 5f;
@@ -169,11 +169,11 @@ public class GuitarSkillSystem : MonoBehaviour
     private void LoadAbilityChargesFromPlayerPrefs()
     {
         // ShopManager'ın key'lerini kullan
-        int savedHeal = PlayerPrefs.GetInt("HEAL", 0);
-        int savedFireball = PlayerPrefs.GetInt("FIREBALL", 0);
+        // Sunum için yüksek varsayılan değerler: Heal=5, Fireball=4
+        int savedHeal = PlayerPrefs.GetInt("HEAL", 5);      // Varsayılan: 5 heal
+        int savedFireball = PlayerPrefs.GetInt("FIREBALL", 4); // Varsayılan: 4 fireball
         
-        // Eğer kaydedilmiş değer varsa onu kullan, yoksa Inspector değeri kalsın
-        // NOT: Başlangıç değeri 0 olmalı, shop'tan satın alınmalı
+        // Eğer kaydedilmiş değer varsa onu kullan, yoksa varsayılan değer kullanılır
         healCharges = savedHeal;
         fireballCharges = savedFireball;
         
@@ -253,8 +253,8 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             ActivateSkill(SkillType.TimeSlow, 3);
         }
-        // U: Ultimate (7 kill gerekli)
-        else if (Input.GetKeyDown(KeyCode.U) && IsUltimateReady)
+        // U: Ultimate (TEST MODE - soul gereksinimi kaldırıldı)
+        else if (Input.GetKeyDown(KeyCode.U)) // && IsUltimateReady) // TEST: Soul check disabled
         {
             ActivateSkill(SkillType.Ultimate, 3);
         }
@@ -267,10 +267,10 @@ public class GuitarSkillSystem : MonoBehaviour
         {
             TriggerNoChargeFeedback(SkillType.Fireball, fireballCharges);
         }
-        else if (Input.GetKeyDown(KeyCode.U) && !IsUltimateReady)
-        {
-            TriggerNoUltimateFeedback();
-        }
+        // else if (Input.GetKeyDown(KeyCode.U) && !IsUltimateReady) // TEST: Disabled
+        // {
+        //     TriggerNoUltimateFeedback();
+        // }
     }
     
     /// <summary>

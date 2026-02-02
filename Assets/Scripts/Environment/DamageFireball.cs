@@ -7,7 +7,7 @@ using UnityEngine;
 public class DamageFireball : MonoBehaviour
 {
     [Header("Hareket")]
-    public float fallSpeed = 11f; // Daha hızlı
+    public float fallSpeed = 18f; // Daha hızlı
     public float rotationSpeed = 180f;
     [Tooltip("Düşme yönü (kamera rotasyonuna göre ayarlanır)")]
     public Vector2 fallDirection = Vector2.down;

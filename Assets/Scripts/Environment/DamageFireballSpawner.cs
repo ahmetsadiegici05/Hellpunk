@@ -16,11 +16,11 @@ public class DamageFireballSpawner : MonoBehaviour
     
     [Tooltip("İki ateş topu arası minimum süre")]
     [Range(0.5f, 10f)]
-    public float minSpawnInterval = 1.5f;
+    public float minSpawnInterval = 0.4f;
     
     [Tooltip("İki ateş topu arası maksimum süre")]
     [Range(1f, 15f)]
-    public float maxSpawnInterval = 3.5f;
+    public float maxSpawnInterval = 1.2f;
     
     [Tooltip("Spawn alanı genişliği (kamera etrafında)")]
     public float spawnWidth = 20f;

@@ -3,7 +3,8 @@
 public class Projectile : MonoBehaviour
 {
     [SerializeField] private float speed;
-    [SerializeField] private float damage = 1f;
+    [SerializeField] private float damage = 100f; // Normal düşmanlar için (tek vuruşta öldürür)
+    [SerializeField] private float bossDamage = 5f; // Boss için hasar - 13 fireball ile öldürür (65 HP)
     private float direction;
     private bool hit;
     private float lifetime;
@@ -48,7 +49,11 @@ public class Projectile : MonoBehaviour
 
         EnemyHealth enemyHealth = collision.GetComponent<EnemyHealth>();
         if (enemyHealth != null)
-            enemyHealth.TakeDamage(damage);
+        {
+            // Boss'a normal hasar, diğer düşmanlara yüksek hasar
+            float actualDamage = enemyHealth.IsBoss ? bossDamage : damage;
+            enemyHealth.TakeDamage(actualDamage);
+        }
 
         hit = true;
         boxCollider.enabled = false;

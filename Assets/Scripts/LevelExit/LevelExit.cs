@@ -45,8 +45,9 @@ public class LevelExit : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // Yeni bölüme geçildiğinde checkpoint sıfırlansın ki yanlış yerde doğmayalım
+        // Yeni bölüme geçildiğinde checkpoint ve düşman ölümlerini sıfırla
         CheckpointData.HasCheckpoint = false;
+        CheckpointData.ClearKilledEnemies();
 
         SceneManager.LoadScene(nextSceneName);
     }

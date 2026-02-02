@@ -5,6 +5,7 @@ public class Checkpoint : MonoBehaviour
 {
     [SerializeField] private Color activeColor = Color.green;
     [SerializeField] private bool unlockSpikeheadShooting;
+    [SerializeField] private bool saveEnemyDeaths = true; // Öldürülen düşmanları kaydet
     private bool activated;
     private SpriteRenderer spriteRenderer;
 
@@ -29,11 +30,24 @@ public class Checkpoint : MonoBehaviour
 
             if (unlockSpikeheadShooting)
                 CheckpointData.SpikeheadShootingUnlocked = true;
+            
+            // Oyuncu canını kaydet
+            Health playerHealth = collision.GetComponent<Health>();
+            if (playerHealth != null)
+            {
+                CheckpointData.SaveCheckpointHealth(playerHealth.currentHealth, playerHealth.maxHealth);
+            }
+            
+            // Öldürülen düşmanları kaydet
+            if (saveEnemyDeaths)
+            {
+                CheckpointData.SaveCheckpointEnemyState();
+            }
 
             if (spriteRenderer != null)
                 spriteRenderer.color = activeColor;
 
-            Debug.Log("Checkpoint Activated!");
+            Debug.Log($"Checkpoint Activated! Pozisyon: {transform.position}");
         }
     }
 

@@ -51,6 +51,17 @@ public class SceneTransitionController : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    
+    /// <summary>
+    /// Blackout'u hemen temizle - level geçişi sonrası güvenlik için
+    /// </summary>
+    public void ClearBlackout()
+    {
+        if (blackoutImage != null)
+        {
+            blackoutImage.color = Color.clear;
+        }
+    }
 
     private void CreateOverlay()
     {
@@ -144,9 +155,25 @@ public class SceneTransitionController : MonoBehaviour
         
         // --- STEP 3: ENTER SCENE (SPIN OUT) ---
         
-        // Yeni sahnenin kamerasını bul
+        // Birkaç frame bekle - yeni sahnenin tam yüklenmesi için
+        yield return null;
+        yield return null;
+        
+        // Yeni sahnenin kamerasını bul (birden fazla deneme yap)
         cam = Camera.main;
         if (cam == null) cam = FindFirstObjectByType<Camera>();
+        
+        // Hâlâ bulunamadıysa birkaç frame daha bekle
+        if (cam == null)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                yield return null;
+                cam = Camera.main;
+                if (cam == null) cam = FindFirstObjectByType<Camera>();
+                if (cam != null) break;
+            }
+        }
         
         if (cam != null)
         {
@@ -192,10 +219,12 @@ public class SceneTransitionController : MonoBehaviour
             cam.transform.rotation = targetRot;
             cam.orthographicSize = targetSize;
         }
-        else
+        
+        // HER DURUMDA blackout'u temizle (kamera bulunsun ya da bulunmasın)
+        if (blackoutImage != null) 
         {
-            // Kamera yoksa sadece blackout'u kaldır
-            if (blackoutImage != null) blackoutImage.color = Color.clear;
+            blackoutImage.color = Color.clear;
+            Debug.Log("[SceneTransitionController] Blackout temizlendi");
         }
         
         Time.timeScale = 1f; // Oyunu devam ettir

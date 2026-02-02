@@ -21,7 +21,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] public AudioClip guitarSound3;
 
     [Header("Data")]
-    [SerializeField] private int startingCoin = 500; // Başlangıç coin miktarı (Inspector'dan ayarlanabilir)
+    [SerializeField] private int startingCoin = 100; // Başlangıç coin miktarı - dengeli ekonomi
     public int coin;
     
     private const string COIN_KEY = "PLAYER_COIN";
@@ -83,6 +83,7 @@ public class GameManager : MonoBehaviour
         EnsureSoulSystem();
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
+        EnsureShopManager();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -90,12 +91,51 @@ public class GameManager : MonoBehaviour
         EnsureSoulSystem();
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
+        EnsureShopManager();
 
         SpawnRandomChests();
         SpawnRandomPortals();
         
         // Level geçişinden sonra oyuncu sağlığını geri yükle
         RestorePlayerHealth();
+        
+        // Level geçişinde karanlık ekranı düzelt - vignette'leri sıfırla
+        ResetAllVignettes();
+    }
+    
+    /// <summary>
+    /// Tüm vignette efektlerini sıfırla - level geçişlerinde çağrılır
+    /// </summary>
+    private void ResetAllVignettes()
+    {
+        // DamageVignette sıfırla
+        if (DamageVignette.Instance != null)
+        {
+            DamageVignette.Instance.ResetVignette();
+            Debug.Log("[GameManager] DamageVignette sıfırlandı");
+        }
+        
+        // ScreenEffects sıfırla
+        if (ScreenEffects.Instance != null)
+        {
+            ScreenEffects.Instance.UpdateHealthVignette(1f); // Full health = no vignette
+            Debug.Log("[GameManager] ScreenEffects sıfırlandı");
+        }
+        
+        // SceneTransitionController'ın blackout'unu da temizle (güvenlik önlemi)
+        ClearSceneTransitionBlackout();
+    }
+    
+    /// <summary>
+    /// SceneTransitionController'ın blackout overlay'ini temizle
+    /// </summary>
+    private void ClearSceneTransitionBlackout()
+    {
+        if (SceneTransitionController.Instance != null)
+        {
+            SceneTransitionController.Instance.ClearBlackout();
+            Debug.Log("[GameManager] SceneTransitionController blackout temizlendi");
+        }
     }
     
     private void RestorePlayerHealth()
@@ -118,6 +158,13 @@ public class GameManager : MonoBehaviour
                 
                 // Canı ayarla
                 playerHealth.currentHealth = healthToRestore;
+                
+                // Vignette'i oyuncunun canına göre güncelle (karanlık ekran düzeltmesi)
+                float healthPercent = healthToRestore / playerHealth.maxHealth;
+                if (ScreenEffects.Instance != null)
+                    ScreenEffects.Instance.UpdateHealthVignette(healthPercent);
+                if (DamageVignette.Instance != null)
+                    DamageVignette.Instance.UpdateHealthStatus(healthPercent);
                     
                 Debug.Log($"[GameManager] Oyuncu canı geri yüklendi: {healthToRestore}/{playerHealth.maxHealth}");
             }
@@ -234,8 +281,19 @@ public class GameManager : MonoBehaviour
         foreach (var portal in oldPortals)
             Destroy(portal);
 
-        // Random noktaları kopyala
-        List<Transform> shuffledPoints = new List<Transform>(randomPoints);
+        // Random noktaları kopyala - null olanları filtrele
+        List<Transform> shuffledPoints = new List<Transform>();
+        foreach (var point in randomPoints)
+        {
+            if (point != null)
+                shuffledPoints.Add(point);
+        }
+
+        if (shuffledPoints.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] Tüm randomPoints null veya destroyed!");
+            return;
+        }
 
         // Fisher–Yates shuffle
         for (int i = 0; i < shuffledPoints.Count; i++)
@@ -251,6 +309,8 @@ public class GameManager : MonoBehaviour
 
         for (int i = 0; i < spawnCount; i++)
         {
+            if (shuffledPoints[i] == null) continue;
+            
             GameObject portal = Instantiate(
                 portalPrefab,
                 shuffledPoints[i].position,
@@ -327,6 +387,28 @@ public class GameManager : MonoBehaviour
             GameObject uiObj = new GameObject("SkillCooldownUI_Manager");
             uiObj.AddComponent<SkillCooldownUI>();
             DontDestroyOnLoad(uiObj);
+        }
+    }
+    
+    private void EnsureShopManager()
+    {
+        // ShopManager yoksa oluştur
+        if (ShopManager.Instance == null)
+        {
+            var existingShop = FindFirstObjectByType<ShopManager>();
+            if (existingShop == null)
+            {
+                GameObject shopObj = new GameObject("ShopManager");
+                shopObj.AddComponent<ShopManager>();
+                DontDestroyOnLoad(shopObj);
+                Debug.Log("[GameManager] ShopManager oluşturuldu");
+            }
+        }
+        
+        // UIManager'a ShopManager referansını bağla
+        if (UIManager.Instance != null && UIManager.Instance.shopManager == null)
+        {
+            UIManager.Instance.shopManager = ShopManager.Instance;
         }
     }
 
@@ -504,6 +586,10 @@ public class GameManager : MonoBehaviour
         Rigidbody2D rb = cachedPlayer.GetComponent<Rigidbody2D>();
         if (rb != null)
             rb.linearVelocity = Vector2.zero;
+        
+        // Damage vignette sıfırla
+        if (DamageVignette.Instance != null)
+            DamageVignette.Instance.ResetVignette();
 
         Debug.Log("[GameManager] Player eski pozisyona döndü");
 
@@ -520,9 +606,17 @@ public class GameManager : MonoBehaviour
     
     public void UpdateCoinUI()
     {
+        // ShopManager'ı güncelle
         if (ShopManager.Instance != null)
         {
             ShopManager.Instance.UpdateCoinText();
+        }
+        
+        // CoinUI'ı da güncelle (Time.timeScale = 0 olduğunda Update çalışmaz)
+        var coinUI = FindFirstObjectByType<CoinUI>();
+        if (coinUI != null)
+        {
+            coinUI.ForceUpdateDisplay();
         }
     }
 

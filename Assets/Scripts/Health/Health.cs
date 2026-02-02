@@ -58,6 +58,19 @@ public class Health : MonoBehaviour
 
         if (ScreenShake.Instance != null)
             ScreenShake.Instance.ShakeMedium();
+            
+        // Hasar vignette efekti
+        if (DamageVignette.Instance != null)
+        {
+            DamageVignette.Instance.FlashDamage();
+            DamageVignette.Instance.UpdateHealthStatus(currentHealth / startingHealth);
+        }
+        
+        // Oyuncu hasar alınca combo sıfırlanır
+        if (ComboSystem.Instance != null)
+        {
+            ComboSystem.Instance.ResetCombo();
+        }
 
         // DarkenWorld efekti kaldırıldı - kümülatif siyahlaşmaya neden oluyordu
         // DarkenWorld();
@@ -136,6 +149,14 @@ public class Health : MonoBehaviour
 
         if (ScreenEffects.Instance != null)
             ScreenEffects.Instance.UpdateHealthVignette(currentHealth / startingHealth);
+            
+        // İyileşme efekti
+        if (HealVFX.Instance != null)
+            HealVFX.Instance.PlayHealEffect(transform);
+            
+        // Damage vignette durumunu güncelle
+        if (DamageVignette.Instance != null)
+            DamageVignette.Instance.UpdateHealthStatus(currentHealth / startingHealth);
     }
 
     private IEnumerator DeathSequence()
@@ -210,6 +231,10 @@ public class Health : MonoBehaviour
         // UI & ekran efektleri FULL
         if (ScreenEffects.Instance != null)
             ScreenEffects.Instance.UpdateHealthVignette(1f);
+        
+        // Damage vignette sıfırla
+        if (DamageVignette.Instance != null)
+            DamageVignette.Instance.ResetVignette();
 
         // iFrame çakışmasını önle
         StopAllCoroutines();

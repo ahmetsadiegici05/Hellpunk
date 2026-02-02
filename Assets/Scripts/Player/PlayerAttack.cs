@@ -87,6 +87,15 @@ public class PlayerAttack : MonoBehaviour
         anim.SetTrigger("punch");
         cooldownTimer = 0;
 
+        // Attack Trail efekti
+        if (attackPoint != null)
+        {
+            // Oyuncunun baktığı yöne göre trail yönü
+            float facingDirection = transform.localScale.x > 0 ? 1f : -1f;
+            Vector2 attackDir = new Vector2(facingDirection, 0.2f).normalized;
+            AttackTrail.Instance?.PlayAttackTrail(attackPoint, attackDir, 0.15f);
+        }
+
         if (attackPoint != null)
         {
             Collider2D[] allColliders = Physics2D.OverlapCircleAll(attackPoint.position, attackRange);

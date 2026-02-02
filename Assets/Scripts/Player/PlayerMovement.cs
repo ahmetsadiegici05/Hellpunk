@@ -13,6 +13,11 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float movementSmoothTime = 0.05f;
     [SerializeField] private ParticleSystem groundHitParticle;
     private bool wasGrounded;
+    private ParticleSystem landingDustEffect; // Kod ile oluşturulan landing efekti
+    private ParticleSystem runningDustEffect; // Koşarken toz efekti
+    private ParticleSystem jumpDustEffect; // Zıplama efekti
+    private float runDustTimer = 0f;
+    private float runDustInterval = 0.15f; // Ne sıklıkla toz çıksın
 
     [Header("Game Feel Settings")]
     [SerializeField] private float coyoteTime = 0.15f; 
@@ -29,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
     private Rigidbody2D body;
     private Animator anim;
     private BoxCollider2D boxCollider;
+    private SpriteRenderer spriteRenderer;
 
     private float wallJumpCooldown;
     private float horizontalInput;
@@ -85,8 +91,14 @@ public class PlayerMovement : MonoBehaviour
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
         defaultWorldScale = transform.lossyScale;
         Instance = this;
+        
+        // Yere iniş efektini oluştur
+        CreateLandingDustEffect();
+        CreateRunningDustEffect();
+        CreateJumpDustEffect();
     }
 
     private void Update()
@@ -145,6 +157,12 @@ public class PlayerMovement : MonoBehaviour
         // Animasyon
         anim.SetBool("Run", Mathf.Abs(rawHorizontalInput) > 0.01f && isGroundedState);
         anim.SetBool("grounded", isGroundedState);
+        
+        // Koşarken toz efekti
+        if (Mathf.Abs(rawHorizontalInput) > 0.01f && isGroundedState)
+        {
+            SpawnRunningDust();
+        }
 
         // --- Coyote Time Logic ---
         if (isGroundedState)
@@ -242,6 +260,13 @@ public class PlayerMovement : MonoBehaviour
         float compensatedPower = power * JumpTimeCompensation;
         body.linearVelocity = new Vector2(body.linearVelocity.x, compensatedPower);
         anim.SetTrigger("jump");
+        SpawnJumpDust(); // Zıplama efekti
+        
+        // Zıplama afterimage efekti
+        if (spriteRenderer != null)
+        {
+            DashAfterimage.Instance?.SpawnSingleAfterimage(spriteRenderer);
+        }
     }
 
     private void PerformDoubleJump()
@@ -251,6 +276,15 @@ public class PlayerMovement : MonoBehaviour
         anim.SetTrigger("jump"); 
         hasDoubleJumped = true;
         canDoubleJump = false; 
+        SpawnJumpDust(); // Double jump efekti
+        
+        // Double jump afterimage efekti (daha belirgin)
+        if (spriteRenderer != null)
+        {
+            DashAfterimage.Instance?.SpawnSingleAfterimage(spriteRenderer);
+            // Kısa gecikmeyle ikinci gölge
+            StartCoroutine(SpawnDelayedAfterimage(0.05f));
+        }
         Debug.Log("Double Jump kullanıldı!");
     }
 
@@ -266,10 +300,29 @@ public class PlayerMovement : MonoBehaviour
         ApplyFacingScale(direction);
         wallJumpCooldown = 0;
         
+        // Wall jump afterimage efekti
+        if (spriteRenderer != null)
+        {
+            DashAfterimage.Instance?.SpawnSingleAfterimage(spriteRenderer);
+            StartCoroutine(SpawnDelayedAfterimage(0.05f));
+        }
+        
         // Wall jump sonrası double jump hakkı yenilenir (standart mekanik)
         canDoubleJump = true;
         hasDoubleJumped = false;
         coyoteCounter = 0f; 
+    }
+    
+    /// <summary>
+    /// Gecikmeli afterimage spawn (double jump ve wall jump için)
+    /// </summary>
+    private System.Collections.IEnumerator SpawnDelayedAfterimage(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (spriteRenderer != null)
+        {
+            DashAfterimage.Instance?.SpawnSingleAfterimage(spriteRenderer);
+        }
     }
 
     private void HandleFootsteps(bool isWalking)
@@ -362,6 +415,16 @@ public class PlayerMovement : MonoBehaviour
 
     private void SpawnGroundParticle(Vector2 position, Vector2 normal)
     {
+        // Önce kod ile oluşturulan efekti dene
+        if (landingDustEffect != null)
+        {
+            landingDustEffect.transform.position = position;
+            landingDustEffect.transform.rotation = Quaternion.FromToRotation(Vector3.up, normal);
+            landingDustEffect.Emit(12); // Toz parçacıkları
+            return;
+        }
+        
+        // Fallback: prefab varsa kullan
         if (groundHitParticle == null) return;
 
         Quaternion rotation = Quaternion.FromToRotation(Vector3.up, normal);
@@ -374,6 +437,294 @@ public class PlayerMovement : MonoBehaviour
 
         ps.Play();
         Destroy(ps.gameObject, ps.main.duration + ps.main.startLifetime.constantMax);
+    }
+    
+    private void CreateLandingDustEffect()
+    {
+        GameObject dustObj = new GameObject("LandingDustEffect");
+        dustObj.transform.SetParent(transform);
+        dustObj.transform.localPosition = Vector3.zero;
+        
+        landingDustEffect = dustObj.AddComponent<ParticleSystem>();
+        
+        var main = landingDustEffect.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.3f, 0.5f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(1.5f, 3f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+        main.maxParticles = 50;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.gravityModifier = 0.3f;
+        main.startColor = new Color(0.7f, 0.65f, 0.5f, 0.8f); // Toprak/toz rengi
+        main.playOnAwake = false;
+        
+        // Emisyon - sadece burst ile
+        var emission = landingDustEffect.emission;
+        emission.rateOverTime = 0;
+        
+        // Şekil - yanlara doğru yayılsın
+        var shape = landingDustEffect.shape;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 70f;
+        shape.radius = 0.15f;
+        shape.rotation = new Vector3(-90f, 0f, 0f); // Yukarı/yanlara bak
+        
+        // Boyut azalması
+        var sizeOverLifetime = landingDustEffect.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        AnimationCurve sizeCurve = new AnimationCurve();
+        sizeCurve.AddKey(0f, 0.5f);
+        sizeCurve.AddKey(0.2f, 1f);
+        sizeCurve.AddKey(1f, 0f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
+        
+        // Renk solması
+        var colorOverLifetime = landingDustEffect.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] {
+                new GradientColorKey(new Color(0.75f, 0.7f, 0.55f), 0f),
+                new GradientColorKey(new Color(0.6f, 0.55f, 0.45f), 1f)
+            },
+            new GradientAlphaKey[] {
+                new GradientAlphaKey(0.7f, 0f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        colorOverLifetime.color = gradient;
+        
+        // Velocity over lifetime - yavaşlama
+        var velocityOverLifetime = landingDustEffect.velocityOverLifetime;
+        velocityOverLifetime.enabled = true;
+        velocityOverLifetime.speedModifier = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.EaseInOut(0f, 1f, 1f, 0f));
+        
+        // Renderer - yuvarlak parçacık
+        var renderer = dustObj.GetComponent<ParticleSystemRenderer>();
+        renderer.sortingOrder = 5;
+        
+        // Yuvarlak texture oluştur
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        
+        Color[] pixels = new Color[size * size];
+        Vector2 center = new Vector2(size / 2f, size / 2f);
+        float radius = size / 2f;
+        
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                float alpha = 1f - Mathf.Clamp01(dist / radius);
+                alpha = alpha * alpha;
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+        
+        tex.SetPixels(pixels);
+        tex.Apply();
+        
+        Material mat = new Material(Shader.Find("Particles/Standard Unlit"));
+        mat.mainTexture = tex;
+        renderer.material = mat;
+    }
+    
+    private void CreateRunningDustEffect()
+    {
+        GameObject dustObj = new GameObject("RunningDustEffect");
+        dustObj.transform.SetParent(transform);
+        dustObj.transform.localPosition = new Vector3(0f, -0.5f, 0f); // Ayak hizasında
+        
+        runningDustEffect = dustObj.AddComponent<ParticleSystem>();
+        
+        var main = runningDustEffect.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.35f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(0.5f, 1.2f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.05f, 0.12f);
+        main.maxParticles = 30;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.gravityModifier = 0.1f;
+        main.startColor = new Color(0.65f, 0.6f, 0.5f, 0.5f); // Açık toz rengi
+        main.playOnAwake = false;
+        
+        // Emisyon
+        var emission = runningDustEffect.emission;
+        emission.rateOverTime = 0;
+        
+        // Şekil - arkaya doğru
+        var shape = runningDustEffect.shape;
+        shape.shapeType = ParticleSystemShapeType.Cone;
+        shape.angle = 25f;
+        shape.radius = 0.05f;
+        shape.rotation = new Vector3(90f, 0f, 0f); // Arkaya bak
+        
+        // Boyut azalması
+        var sizeOverLifetime = runningDustEffect.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        AnimationCurve sizeCurve = new AnimationCurve();
+        sizeCurve.AddKey(0f, 0.8f);
+        sizeCurve.AddKey(0.3f, 1f);
+        sizeCurve.AddKey(1f, 0f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
+        
+        // Renk solması
+        var colorOverLifetime = runningDustEffect.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] {
+                new GradientColorKey(new Color(0.7f, 0.65f, 0.55f), 0f),
+                new GradientColorKey(new Color(0.6f, 0.55f, 0.45f), 1f)
+            },
+            new GradientAlphaKey[] {
+                new GradientAlphaKey(0.4f, 0f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        colorOverLifetime.color = gradient;
+        
+        // Renderer
+        var renderer = dustObj.GetComponent<ParticleSystemRenderer>();
+        renderer.sortingOrder = 4;
+        
+        // Yuvarlak texture
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        
+        Color[] pixels = new Color[size * size];
+        Vector2 center = new Vector2(size / 2f, size / 2f);
+        float radius = size / 2f;
+        
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                float alpha = 1f - Mathf.Clamp01(dist / radius);
+                alpha = alpha * alpha;
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+        
+        tex.SetPixels(pixels);
+        tex.Apply();
+        
+        Material mat = new Material(Shader.Find("Particles/Standard Unlit"));
+        mat.mainTexture = tex;
+        renderer.material = mat;
+    }
+    
+    private void SpawnRunningDust()
+    {
+        if (runningDustEffect == null) return;
+        
+        runDustTimer += Time.deltaTime;
+        if (runDustTimer >= runDustInterval)
+        {
+            runDustTimer = 0f;
+            
+            // Koşma yönüne göre arkaya doğru toz çıksın
+            var shape = runningDustEffect.shape;
+            float direction = Mathf.Sign(transform.localScale.x);
+            shape.rotation = new Vector3(90f, direction > 0 ? 180f : 0f, 0f);
+            
+            runningDustEffect.transform.position = transform.position + new Vector3(-direction * 0.2f, -0.4f, 0f);
+            runningDustEffect.Emit(2);
+        }
+    }
+    
+    private void CreateJumpDustEffect()
+    {
+        GameObject dustObj = new GameObject("JumpDustEffect");
+        dustObj.transform.SetParent(transform);
+        dustObj.transform.localPosition = new Vector3(0f, -0.5f, 0f);
+        
+        jumpDustEffect = dustObj.AddComponent<ParticleSystem>();
+        
+        var main = jumpDustEffect.main;
+        main.startLifetime = new ParticleSystem.MinMaxCurve(0.25f, 0.4f);
+        main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 4f);
+        main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.15f);
+        main.maxParticles = 30;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.gravityModifier = 0.5f;
+        main.startColor = new Color(0.8f, 0.75f, 0.6f, 0.6f);
+        main.playOnAwake = false;
+        
+        var emission = jumpDustEffect.emission;
+        emission.rateOverTime = 0;
+        
+        // Şekil - daire şeklinde yanlara
+        var shape = jumpDustEffect.shape;
+        shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = 0.2f;
+        shape.arc = 180f;
+        shape.rotation = new Vector3(90f, 0f, 0f);
+        
+        // Boyut
+        var sizeOverLifetime = jumpDustEffect.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        AnimationCurve sizeCurve = new AnimationCurve();
+        sizeCurve.AddKey(0f, 0.6f);
+        sizeCurve.AddKey(0.2f, 1f);
+        sizeCurve.AddKey(1f, 0f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, sizeCurve);
+        
+        // Renk
+        var colorOverLifetime = jumpDustEffect.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] {
+                new GradientColorKey(new Color(0.85f, 0.8f, 0.65f), 0f),
+                new GradientColorKey(new Color(0.7f, 0.65f, 0.5f), 1f)
+            },
+            new GradientAlphaKey[] {
+                new GradientAlphaKey(0.5f, 0f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        colorOverLifetime.color = gradient;
+        
+        // Renderer
+        var renderer = dustObj.GetComponent<ParticleSystemRenderer>();
+        renderer.sortingOrder = 4;
+        
+        int size = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        tex.filterMode = FilterMode.Bilinear;
+        
+        Color[] pixels = new Color[size * size];
+        Vector2 center = new Vector2(size / 2f, size / 2f);
+        float radius = size / 2f;
+        
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                float alpha = 1f - Mathf.Clamp01(dist / radius);
+                alpha = alpha * alpha;
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+        }
+        
+        tex.SetPixels(pixels);
+        tex.Apply();
+        
+        Material mat = new Material(Shader.Find("Particles/Standard Unlit"));
+        mat.mainTexture = tex;
+        renderer.material = mat;
+    }
+    
+    private void SpawnJumpDust()
+    {
+        if (jumpDustEffect == null) return;
+        
+        jumpDustEffect.transform.position = transform.position + new Vector3(0f, -0.4f, 0f);
+        jumpDustEffect.Emit(8);
     }
 
 }

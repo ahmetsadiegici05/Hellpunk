@@ -33,6 +33,7 @@ public class ScreenEffects : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject); // Level geçişlerinde korunsun
         }
         else if (Instance != this)
         {

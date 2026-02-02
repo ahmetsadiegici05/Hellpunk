@@ -13,6 +13,7 @@ public class BossSlashUltimate : MonoBehaviour
     [SerializeField] private float slashRadius = 1.5f;
     [SerializeField] private float slashSpeed = 25f;
     [SerializeField] private float slashDelay = 0.05f;
+    [SerializeField] private float damagePerSlash = 2f; // Her kesme başına hasar (8 kesme = 16 toplam)
     [SerializeField] private BoxCollider2D slashCollider;
     public Animator animator;
 
@@ -61,26 +62,30 @@ public class BossSlashUltimate : MonoBehaviour
 
     public void ActivateUltimate()
     {
-        if (ultiUsed)
+        // Sadece Boss'ları bul
+        EnemyHealth[] allEnemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+        
+        System.Collections.Generic.List<Collider2D> bossTargets = new System.Collections.Generic.List<Collider2D>();
+        foreach (var enemy in allEnemies)
         {
-            Debug.Log("Ultimate already used!");
+            // Sadece Boss'ları hedefle
+            if (enemy.IsBoss)
+            {
+                Collider2D col = enemy.GetComponent<Collider2D>();
+                if (col != null)
+                    bossTargets.Add(col);
+            }
+        }
+        
+        if (bossTargets.Count == 0)
+        {
+            Debug.Log("No Boss found for Ultimate!");
             return;
         }
 
-        Collider2D[] targets = Physics2D.OverlapCircleAll(
-            transform.position,
-            activateDistance,
-            ultiTargetLayer
-        );
-
-        if (targets.Length == 0)
-        {
-            Debug.Log("No ulti targets in range!");
-            return;
-        }
-
-        StartCoroutine(UltiSlashSequence(targets));
-        Debug.Log("Ultimate activated on " + targets.Length + " targets!");
+        ultiUsed = false; // Ultimate tekrar kullanılabilir olsun
+        StartCoroutine(UltiSlashSequence(bossTargets.ToArray()));
+        Debug.Log("Ultimate activated on BOSS!");
     }
 
 
@@ -117,6 +122,9 @@ public class BossSlashUltimate : MonoBehaviour
     IEnumerator SlashTarget(Transform target)
     {
         transform.position = target.position;
+        
+        // Hedefin EnemyHealth'ini al
+        EnemyHealth enemyHealth = target.GetComponent<EnemyHealth>();
 
         Vector2[] slashDirections =
         {
@@ -133,6 +141,14 @@ public class BossSlashUltimate : MonoBehaviour
         foreach (Vector2 dir in slashDirections)
         {
             yield return StartCoroutine(SlashMove(dir.normalized, target));
+            
+            // Her kesmede hasar ver
+            if (enemyHealth != null && target != null)
+            {
+                enemyHealth.TakeDamage(damagePerSlash);
+                Debug.Log($"Ultimate slash! {target.name} took {damagePerSlash} damage");
+            }
+            
             yield return new WaitForSeconds(slashDelay);
         }
     }

@@ -31,12 +31,14 @@ public class MainMenuEffects : MonoBehaviour
     [Header("Camera Shake (Subtle)")]
     [SerializeField] private float ambientShakeAmount = 0.5f;
     [SerializeField] private float ambientShakeSpeed = 0.5f;
+    [SerializeField] private bool enableCameraShake = false; // Varsayılan kapalı - Post Processing ile çakışabilir
 
     private Vector3 logoOriginalPosition;
     private Vector3 logoOriginalScale;
     private Vector3[] layerOriginalPositions;
     private Camera mainCamera;
     private Vector3 cameraOriginalPosition;
+    private bool isInitialized = false;
 
     private void Start()
     {
@@ -68,6 +70,8 @@ public class MainMenuEffects : MonoBehaviour
         {
             ambientParticles.Play();
         }
+        
+        isInitialized = true;
     }
 
     private void SetupParallaxLayers()
@@ -147,13 +151,24 @@ public class MainMenuEffects : MonoBehaviour
 
     private void UpdateAmbientCameraShake()
     {
-        if (mainCamera == null || ambientShakeAmount <= 0) return;
+        // Camera shake devre dışı veya hazır değilse çık
+        if (!enableCameraShake || mainCamera == null || ambientShakeAmount <= 0 || !isInitialized) 
+            return;
 
         float offsetX = Mathf.PerlinNoise(Time.time * ambientShakeSpeed, 0) * 2 - 1;
         float offsetY = Mathf.PerlinNoise(0, Time.time * ambientShakeSpeed) * 2 - 1;
 
         Vector3 shakeOffset = new Vector3(offsetX, offsetY, 0) * ambientShakeAmount;
         mainCamera.transform.position = cameraOriginalPosition + shakeOffset;
+    }
+    
+    private void OnDisable()
+    {
+        // Script devre dışı kaldığında kamerayı orijinal pozisyonuna geri getir
+        if (mainCamera != null && isInitialized)
+        {
+            mainCamera.transform.position = cameraOriginalPosition;
+        }
     }
 
     private IEnumerator FadeIn()

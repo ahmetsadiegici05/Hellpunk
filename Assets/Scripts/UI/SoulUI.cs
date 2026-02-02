@@ -131,9 +131,6 @@ public class SoulUI : MonoBehaviour
         {
             // Label'ı artık abilityReadyText olarak kullanmıyoruz
             // Transform labelObj = infoContainer.Find("Label");
-            
-            Transform readyObj = infoContainer.Find("ReadyText");
-            if (readyObj) abilityReadyText = readyObj.GetComponent<TextMeshProUGUI>();
 
             Transform chargesRow = infoContainer.Find("ChargesRow");
             if (chargesRow)
@@ -148,6 +145,10 @@ public class SoulUI : MonoBehaviour
                 }
             }
         }
+        
+        // UltiReadyText'i canvas seviyesinde ara
+        Transform readyObj = canvasTrans.Find("UltiReadyText");
+        if (readyObj) abilityReadyText = readyObj.GetComponent<TextMeshProUGUI>();
 
         // Re-generate sprites
         RefreshSprites();
@@ -331,33 +332,44 @@ public class SoulUI : MonoBehaviour
         labelLe.minHeight = 16f;
         labelLe.preferredHeight = 18f;
 
-        // Ability Ready Text (Hidden by default, shows "READY!" when charged)
-        GameObject readyObj = new GameObject("ReadyText");
-        readyObj.transform.SetParent(infoContainer.transform, false);
+        // Charge indicators container
+        CreateChargeIndicators(infoContainer.transform);
+        
+        // Ability Ready Text - Container'ın ÜSTÜNDE, CANVAS seviyesinde
+        // infoContainer'ın dışında olması lazım ki üstte görünsün
+        CreateUltiReadyText();
+    }
+    
+    /// <summary>
+    /// ULTI READY yazısını container'ın üstünde oluştur
+    /// </summary>
+    private void CreateUltiReadyText()
+    {
+        if (container == null) return;
+        
+        // Canvas'ın child'ı olarak ekle (container'ın kardeşi)
+        GameObject readyObj = new GameObject("UltiReadyText");
+        readyObj.transform.SetParent(container.parent, false); // Canvas'a ekle
         abilityReadyText = readyObj.AddComponent<TextMeshProUGUI>();
         abilityReadyText.text = "";
         abilityReadyText.fontSize = 14;
         abilityReadyText.fontStyle = FontStyles.Bold;
-        abilityReadyText.alignment = TextAlignmentOptions.BottomLeft;
+        abilityReadyText.alignment = TextAlignmentOptions.Center;
         abilityReadyText.color = chargeColor;
+        abilityReadyText.overflowMode = TextOverflowModes.Overflow;
+        abilityReadyText.textWrappingMode = TextWrappingModes.NoWrap;
         
-        // Bu yazı normalde gizli olacak, layout'u bozmaması için ignore layout? 
-        // Veya label ile swaplansın. Şimdilik ayrı bir satır yapmayalım, Layout Element ile kontrol edelim.
-        // En iyisi: Label sabit kalsın, Ready yazısı charges üzerine overlay olsun veya yanı başında çıksın.
-        // Basit çözüm: ReadyText'i ayrı bir LayoutElement yapalım ama height 0 verelim ki yer kaplamasın? 
-        // Veya ChargesRow'un altına ekleyelim.
-        
-        LayoutElement readyLe = readyObj.AddComponent<LayoutElement>();
-        readyLe.ignoreLayout = true; // Layout dışı
-        // Manuel pozisyonlama ile Label'ın üzerine bindirelim (veya yanına)
         RectTransform readyRect = readyObj.GetComponent<RectTransform>();
-        readyRect.anchorMin = Vector2.zero;
-        readyRect.anchorMax = Vector2.one;
-        readyRect.offsetMin = new Vector2(90f, 0f); // Label'ın sağına kaydır
-        readyRect.offsetMax = Vector2.zero;
-
-        // Charge indicators container
-        CreateChargeIndicators(infoContainer.transform);
+        // Container'ın üst kısmına hizala
+        readyRect.anchorMin = new Vector2(0f, 0f);
+        readyRect.anchorMax = new Vector2(0f, 0f);
+        readyRect.pivot = new Vector2(0f, 0f);
+        readyRect.sizeDelta = new Vector2(200f, 25f);
+        
+        // Container'ın pozisyonunun üstüne yerleştir
+        // Container sol-alt köşede, bunun üstüne koyuyoruz
+        readyRect.anchoredPosition = new Vector2(container.anchoredPosition.x, 
+            container.anchoredPosition.y + container.sizeDelta.y + 5f);
     }
 
     private void CreateChargeIndicators(Transform parent)
@@ -471,7 +483,8 @@ public class SoulUI : MonoBehaviour
         {
             if (soulSystem.CanUseAbility)
             {
-                abilityReadyText.text = "✦ READY!";
+                abilityReadyText.text = "ULTI READY!";
+                abilityReadyText.fontSize = 14;
                 abilityReadyText.color = chargeColor;
             }
             else
@@ -494,11 +507,12 @@ public class SoulUI : MonoBehaviour
 
     private IEnumerator ChargeGainedAnimation()
     {
-        if (abilityReadyText == null) yield break;
-
-        // "ABILITY READY!" flash
-        abilityReadyText.text = "✦ ABILITY READY! ✦";
-        abilityReadyText.fontSize = 16;
+        // ULTI READY! text göster
+        if (abilityReadyText != null)
+        {
+            abilityReadyText.text = "ULTI READY!";
+            abilityReadyText.fontSize = 14;
+        }
 
         // Glow burst
         if (glowImage != null)
