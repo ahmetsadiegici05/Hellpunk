@@ -177,6 +177,35 @@ public class TimeSlowAbility : MonoBehaviour
         isSlowMotionActive = false;
         cooldownTimer = cooldownTime;
     }
+    
+    /// <summary>
+    /// Slow motion'ı zorla durdur - Restart/Scene geçişleri için
+    /// Cooldown sıfırlanır, anında normale döner
+    /// </summary>
+    public void ForceStopSlowMotion()
+    {
+        if (!isSlowMotionActive) return;
+        
+        // Coroutine'leri durdur
+        StopAllCoroutines();
+        
+        // Normal zamana dön
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = originalFixedDeltaTime;
+        
+        // Görsel efektleri anında kaldır
+        if (vignetteImage != null) vignetteImage.color = new Color(0, 0, 0, 0);
+        if (colorOverlayImage != null) colorOverlayImage.color = Color.clear;
+        
+        // Audio'yu durdur
+        if (audioController != null)
+            audioController.StopTimeSlowSequence();
+        
+        isSlowMotionActive = false;
+        cooldownTimer = 0f; // Cooldown sıfırla
+        
+        Debug.Log("[TimeSlowAbility] Force stopped - Restart cleanup");
+    }
 
     private void ApplySlowMotionVisuals(bool activate)
     {

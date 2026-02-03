@@ -177,7 +177,7 @@ public class GuitarSkillSystem : MonoBehaviour
         healCharges = savedHeal;
         fireballCharges = savedFireball;
         
-        Debug.Log($"[GuitarSkillSystem] Ability'ler yüklendi - Heal: {healCharges}, Fireball: {fireballCharges}");
+        // Debug.Log($"[GuitarSkillSystem] Ability'ler yüklendi - Heal: {healCharges}, Fireball: {fireballCharges}");
     }
 
     private void CreateSkillInputOverlay()
@@ -327,19 +327,11 @@ public class GuitarSkillSystem : MonoBehaviour
         requiredSequence.Clear();
         playerInputSequence.Clear();
 
-        Debug.Log($"=== SKILL ACTIVATED ===");
-        Debug.Log($"Skill: {skillType}");
-        Debug.Log($"Input Count: {inputCount}");
-
         for (int i = 0; i < inputCount; i++)
         {
             ArrowDirection randomDir = (ArrowDirection)Random.Range(0, 4);
             requiredSequence.Add(randomDir);
-            Debug.Log($"  Sequence[{i}] = {randomDir}");
         }
-        
-        Debug.Log($"Full Sequence: {string.Join(" -> ", requiredSequence)}");
-        Debug.Log($"========================");
 
         // OYUNU DURAKLAT - Mavi ekran göster
         EnterSkillInputMode();
@@ -379,7 +371,7 @@ public class GuitarSkillSystem : MonoBehaviour
         inputTimer -= Time.unscaledDeltaTime;
         if (inputTimer <= 0)
         {
-            Debug.Log("TIMEOUT! Süre doldu.");
+            // Debug.Log("TIMEOUT! Süre doldu.");
             FailSkill();
             return;
         }
@@ -387,7 +379,7 @@ public class GuitarSkillSystem : MonoBehaviour
         // Escape ile iptal - önce kontrol et
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Debug.Log("ESC ile iptal edildi.");
+            // Debug.Log("ESC ile iptal edildi.");
             CancelSkill();
             return;
         }
@@ -404,7 +396,7 @@ public class GuitarSkillSystem : MonoBehaviour
         // Birden fazla tuş basıldıysa hiçbirini kabul etme (karışıklık önleme)
         if (pressCount > 1)
         {
-            Debug.Log("Birden fazla tuşa aynı anda basıldı, girdi yoksayıldı");
+            // Debug.Log("Birden fazla tuşa aynı anda basıldı, girdi yoksayıldı");
             return;
         }
 
@@ -426,7 +418,7 @@ public class GuitarSkillSystem : MonoBehaviour
             ArrowDirection expectedDirection = requiredSequence[currentInputIndex];
             bool isCorrect = pressedDirection == expectedDirection;
             
-            Debug.Log($"Input: {pressedDirection}, Beklenen: {expectedDirection}, Doğru: {isCorrect}");
+            // Debug.Log($"Input: {pressedDirection}, Beklenen: {expectedDirection}, Doğru: {isCorrect}");
             
             playerInputSequence.Add(pressedDirection);
 
@@ -450,7 +442,7 @@ public class GuitarSkillSystem : MonoBehaviour
             else
             {
                 // Yanlış input - skill başarısız
-                Debug.Log($"HATALI INPUT! Basılan: {pressedDirection}, Beklenen: {expectedDirection}");
+                // Debug.Log($"HATALI INPUT! Basılan: {pressedDirection}, Beklenen: {expectedDirection}");
                 FailSkill();
             }
         }
@@ -492,16 +484,16 @@ public class GuitarSkillSystem : MonoBehaviour
             case SkillType.Heal:
                 healCharges--;
                 SaveAbilityChargesToPlayerPrefs(); // Değişikliği kaydet
-                Debug.Log($"Heal kullanıldı! Kalan: {healCharges}");
+                // Debug.Log($"Heal kullanıldı! Kalan: {healCharges}");
                 break;
             case SkillType.Fireball:
                 fireballCharges--;
                 SaveAbilityChargesToPlayerPrefs(); // Değişikliği kaydet
-                Debug.Log($"Fireball kullanıldı! Kalan: {fireballCharges}");
+                // Debug.Log($"Fireball kullanıldı! Kalan: {fireballCharges}");
                 break;
             case SkillType.TimeSlow:
                 timeSlowCooldownTimer = timeSlowCooldown;
-                Debug.Log($"Time Slow kullanıldı! Cooldown: {timeSlowCooldown}sn");
+                // Debug.Log($"Time Slow kullanıldı! Cooldown: {timeSlowCooldown}sn");
                 break;
             case SkillType.Ultimate:
                 if (SoulSystem.Instance != null)
@@ -518,7 +510,7 @@ public class GuitarSkillSystem : MonoBehaviour
         PlayerPrefs.SetInt("HEAL", healCharges);
         PlayerPrefs.SetInt("FIREBALL", fireballCharges);
         PlayerPrefs.Save();
-        Debug.Log($"[GuitarSkillSystem] Ability'ler kaydedildi - Heal: {healCharges}, Fireball: {fireballCharges}");
+        // Debug.Log($"[GuitarSkillSystem] Ability'ler kaydedildi - Heal: {healCharges}, Fireball: {fireballCharges}");
     }
 
     private void FailSkill()
@@ -538,7 +530,7 @@ public class GuitarSkillSystem : MonoBehaviour
         // UI'a bildir
         OnSkillComplete?.Invoke(false);
 
-        Debug.Log($"Skill failed: {currentSkillType}");
+        // Debug.Log($"Skill failed: {currentSkillType}");
         currentSkillType = SkillType.None;
     }
 
@@ -558,6 +550,12 @@ public class GuitarSkillSystem : MonoBehaviour
 
     private void ExecuteSkill(SkillType skillType)
     {
+        // Skill renk patlaması efekti
+        if (SkillColorBurst.Instance != null)
+        {
+            SkillColorBurst.Instance.TriggerBurstWithShake(skillType, 0.15f);
+        }
+        
         switch (skillType)
         {
             case SkillType.Heal:
@@ -601,7 +599,7 @@ public class GuitarSkillSystem : MonoBehaviour
         else if (GameManager.Instance != null)
             GameManager.Instance.PlayHealSound();
 
-        Debug.Log($"Heal executed! Kalan: {healCharges}");
+        // Debug.Log($"Heal executed! Kalan: {healCharges}");
     }
 
     private void ExecuteShockwave()
@@ -657,7 +655,7 @@ public class GuitarSkillSystem : MonoBehaviour
         if (shockwaveSound != null && audioSource != null)
             audioSource.PlayOneShot(shockwaveSound);
 
-        Debug.Log($"Shockwave executed! Hit {hitEnemies.Length} enemies");
+        // Debug.Log($"Shockwave executed! Hit {hitEnemies.Length} enemies");
     }
 
     private IEnumerator PushEnemy(Transform enemy, Vector2 direction, float distance)
@@ -739,7 +737,7 @@ public class GuitarSkillSystem : MonoBehaviour
         if (playerAttack != null)
         {
             playerAttack.ActivateFireballMode();
-            Debug.Log("Fireball modu aktif edildi! 15 saniye boyunca sol tık ile fireball at!");
+            // Debug.Log("Fireball modu aktif edildi! 15 saniye boyunca sol tık ile fireball at!");
         }
         else
         {
@@ -752,7 +750,7 @@ public class GuitarSkillSystem : MonoBehaviour
         else if (GameManager.Instance != null)
             GameManager.Instance.PlayAttackSound();
 
-        Debug.Log($"Fireball executed! Kalan: {fireballCharges}");
+        // Debug.Log($"Fireball executed! Kalan: {fireballCharges}");
     }
 
     private void ExecuteTimeSlow()
@@ -761,7 +759,7 @@ public class GuitarSkillSystem : MonoBehaviour
         if (TimeSlowAbility.Instance != null)
         {
             TimeSlowAbility.Instance.ActivateFromSkillSystem();
-            Debug.Log("Time Slow aktif edildi!");
+            // Debug.Log("Time Slow aktif edildi!");
         }
         else
         {
@@ -810,7 +808,7 @@ public class GuitarSkillSystem : MonoBehaviour
     {
         healCharges += amount;
         SaveAbilityChargesToPlayerPrefs(); // Level geçişinde korunsun
-        Debug.Log($"Heal satın alındı! +{amount}, Toplam: {healCharges}");
+        // Debug.Log($"Heal satın alındı! +{amount}, Toplam: {healCharges}");
     }
     
     /// <summary>
@@ -820,7 +818,7 @@ public class GuitarSkillSystem : MonoBehaviour
     {
         fireballCharges += amount;
         SaveAbilityChargesToPlayerPrefs(); // Level geçişinde korunsun
-        Debug.Log($"Fireball satın alındı! +{amount}, Toplam: {fireballCharges}");
+        // Debug.Log($"Fireball satın alındı! +{amount}, Toplam: {fireballCharges}");
     }
 
     // Debug görselleştirme

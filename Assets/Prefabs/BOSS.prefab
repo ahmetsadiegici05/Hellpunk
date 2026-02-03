@@ -4907,6 +4907,7 @@ GameObject:
   - component: {fileID: 5674342560169435572}
   - component: {fileID: 5631053088055572352}
   - component: {fileID: 4927981720416581242}
+  - component: {fileID: 4760282118480660519}
   m_Layer: 12
   m_Name: BOSS
   m_TagString: Boss
@@ -5102,6 +5103,8 @@ MonoBehaviour:
   maxHealth: 20
   deathEffect: {fileID: 0}
   isDamagableObject: 0
+  uniqueId: 
+  rememberDeath: 1
   hasPuzzle: 0
   puzzleType: 0
   puzzleDifficulty: 1
@@ -5251,3 +5254,41 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &4760282118480660519
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6445674158229014704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e128afe87727874ca43345e71e49765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossHealth: {fileID: 0}
+  bossAnimator: {fileID: 0}
+  bossSprite: {fileID: 0}
+  audioSource: {fileID: 0}
+  enableFootstepShake: 1
+  footstepShakeMagnitude: 0.05
+  footstepShakeDuration: 0.1
+  footstepSound: {fileID: 0}
+  footstepVolume: 0.5
+  enableRageMode: 1
+  rageThreshold: 0.3
+  rageColor: {r: 1, g: 0.3, b: 0.3, a: 1}
+  ragePulseSpeed: 3
+  rageActivationSound: {fileID: 0}
+  damageShakeMagnitude: 0.06
+  damageSound: {fileID: 0}
+  attackShakeMagnitude: 0.08
+  attackShakeDuration: 0.15
+  attackSound: {fileID: 0}
+  enableIntroZoom: 1
+  introZoomAmount: 5.5
+  introZoomDuration: 1.2
+  introZoomHoldTime: 0.8
+  enableFootstepVisualEffect: 1
+  footstepFlashColor: {r: 0.3, g: 0.25, b: 0.2, a: 0.4}
+  footstepFlashDuration: 0.15

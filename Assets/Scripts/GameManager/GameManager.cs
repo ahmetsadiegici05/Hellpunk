@@ -101,6 +101,142 @@ public class GameManager : MonoBehaviour
         
         // Level geçişinde karanlık ekranı düzelt - vignette'leri sıfırla
         ResetAllVignettes();
+        
+        // Kamera rotasyonunu sıfırla (transition'dan kalmış olabilir)
+        ResetCameraState();
+        
+        // Mini-map sistemini başlat
+        EnsureMiniMapSystem();
+        
+        // Karanlık bölge efektini başlat
+        EnsureDarkForestEffect();
+        
+        // Radar sistemini başlat (karanlık bölgeler için)
+        EnsureRadarSystem();
+    }
+    
+    /// <summary>
+    /// SimpleDarkOverlay sisteminin varlığını kontrol et ve yoksa oluştur
+    /// </summary>
+    private void EnsureDarkForestEffect()
+    {
+        // Sadece oyun sahnelerinde
+        string sceneName = SceneManager.GetActiveScene().name.ToLower();
+        if (sceneName.Contains("menu") || sceneName.Contains("main"))
+        {
+            return;
+        }
+        
+        // SimpleDarkOverlay yoksa oluştur
+        if (SimpleDarkOverlay.Instance == null)
+        {
+            GameObject darkObj = new GameObject("SimpleDarkOverlay");
+            darkObj.AddComponent<SimpleDarkOverlay>();
+            Debug.Log("[GameManager] SimpleDarkOverlay oluşturuldu - F10 ile test edebilirsin!");
+        }
+    }
+    
+    /// <summary>
+    /// Radar sisteminin varlığını kontrol et ve yoksa oluştur
+    /// Karanlık bölgelerde düşmanları tespit etmek için kullanılır
+    /// </summary>
+    private void EnsureRadarSystem()
+    {
+        // Sadece oyun sahnelerinde radar hazırla
+        string sceneName = SceneManager.GetActiveScene().name.ToLower();
+        if (sceneName.Contains("menu") || sceneName.Contains("main"))
+        {
+            return;
+        }
+        
+        // EnemyRadarSystem yoksa oluştur
+        if (EnemyRadarSystem.Instance == null)
+        {
+            GameObject radarObj = new GameObject("EnemyRadarSystem");
+            radarObj.AddComponent<EnemyRadarSystem>();
+            DontDestroyOnLoad(radarObj);
+            Debug.Log("[GameManager] EnemyRadarSystem oluşturuldu");
+        }
+        
+        // DarkZoneTooltip yoksa oluştur
+        if (DarkZoneTooltip.Instance == null)
+        {
+            GameObject tooltipObj = new GameObject("DarkZoneTooltip");
+            tooltipObj.AddComponent<DarkZoneTooltip>();
+            DontDestroyOnLoad(tooltipObj);
+            Debug.Log("[GameManager] DarkZoneTooltip oluşturuldu");
+        }
+    }
+    
+    /// <summary>
+    /// Mini-map sisteminin varlığını kontrol et ve yoksa oluştur
+    /// </summary>
+    private void EnsureMiniMapSystem()
+    {
+        // Sadece oyun sahnelerinde mini-map göster (ana menü hariç)
+        string sceneName = SceneManager.GetActiveScene().name.ToLower();
+        if (sceneName.Contains("menu") || sceneName.Contains("main"))
+        {
+            // Menüde mini-map'i gizle
+            if (MiniMap2D.Instance != null)
+            {
+                MiniMap2D.Instance.Hide();
+            }
+            return;
+        }
+        
+        // MiniMap2D yoksa oluştur (2D side-scroller için optimize)
+        if (MiniMap2D.Instance == null)
+        {
+            GameObject miniMapObj = new GameObject("MiniMap2DSystem");
+            miniMapObj.AddComponent<MiniMap2D>();
+            DontDestroyOnLoad(miniMapObj);
+            Debug.Log("[GameManager] MiniMap2D sistemi oluşturuldu");
+        }
+        else
+        {
+            // Varsa göster
+            MiniMap2D.Instance.Show();
+        }
+    }
+    
+    /// <summary>
+    /// Kamera durumunu sıfırla - restart/level geçişi buglarını önler
+    /// </summary>
+    private void ResetCameraState()
+    {
+        // Ana kamerayı bul ve sıfırla
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            mainCam.transform.rotation = Quaternion.identity;
+            Debug.Log("[GameManager] Kamera rotasyonu sıfırlandı");
+        }
+        
+        // Duplicate kameraları temizle (sadece 1 ana kamera olmalı)
+        Camera[] allCameras = FindObjectsByType<Camera>(FindObjectsSortMode.None);
+        if (allCameras.Length > 1)
+        {
+            Debug.LogWarning($"[GameManager] {allCameras.Length} kamera bulundu! Duplicate temizleniyor...");
+            bool foundMain = false;
+            foreach (Camera cam in allCameras)
+            {
+                if (cam.CompareTag("MainCamera"))
+                {
+                    if (!foundMain)
+                    {
+                        foundMain = true;
+                        cam.transform.rotation = Quaternion.identity;
+                    }
+                    else
+                    {
+                        // Duplicate MainCamera - yok et
+                        Debug.Log($"[GameManager] Duplicate kamera yok edildi: {cam.name}");
+                        Destroy(cam.gameObject);
+                    }
+                }
+            }
+        }
     }
     
     /// <summary>

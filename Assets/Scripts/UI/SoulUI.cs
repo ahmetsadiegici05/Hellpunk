@@ -431,13 +431,13 @@ public class SoulUI : MonoBehaviour
     private void OnKillCountChanged(int current, int max)
     {
         UpdateUI();
-        StartCoroutine(SoulCollectAnimation());
+        // Animasyon kaldırıldı - sadece UI güncelle
     }
 
     private void OnUltimateReady()
     {
         UpdateUI();
-        StartCoroutine(ChargeGainedAnimation());
+        // Animasyon kaldırıldı - sadece UI güncelle
     }
 
     private void OnUltimateUsed()
@@ -494,47 +494,30 @@ public class SoulUI : MonoBehaviour
         }
     }
 
-    private IEnumerator SoulCollectAnimation()
+    // Eski SoulCollectAnimation kaldırıldı - bug'a neden oluyordu
+    
+    /// <summary>
+    /// Ruh parçacığı UI'a ulaştığında çağrılır (SoulParticleEffect tarafından)
+    /// Animasyon kaldırıldı - bug'a neden oluyordu
+    /// </summary>
+    public void OnSoulCollectedVisual()
     {
-        if (soulFillImage == null) yield break;
-
-        // Flash effect
-        Color original = soulFillImage.color;
-        soulFillImage.color = Color.white;
-        yield return new WaitForSecondsRealtime(0.1f);
-        soulFillImage.color = original;
+        // Animasyon kaldırıldı - sadece UI güncelle
+        UpdateUI();
     }
+    
+    // Eski animasyon fonksiyonları kaldırıldı - bug'a neden oluyordu
 
     private IEnumerator ChargeGainedAnimation()
     {
-        // ULTI READY! text göster
+        // Basitleştirilmiş - sadece text göster, animasyon yok
         if (abilityReadyText != null)
         {
             abilityReadyText.text = "ULTI READY!";
             abilityReadyText.fontSize = 14;
         }
-
-        // Glow burst
-        if (glowImage != null)
-        {
-            glowImage.color = new Color(chargeColor.r, chargeColor.g, chargeColor.b, 0.8f);
-        }
-
-        yield return new WaitForSecondsRealtime(0.5f);
-
-        // Scale pulse
-        for (int i = 0; i < 3; i++)
-        {
-            if (container != null)
-            {
-                container.localScale = Vector3.one * 1.1f;
-                yield return new WaitForSecondsRealtime(0.1f);
-                container.localScale = Vector3.one;
-                yield return new WaitForSecondsRealtime(0.1f);
-            }
-        }
-
-        abilityReadyText.fontSize = 14;
+        
+        yield return null;
         UpdateUI();
     }
 

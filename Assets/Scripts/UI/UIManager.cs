@@ -647,6 +647,15 @@ public class UIManager : MonoBehaviour
         // UI Health Bar
         if (uiHealthBar != null)
             uiHealthBar.SetActive(visible);
+        
+        // Mini-Map (MiniMap2D kendi kontrolünü yapıyor ama yine de burada da çağıralım)
+        if (MiniMap2D.Instance != null)
+        {
+            if (visible)
+                MiniMap2D.Instance.Show();
+            else
+                MiniMap2D.Instance.Hide();
+        }
             
         // Inspector'dan atanan diğer elemanlar
         if (hideOnPauseElements != null)
@@ -664,13 +673,17 @@ public class UIManager : MonoBehaviour
         isPaused = false;
         Time.timeScale = 1f;
         
+        // Restart öncesi cleanup
+        CleanupBeforeRestart();
+        
         // Damage vignette sıfırla
         if (DamageVignette.Instance != null)
             DamageVignette.Instance.ResetVignette();
         
         // Checkpoint'ten devam - ability'ler sıfırlanmaz, checkpoint'teki haliyle yüklenir
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        GetComponent<PlayerMovement>().lockMovement = false;
+        var player = FindFirstObjectByType<PlayerMovement>();
+        if (player != null) player.lockMovement = false;
     }
 
     public void RestartFromBeginning()
@@ -679,6 +692,9 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         CheckpointData.ResetData(); // Checkpoint VE düşman ölümlerini sıfırlar
         ResetAbilitiesForRestart();
+        
+        // Restart öncesi cleanup
+        CleanupBeforeRestart();
         
         // Damage vignette sıfırla
         if (DamageVignette.Instance != null)
@@ -695,6 +711,9 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         ResetAbilitiesForRestart();
         
+        // Restart öncesi cleanup
+        CleanupBeforeRestart();
+        
         // Damage vignette sıfırla
         if (DamageVignette.Instance != null)
             DamageVignette.Instance.ResetVignette();
@@ -707,6 +726,59 @@ public class UIManager : MonoBehaviour
     /// <summary>
     /// Restart yapıldığında ability'leri başlangıç değerlerine sıfırla
     /// </summary>
+    /// <summary>
+    /// Restart öncesi tüm sistemleri temizle ve kamerayı sıfırla
+    /// Bu metod ekran bölünmesi ve görsel bugları önler
+    /// </summary>
+    private void CleanupBeforeRestart()
+    {
+        // 1. Kamera rotasyonunu sıfırla (transition'dan kalmış olabilir)
+        Camera mainCam = Camera.main;
+        if (mainCam != null)
+        {
+            mainCam.transform.rotation = Quaternion.identity;
+            // Kamera size'ı da varsayılana döndür
+            if (mainCam.orthographic)
+            {
+                mainCam.orthographicSize = 7f; // Varsayılan değer
+            }
+        }
+        
+        // 2. SceneTransitionController blackout'u temizle
+        if (SceneTransitionController.Instance != null)
+        {
+            SceneTransitionController.Instance.ClearBlackout();
+        }
+        
+        // 3. ScreenEffects sıfırla
+        if (ScreenEffects.Instance != null)
+        {
+            ScreenEffects.Instance.UpdateHealthVignette(1f);
+        }
+        
+        // 4. Time slow'u kapat (aktifse)
+        if (TimeSlowAbility.Instance != null && TimeSlowAbility.Instance.IsSlowMotionActive)
+        {
+            TimeSlowAbility.Instance.ForceStopSlowMotion();
+        }
+        
+        // 5. Cursor'ı gizle (menüden çıkış)
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        
+        // 6. Overlay'leri kapat
+        if (pauseOverlay != null)
+            pauseOverlay.SetActive(false);
+        
+        // 7. Level rotasyonunu sıfırla (Level 2 restart için)
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.lastTransformRotationValue = 0f;
+        }
+            
+        Debug.Log("[UIManager] Restart cleanup tamamlandı");
+    }
+    
     private void ResetAbilitiesForRestart()
     {
         // Sunum için yüksek başlangıç değerleri

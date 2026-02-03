@@ -35,9 +35,14 @@ public class EnemyHealth : MonoBehaviour
 
     private float currentHealth;
     private bool isDead = false;
+    public bool IsDead => isDead; // Public property for external access
+    public float CurrentHealthPercent => maxHealth > 0 ? currentHealth / maxHealth : 0f; // Boss rage mode için
     private bool puzzleStarted = false;
     private Color defaultColor;
     private SimpleEnemyHealthBar healthBar; // Yeni basit can barı
+    
+    // Boss Effects referansı
+    private BossEffects bossEffects;
 
     [Header("Damage Text")]
     [SerializeField] private Vector3 damageTextOffset = new Vector3(0f, 1.2f, 0f);
@@ -83,6 +88,14 @@ public class EnemyHealth : MonoBehaviour
         else
         {
             maxHealth = 65f; // Boss final savaşı - 10 fireball (50) + 1 ultimate (16) = 66
+            
+            // Boss Effects bileşenini bul veya ekle
+            bossEffects = GetComponent<BossEffects>();
+            if (bossEffects == null)
+            {
+                bossEffects = gameObject.AddComponent<BossEffects>();
+                Debug.Log("[EnemyHealth] BossEffects otomatik eklendi");
+            }
         }
         
         currentHealth = maxHealth;
@@ -133,6 +146,12 @@ public class EnemyHealth : MonoBehaviour
         else
         {
             PlayHitEffect();
+        }
+        
+        // Boss hasar efekti
+        if (isBoss && bossEffects != null)
+        {
+            bossEffects.OnBossDamaged(finalDamage);
         }
         
         Debug.Log($"{gameObject.name} hasar aldı: {finalDamage}{(isCritical ? " (CRITICAL!)" : "")}, Kalan can: {currentHealth}");
@@ -311,6 +330,12 @@ public class EnemyHealth : MonoBehaviour
             CoinCollectEffect.Instance.PlayCoinEffect(transform.position);
         }
         
+        // Ruh parçacığı efekti
+        if (SoulParticleEffect.Instance != null)
+        {
+            SoulParticleEffect.Instance.SpawnSoulEffect(transform.position);
+        }
+        
         // Can barını yok et
         if (healthBar != null)
         {
@@ -321,6 +346,18 @@ public class EnemyHealth : MonoBehaviour
 
         if (isBoss)
         {
+            // Boss Effects'i tetikle (varsa)
+            if (bossEffects != null)
+            {
+                bossEffects.OnBossDeath();
+            }
+            
+            // Boss ruh efekti (daha büyük)
+            if (SoulParticleEffect.Instance != null)
+            {
+                SoulParticleEffect.Instance.SpawnBossSoulEffect(transform.position);
+            }
+            
             // Boss için epik ölüm sekansı başlat
             StartCoroutine(BossDeathSequence());
             return; // Normal ölüm akışını durdur
@@ -359,6 +396,12 @@ public class EnemyHealth : MonoBehaviour
         {
             int soulAmount = isBoss ? 5 : 1; // Boss 5 ruh verir
             SoulSystem.Instance.CollectSoul(soulAmount);
+        }
+        
+        // Mini-map'e düşman ölümünü bildir
+        if (MiniMap2D.Instance != null)
+        {
+            MiniMap2D.Instance.OnEnemyDeath(transform);
         }
         
         if (deathEffect != null) Instantiate(deathEffect, transform.position, Quaternion.identity);
@@ -677,18 +720,26 @@ public class EnemyHealth : MonoBehaviour
         RectTransform containerRect = container.AddComponent<RectTransform>();
         containerRect.anchorMin = new Vector2(0.5f, 0.5f);
         containerRect.anchorMax = new Vector2(0.5f, 0.5f);
-        containerRect.sizeDelta = new Vector2(800, 400);
+        containerRect.sizeDelta = new Vector2(1200, 500); // Daha geniş container
         
-        // "VICTORY" yazısı
+        // "VICTORY" yazısı - DAHA KALIN VE ETKİLEYİCİ
         GameObject titleObj = new GameObject("Title");
         titleObj.transform.SetParent(container.transform, false);
         TMPro.TextMeshProUGUI titleText = titleObj.AddComponent<TMPro.TextMeshProUGUI>();
         titleText.text = "VICTORY";
-        titleText.fontSize = 120;
+        titleText.fontSize = 130; // Biraz küçülttük - tek satıra sığsın
         titleText.fontStyle = TMPro.FontStyles.Bold;
         titleText.color = new Color(1f, 0.85f, 0.2f); // Altın sarısı
         titleText.alignment = TMPro.TextAlignmentOptions.Center;
         titleText.enableAutoSizing = false;
+        titleText.characterSpacing = 10f; // Harfler arası boşluk azaltıldı
+        titleText.enableWordWrapping = false; // Kelime kaydırma KAPALI - tek satırda kalsın
+        titleText.overflowMode = TMPro.TextOverflowModes.Overflow; // Taşsın ama bölünmesin
+        
+        // Outline efekti - daha kalın görünüm
+        titleText.outlineWidth = 0.25f;
+        titleText.outlineColor = new Color(0.4f, 0.2f, 0f, 1f); // Koyu altın outline
+        
         RectTransform titleRect = titleObj.GetComponent<RectTransform>();
         titleRect.anchorMin = new Vector2(0, 0.5f);
         titleRect.anchorMax = new Vector2(1, 1f);

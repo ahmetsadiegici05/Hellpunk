@@ -47,6 +47,9 @@ public class Health : MonoBehaviour
         
         // Shop açıkken hasar alma
         if (IsShopOpen()) return;
+        
+        // Dash sırasında hasar alma (i-frame)
+        if (PlayerMovement.Instance != null && PlayerMovement.Instance.IsDashing) return;
 
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 

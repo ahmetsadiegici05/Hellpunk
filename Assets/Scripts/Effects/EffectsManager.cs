@@ -21,6 +21,15 @@ public class EffectsManager : MonoBehaviour
     [SerializeField] private bool enableDashAfterimage = true;
     [SerializeField] private bool enableAtmosphericFog = true;
     
+    [Header("Yeni Efektler")]
+    [SerializeField] private bool enableFootprints = true;
+    [SerializeField] private bool enableWallSparks = true;
+    [SerializeField] private bool enableSoulParticles = true;
+    [SerializeField] private bool enableHeatDistortion = true;
+    [SerializeField] private bool enableWeatherEffects = true;
+    [SerializeField] private bool enableSkillColorBurst = true;
+    [SerializeField] private WeatherEffects.WeatherType defaultWeather = WeatherEffects.WeatherType.Embers;
+    
     private void Awake()
     {
         if (Instance == null)
@@ -123,6 +132,56 @@ public class EffectsManager : MonoBehaviour
             GameObject fogObj = new GameObject("AtmosphericFog");
             fogObj.transform.SetParent(transform);
             fogObj.AddComponent<AtmosphericFog>();
+        }
+        
+        // Footprint Effect - Ayak izleri
+        if (enableFootprints && FootprintEffect.Instance == null)
+        {
+            GameObject footprintObj = new GameObject("FootprintEffect");
+            footprintObj.transform.SetParent(transform);
+            footprintObj.AddComponent<FootprintEffect>();
+        }
+        
+        // Wall Spark Effect - Duvara çarpınca kıvılcım
+        if (enableWallSparks && WallSparkEffect.Instance == null)
+        {
+            GameObject sparkObj = new GameObject("WallSparkEffect");
+            sparkObj.transform.SetParent(transform);
+            sparkObj.AddComponent<WallSparkEffect>();
+        }
+        
+        // Soul Particle Effect - Düşman ölümünde ruh
+        if (enableSoulParticles && SoulParticleEffect.Instance == null)
+        {
+            GameObject soulObj = new GameObject("SoulParticleEffect");
+            soulObj.transform.SetParent(transform);
+            soulObj.AddComponent<SoulParticleEffect>();
+        }
+        
+        // Heat Distortion Effect - Lav yakınında sıcaklık
+        if (enableHeatDistortion && HeatDistortionEffect.Instance == null)
+        {
+            GameObject heatObj = new GameObject("HeatDistortionEffect");
+            heatObj.transform.SetParent(transform);
+            heatObj.AddComponent<HeatDistortionEffect>();
+        }
+        
+        // Weather Effects - Yağmur/Kar/Kül
+        if (enableWeatherEffects && WeatherEffects.Instance == null)
+        {
+            GameObject weatherObj = new GameObject("WeatherEffects");
+            weatherObj.transform.SetParent(transform);
+            WeatherEffects weather = weatherObj.AddComponent<WeatherEffects>();
+            // Varsayılan hava durumu ayarla (cehennem teması için Embers)
+            weather.SetWeather(defaultWeather);
+        }
+        
+        // Skill Color Burst - Skill kullanımında renk patlaması
+        if (enableSkillColorBurst && SkillColorBurst.Instance == null)
+        {
+            GameObject burstObj = new GameObject("SkillColorBurst");
+            burstObj.transform.SetParent(transform);
+            burstObj.AddComponent<SkillColorBurst>();
         }
         
         Debug.Log("[EffectsManager] Tüm efekt sistemleri başlatıldı!");

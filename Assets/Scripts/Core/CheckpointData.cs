@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public static class CheckpointData
 {
     public static Vector3 LastCheckpointPosition;
+    public static float LastCheckpointRotationZ = 0f; // Level rotasyonu
     public static bool HasCheckpoint = false;
 
     // Gameplay unlocks
@@ -58,6 +59,7 @@ public static class CheckpointData
     {
         HasCheckpoint = false;
         LastCheckpointPosition = Vector3.zero;
+        LastCheckpointRotationZ = 0f;
         SpikeheadShootingUnlocked = false;
         killedEnemies.Clear();
         CheckpointHealth = -1f;

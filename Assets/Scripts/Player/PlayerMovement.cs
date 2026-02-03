@@ -27,6 +27,27 @@ public class PlayerMovement : MonoBehaviour
     [Header("Double Jump Settings")]
     [SerializeField] private float doubleJumpPower = 18f; 
 
+    [Header("Dash Settings")]
+    [SerializeField] private KeyCode dashKey = KeyCode.LeftShift;
+    [SerializeField] private float dashSpeed = 25f;
+    [SerializeField] private float dashDuration = 0.15f;
+    [SerializeField] private float dashCooldown = 0.8f;
+    [SerializeField] private bool dashHasIFrames = true;
+    [SerializeField] private Color dashTrailColor = new Color(0.3f, 0.6f, 1f, 0.8f);
+    
+    // Dash state
+    private bool isDashing = false;
+    private bool canDash = true;
+    private float dashTimeLeft = 0f;
+    private float dashCooldownTimer = 0f;
+    private float dashDirection = 1f;
+    private int originalLayer;
+    
+    // Public properties for UI/other systems
+    public bool IsDashing => isDashing;
+    public bool CanDash => canDash && !isDashing && dashCooldownTimer <= 0f;
+    public float DashCooldownProgress => dashCooldownTimer <= 0f ? 1f : 1f - (dashCooldownTimer / dashCooldown);
+
     [Header("Physics Settings")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask wallLayer;
@@ -50,6 +71,10 @@ public class PlayerMovement : MonoBehaviour
     // Double Jump
     private bool canDoubleJump = false;
     private bool hasDoubleJumped = false;
+    
+    // Last move direction for radar/other systems
+    private Vector2 lastMoveDirection = Vector2.right;
+    public Vector2 LastMoveDirection => lastMoveDirection;
 
     [HideInInspector] public bool lockMovement;
 
@@ -103,6 +128,14 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        // DEBUG: F9 tuşu ile Boss'a teleport (test için)
+        #if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.F9))
+        {
+            TeleportToBoss();
+        }
+        #endif
+        
         // Puzzle aktifken tüm input'ları engelle
         if (GameManager.IsPuzzleActive || Time.timeScale == 0f)
         {
@@ -146,6 +179,8 @@ public class PlayerMovement : MonoBehaviour
         if (Mathf.Abs(rawHorizontalInput) > 0.01f)
         {
             ApplyFacingScale(rawHorizontalInput);
+            // Radar için son hareket yönünü güncelle
+            lastMoveDirection = new Vector2(rawHorizontalInput, 0f).normalized;
         }
 
         // Durum Kontrolleri
@@ -217,6 +252,18 @@ public class PlayerMovement : MonoBehaviour
 
         // Time slow compensation updates
         wallJumpCooldown += Time.deltaTime * MovementTimeCompensation;
+        
+        // --- Dash Cooldown Timer ---
+        if (dashCooldownTimer > 0f)
+        {
+            dashCooldownTimer -= Time.deltaTime * MovementTimeCompensation;
+        }
+        
+        // --- Dash Input ---
+        if (Input.GetKeyDown(dashKey) && CanDash && !isDashing)
+        {
+            StartDash();
+        }
     }
 
     private void FixedUpdate()
@@ -238,6 +285,13 @@ public class PlayerMovement : MonoBehaviour
 
         // Time slow compensation
         float compensatedSpeed = speed * MovementTimeCompensation;
+        
+        // --- Dash Movement ---
+        if (isDashing)
+        {
+            HandleDashMovement();
+            return; // Dash sırasında normal hareket yapma
+        }
         
         // Hareket Uygulama
         body.linearVelocity = new Vector2(horizontalInput * compensatedSpeed, body.linearVelocity.y);
@@ -726,5 +780,238 @@ public class PlayerMovement : MonoBehaviour
         jumpDustEffect.transform.position = transform.position + new Vector3(0f, -0.4f, 0f);
         jumpDustEffect.Emit(8);
     }
+    
+    #if UNITY_EDITOR
+    /// <summary>
+    /// DEBUG: Boss'un yanına teleport et (F9 tuşu)
+    /// Sadece Editor'da çalışır
+    /// </summary>
+    private void TeleportToBoss()
+    {
+        // Önce sahnedeki boss'u bul
+        GameObject boss = GameObject.FindGameObjectWithTag("Boss");
+        
+        // Tag bulunamazsa isimle ara
+        if (boss == null)
+        {
+            boss = GameObject.Find("Boss");
+        }
+        
+        // BossEffects'i olan objeyi ara
+        if (boss == null)
+        {
+            BossEffects bossEffects = FindFirstObjectByType<BossEffects>();
+            if (bossEffects != null)
+                boss = bossEffects.gameObject;
+        }
+        
+        // EnemyHealth'i olan objelerde "boss" kelimesi ara
+        if (boss == null)
+        {
+            EnemyHealth[] enemies = FindObjectsByType<EnemyHealth>(FindObjectsSortMode.None);
+            foreach (var enemy in enemies)
+            {
+                if (enemy.name.ToLower().Contains("boss"))
+                {
+                    boss = enemy.gameObject;
+                    break;
+                }
+            }
+        }
+        
+        if (boss != null)
+        {
+            // Boss'un solunda spawn et (daha geride)
+            Vector3 teleportPos = boss.transform.position + new Vector3(-12f, 2f, 0f);
+            transform.position = teleportPos;
+            body.linearVelocity = Vector2.zero;
+            
+            // Boss'u aktif et (kapalıysa)
+            if (!boss.activeSelf)
+            {
+                boss.SetActive(true);
+            }
+            
+            Debug.Log($"<color=cyan>[DEBUG] Boss'a teleport edildi! Boss: {boss.name}, Pozisyon: {teleportPos}</color>");
+        }
+        else
+        {
+            Debug.LogWarning("[DEBUG] Boss bulunamadı! Sahnede 'Boss' tag'li veya isimli obje yok.");
+        }
+    }
+    #endif
+
+    #region Dash System
+    // ===========================================
+    // DASH SYSTEM
+    // Shift tuşu ile hızlı atılma, i-frame koruması
+    // ===========================================
+    
+    /// <summary>
+    /// Dash başlat
+    /// </summary>
+    private void StartDash()
+    {
+        if (!canDash || isDashing) return;
+        
+        isDashing = true;
+        canDash = false;
+        dashTimeLeft = dashDuration;
+        
+        // Dash yönünü belirle (oyuncunun baktığı yön veya input yönü)
+        if (Mathf.Abs(rawHorizontalInput) > 0.1f)
+        {
+            dashDirection = Mathf.Sign(rawHorizontalInput);
+        }
+        else
+        {
+            dashDirection = Mathf.Sign(transform.localScale.x);
+        }
+        
+        // Yönü güncelle
+        ApplyFacingScale(dashDirection);
+        
+        // i-Frame aktif et (hasar almaz)
+        if (dashHasIFrames)
+        {
+            originalLayer = gameObject.layer;
+            Physics2D.IgnoreLayerCollision(8, 9, true); // Player ve Enemy collision'ı kapat
+        }
+        
+        // Afterimage efekti başlat
+        if (DashAfterimage.Instance != null)
+        {
+            DashAfterimage.Instance.StartDashEffect(dashDuration);
+        }
+        
+        // Kamera sarsıntısı (hafif)
+        if (ScreenShake.Instance != null)
+        {
+            ScreenShake.Instance.ShakeLight();
+        }
+        
+        // Dash sesi (varsa)
+        if (GameManager.Instance != null)
+        {
+            // GameManager.Instance.PlayDashSound(); // Eğer ses eklemek isterseniz
+        }
+        
+        // Animasyon (varsa dash animasyonu)
+        // anim.SetTrigger("dash");
+        
+        // Dash toz efekti
+        SpawnDashDust();
+    }
+    
+    /// <summary>
+    /// Dash hareketi - FixedUpdate'den çağrılır
+    /// </summary>
+    private void HandleDashMovement()
+    {
+        if (!isDashing) return;
+        
+        // Time compensation
+        float compensatedDashSpeed = dashSpeed * MovementTimeCompensation;
+        
+        // Dash sırasında yerçekimini kapat
+        body.gravityScale = 0f;
+        
+        // Dash hareketi (sadece yatay)
+        body.linearVelocity = new Vector2(dashDirection * compensatedDashSpeed, 0f);
+        
+        // Dash süresini azalt
+        dashTimeLeft -= Time.fixedDeltaTime * MovementTimeCompensation;
+        
+        // Dash bitti mi?
+        if (dashTimeLeft <= 0f)
+        {
+            EndDash();
+        }
+    }
+    
+    /// <summary>
+    /// Dash'i bitir
+    /// </summary>
+    private void EndDash()
+    {
+        isDashing = false;
+        dashCooldownTimer = dashCooldown;
+        
+        // Yerçekimini geri aç
+        body.gravityScale = groundGravity;
+        
+        // Velocity'yi yumuşat (ani durma olmasın)
+        body.linearVelocity = new Vector2(body.linearVelocity.x * 0.5f, body.linearVelocity.y);
+        
+        // i-Frame'i kapat
+        if (dashHasIFrames)
+        {
+            Physics2D.IgnoreLayerCollision(8, 9, false);
+        }
+        
+        // Afterimage efektini durdur
+        if (DashAfterimage.Instance != null)
+        {
+            DashAfterimage.Instance.StopDashEffect();
+        }
+        
+        // Cooldown bittikten sonra tekrar dash yapılabilir
+        StartCoroutine(ResetDashCooldown());
+    }
+    
+    /// <summary>
+    /// Dash cooldown sıfırlama
+    /// </summary>
+    private System.Collections.IEnumerator ResetDashCooldown()
+    {
+        yield return new WaitForSeconds(dashCooldown);
+        canDash = true;
+    }
+    
+    /// <summary>
+    /// Dash toz efekti
+    /// </summary>
+    private void SpawnDashDust()
+    {
+        if (runningDustEffect != null)
+        {
+            // Mevcut running dust efektini kullan
+            var emission = runningDustEffect.emission;
+            var burst = new ParticleSystem.Burst(0f, 8); // Daha fazla parçacık
+            runningDustEffect.emission.SetBurst(0, burst);
+            runningDustEffect.Play();
+        }
+        
+        // Alternatif olarak jump dust kullan
+        if (jumpDustEffect != null)
+        {
+            jumpDustEffect.Play();
+        }
+    }
+    
+    /// <summary>
+    /// Dışarıdan dash tetikleme (skill sistemi için)
+    /// </summary>
+    public void TriggerDash()
+    {
+        if (CanDash)
+        {
+            StartDash();
+        }
+    }
+    
+    /// <summary>
+    /// Dash durumunu sıfırla (checkpoint/respawn için)
+    /// </summary>
+    public void ResetDashState()
+    {
+        isDashing = false;
+        canDash = true;
+        dashCooldownTimer = 0f;
+        dashTimeLeft = 0f;
+        body.gravityScale = groundGravity;
+        Physics2D.IgnoreLayerCollision(8, 9, false);
+    }
+    #endregion
 
 }

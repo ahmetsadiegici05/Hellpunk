@@ -4,6 +4,7 @@ using System.Collections;
 /// <summary>
 /// Level 2'de boss'u aktive eder
 /// Oyuncu trigger'a girdiğinde boss spawn olur veya aktive edilir
+/// Checkpoint desteği var - eğer checkpoint boss'un ötesindeyse, boss otomatik aktive olur
 /// </summary>
 public class BossActivator : MonoBehaviour
 {
@@ -16,6 +17,13 @@ public class BossActivator : MonoBehaviour
     [SerializeField] private bool activateOnTrigger = true;
     [SerializeField] private float activationDelay = 0.5f;
     [SerializeField] private bool showWarningText = true;
+    
+    [Header("Checkpoint Integration")]
+    [Tooltip("Bu trigger'ın X pozisyonu. Checkpoint bunun sağındaysa boss otomatik aktive olur.")]
+    [SerializeField] private bool checkCheckpointPosition = true;
+    
+    [Header("Debug")]
+    [SerializeField] private bool debugMode = true;
     
     [Header("Audio")]
     [SerializeField] private AudioClip bossIntroSound;
@@ -31,20 +39,94 @@ public class BossActivator : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
         
-        // Boss başlangıçta inactive olmalı
-        if (bossObject != null && bossObject.activeSelf)
+        // Checkpoint kontrolü - eğer oyuncu checkpoint'ten başlıyorsa ve trigger'ın sağındaysa
+        if (checkCheckpointPosition && CheckpointData.HasCheckpoint)
         {
-            bossObject.SetActive(false);
-            Debug.Log("[BossActivator] Boss başlangıçta devre dışı bırakıldı");
+            float triggerX = transform.position.x;
+            float checkpointX = CheckpointData.LastCheckpointPosition.x;
+            
+            if (checkpointX > triggerX)
+            {
+                // Oyuncu trigger'ın sağında spawn olacak - boss'u hemen aktive et
+                if (debugMode) Debug.Log($"[BossActivator] Checkpoint ({checkpointX:F1}) trigger'ın ({triggerX:F1}) sağında - Boss otomatik aktive edilecek!");
+                bossActivated = true;
+                
+                // Boss'u hemen aktive et (delay olmadan)
+                if (bossObject != null)
+                {
+                    bossObject.SetActive(true);
+                    if (debugMode) Debug.Log("[BossActivator] ✅ Boss checkpoint nedeniyle hemen aktive edildi!");
+                }
+                return; // Start'ın geri kalanını atla
+            }
         }
+        
+        // BAŞLANGIÇTA BOSS'U KAPALI TUT - trigger ile açılacak
+        if (bossObject != null)
+        {
+            // Sadece aktifse kapat
+            if (bossObject.activeSelf)
+            {
+                bossObject.SetActive(false);
+                if (debugMode) Debug.Log("[BossActivator] Boss başlangıçta devre dışı bırakıldı, trigger bekliyor...");
+            }
+            else
+            {
+                if (debugMode) Debug.Log("[BossActivator] Boss zaten inactive");
+            }
+        }
+        else
+        {
+            Debug.LogError("[BossActivator] Boss object atanmamış!");
+        }
+        
+        // Collider kontrolü
+        Collider2D col = GetComponent<Collider2D>();
+        if (col == null)
+        {
+            Debug.LogError("[BossActivator] Trigger collider yok!");
+        }
+        else if (!col.isTrigger)
+        {
+            Debug.LogWarning("[BossActivator] Collider 'Is Trigger' değil! Düzeltiliyor...");
+            col.isTrigger = true;
+        }
+        
+        if (debugMode) Debug.Log($"[BossActivator] Hazır. Trigger aktif: {activateOnTrigger}, Collider: {col != null}");
     }
     
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (!activateOnTrigger || bossActivated) return;
+        if (debugMode) Debug.Log($"[BossActivator] OnTriggerEnter2D: {other.name}, tag: {other.tag}");
+        
+        if (!activateOnTrigger)
+        {
+            if (debugMode) Debug.Log("[BossActivator] activateOnTrigger kapalı!");
+            return;
+        }
+        
+        if (bossActivated)
+        {
+            if (debugMode) Debug.Log("[BossActivator] Boss zaten aktive edilmiş!");
+            return;
+        }
         
         if (other.CompareTag("Player"))
         {
+            if (debugMode) Debug.Log("[BossActivator] ✅ PLAYER TRİGGER'A GİRDİ - BOSS AKTİVE EDİLİYOR!");
+            bossActivated = true;
+            StartCoroutine(ActivateBossSequence());
+        }
+    }
+    
+    // Alternatif: OnTriggerStay da kontrol et (bazen Enter çalışmıyor)
+    private void OnTriggerStay2D(Collider2D other)
+    {
+        if (bossActivated || !activateOnTrigger) return;
+        
+        if (other.CompareTag("Player"))
+        {
+            if (debugMode) Debug.Log("[BossActivator] ✅ PLAYER TRİGGER'DA (Stay) - BOSS AKTİVE EDİLİYOR!");
             bossActivated = true;
             StartCoroutine(ActivateBossSequence());
         }
@@ -53,6 +135,12 @@ public class BossActivator : MonoBehaviour
     private IEnumerator ActivateBossSequence()
     {
         Debug.Log("[BossActivator] Boss aktivasyon sekansı başladı!");
+        
+        // Arena efektlerini aktive et
+        if (BossArenaEffects.Instance != null)
+        {
+            BossArenaEffects.Instance.ActivateBossArena();
+        }
         
         // Uyarı metni göster
         if (showWarningText)
@@ -68,11 +156,11 @@ public class BossActivator : MonoBehaviour
         
         yield return new WaitForSeconds(activationDelay);
         
-        // Boss'u aktive et veya spawn et
+        // Boss'u aktive et
         if (bossObject != null)
         {
             bossObject.SetActive(true);
-            Debug.Log("[BossActivator] Boss aktive edildi: " + bossObject.name);
+            Debug.Log("[BossActivator] ✅ Boss aktive edildi: " + bossObject.name);
             
             // Spawn efekti
             if (EnemySpawnEffect.Instance != null)
@@ -82,19 +170,12 @@ public class BossActivator : MonoBehaviour
         }
         else if (bossPrefab != null && bossSpawnPoint != null)
         {
-            // Prefab'dan spawn et
             GameObject spawnedBoss = Instantiate(bossPrefab, bossSpawnPoint.position, Quaternion.identity);
-            Debug.Log("[BossActivator] Boss spawn edildi: " + spawnedBoss.name);
-            
-            // Spawn efekti
-            if (EnemySpawnEffect.Instance != null)
-            {
-                EnemySpawnEffect.Instance.PlaySpawnEffect(bossSpawnPoint.position, spawnedBoss.transform);
-            }
+            Debug.Log("[BossActivator] ✅ Boss spawn edildi: " + spawnedBoss.name);
         }
         else
         {
-            Debug.LogError("[BossActivator] Boss object veya prefab atanmamış!");
+            Debug.LogError("[BossActivator] ❌ Boss object veya prefab atanmamış!");
         }
         
         // Trigger collider'ı devre dışı bırak (tekrar tetiklenmesin)
@@ -107,15 +188,11 @@ public class BossActivator : MonoBehaviour
     
     private void ShowBossWarning()
     {
-        // Ekranda "BOSS FIGHT" yazısı göster (opsiyonel)
         Debug.Log("[BossActivator] BOSS FIGHT!");
-        
-        // UI'da göstermek için UIManager kullanılabilir
-        // UIManager.Instance?.ShowBossWarning();
     }
     
     /// <summary>
-    /// Manuel olarak boss'u aktive et (başka scriptlerden çağrılabilir)
+    /// Manuel olarak boss'u aktive et
     /// </summary>
     public void ActivateBoss()
     {
@@ -145,7 +222,10 @@ public class BossActivator : MonoBehaviour
             Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
             if (col is BoxCollider2D box)
             {
-                Gizmos.DrawCube(transform.position + (Vector3)box.offset, box.size);
+                Vector3 center = transform.position + (Vector3)box.offset;
+                Gizmos.DrawCube(center, box.size);
+                Gizmos.color = Color.red;
+                Gizmos.DrawWireCube(center, box.size);
             }
         }
         

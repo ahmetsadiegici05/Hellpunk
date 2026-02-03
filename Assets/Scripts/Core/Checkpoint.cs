@@ -25,6 +25,9 @@ public class Checkpoint : MonoBehaviour
 
             CheckpointData.LastCheckpointPosition = transform.position;
             CheckpointData.HasCheckpoint = true;
+            
+            // Level rotasyonunu da kaydet
+            CheckpointData.LastCheckpointRotationZ = GameManager.Instance.lastTransformRotationValue;
 
             StartCoroutine(HasCheckpoint());
 
