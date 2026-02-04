@@ -290,22 +290,23 @@ public class DarkForestEffect : MonoBehaviour
             canvasGroup.alpha = currentAlpha;
         SetVisibility(active);
         
-        // Radar sistemini başlat/kapat
-        if (active)
-            EnsureRadarSystem();
+        // Radar sistemi DEVRE DIŞI - üst ortadaki radar UI kaldırıldı
+        // if (active)
+        //     EnsureRadarSystem();
     }
     
     /// <summary>
-    /// Radar sisteminin var olduğundan emin ol
+    /// Radar sisteminin var olduğundan emin ol (DEVRE DIŞI)
     /// </summary>
     private void EnsureRadarSystem()
     {
-        if (EnemyRadarSystem.Instance == null)
-        {
-            GameObject radarObj = new GameObject("EnemyRadarSystem");
-            radarObj.AddComponent<EnemyRadarSystem>();
-            Debug.Log("[DarkForest] Radar sistemi oluşturuldu!");
-        }
+        // EnemyRadarSystem DEVRE DIŞI
+        // if (EnemyRadarSystem.Instance == null)
+        // {
+        //     GameObject radarObj = new GameObject("EnemyRadarSystem");
+        //     radarObj.AddComponent<EnemyRadarSystem>();
+        //     Debug.Log("[DarkForest] Radar sistemi oluşturuldu!");
+        // }
     }
     
     private IEnumerator FadeIn()

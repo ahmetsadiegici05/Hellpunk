@@ -15,7 +15,7 @@ public class DarkZoneNotification : MonoBehaviour
     
     [Header("Mesajlar")]
     [SerializeField] private string darkZoneMessage = "YOU ARE IN DARK ZONE";
-    [SerializeField] private string subMessage = "Use your radar to detect enemies";
+    [SerializeField] private string subMessage = "Use your demon sense to detect enemies";
     
     [Header("Görünüm")]
     [SerializeField] private float fadeInDuration = 0.3f;
@@ -76,10 +76,60 @@ public class DarkZoneNotification : MonoBehaviour
         wasInDarkZone = false;
     }
     
+    // Pause durumu için state
+    private bool wasPaused = false;
+    
     private void Update()
     {
+        // Main menu'de devre dışı
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.ToLower();
+        if (sceneName.Contains("menu") || sceneName.Contains("main"))
+        {
+            if (isShowing)
+            {
+                HideDarkZoneNotification();
+                wasInDarkZone = false;
+            }
+            return;
+        }
+        
+        bool isPaused = UIManager.Instance != null && UIManager.Instance.IsPaused;
+        bool isGameOver = UIManager.Instance != null && UIManager.Instance.IsGameOver;
+        
+        // GameOver durumunda tamamen kapat
+        if (isGameOver)
+        {
+            if (isShowing)
+            {
+                HideDarkZoneNotification();
+                wasInDarkZone = false;
+            }
+            return;
+        }
+        
+        // Pause açıldığında sadece gizle (wasInDarkZone'u değiştirme)
+        if (isPaused)
+        {
+            if (isShowing)
+            {
+                HideDarkZoneNotification();
+            }
+            wasPaused = true;
+            return;
+        }
+        
         // SimpleDarkOverlay aktif mi kontrol et
         bool isInDarkZone = SimpleDarkOverlay.Instance != null && SimpleDarkOverlay.Instance.IsActive;
+        
+        // Pause'dan çıkıldığında ve hala dark zone'daysa tekrar göster
+        if (wasPaused && isInDarkZone)
+        {
+            ShowDarkZoneNotification();
+            wasPaused = false;
+            wasInDarkZone = true;
+            return;
+        }
+        wasPaused = false;
         
         // Karanlık bölgeye girdiyse göster
         if (isInDarkZone && !wasInDarkZone)

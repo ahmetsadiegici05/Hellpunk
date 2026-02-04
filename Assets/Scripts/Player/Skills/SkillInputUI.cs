@@ -275,7 +275,8 @@ public class SkillInputUI : MonoBehaviour
     private void OnSkillActivated(GuitarSkillSystem.SkillType skillType, List<GuitarSkillSystem.ArrowDirection> sequence)
     {
         Debug.Log($"SkillInputUI: OnSkillActivated - {skillType}, {sequence.Count} arrows");
-        inputStartTime = Time.unscaledTime;
+        // 0.1 saniye offset ile başlat - animasyonun daha akıcı görünmesi için
+        inputStartTime = Time.unscaledTime - 0.1f;
         ShowArrowSequence(skillType, sequence);
     }
 

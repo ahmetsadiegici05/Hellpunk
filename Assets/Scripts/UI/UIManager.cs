@@ -90,6 +90,72 @@ public class UIManager : MonoBehaviour
         
         // Tüm ekranlardaki butonlara animasyon ekle
         SetupButtonAnimations();
+        
+        // Pause ve GameOver ekranlarındaki butonları otomatik bağla
+        SetupMenuButtonListeners();
+    }
+    
+    /// <summary>
+    /// Pause ve GameOver ekranlarındaki butonları isimlerine göre otomatik bağlar
+    /// </summary>
+    private void SetupMenuButtonListeners()
+    {
+        // Pause Screen butonları
+        if (pauseScreen != null)
+        {
+            SetupScreenButtons(pauseScreen);
+        }
+        
+        // GameOver Screen butonları
+        if (gameOverScreen != null)
+        {
+            SetupScreenButtons(gameOverScreen);
+        }
+        
+        // Victory Screen butonları
+        if (victoryScreen != null)
+        {
+            SetupScreenButtons(victoryScreen);
+        }
+    }
+    
+    private void SetupScreenButtons(GameObject screen)
+    {
+        Button[] buttons = screen.GetComponentsInChildren<Button>(true);
+        
+        foreach (Button btn in buttons)
+        {
+            string btnName = btn.name.ToUpper();
+            
+            // Zaten listener varsa temizle
+            btn.onClick.RemoveAllListeners();
+            
+            if (btnName.Contains("RESUME") || btnName.Contains("DEVAM"))
+            {
+                btn.onClick.AddListener(() => { Resume(); });
+                Debug.Log($"[UIManager] Resume butonu bağlandı: {btn.name}");
+            }
+            else if (btnName.Contains("MAINMENU") || btnName.Contains("MAIN") || btnName.Contains("MENU"))
+            {
+                btn.onClick.AddListener(() => { MainMenu(); });
+                Debug.Log($"[UIManager] MainMenu butonu bağlandı: {btn.name}");
+            }
+            else if (btnName.Contains("RESTART") || btnName.Contains("YENIDEN") || btnName.Contains("TEKRAR"))
+            {
+                btn.onClick.AddListener(() => { Restart(); });
+                Debug.Log($"[UIManager] Restart butonu bağlandı: {btn.name}");
+            }
+            else if (btnName.Contains("CHECKPOINT") || btnName.Contains("LAST"))
+            {
+                btn.onClick.AddListener(() => { RestartFromCheckpoint(); });
+                Debug.Log($"[UIManager] Checkpoint butonu bağlandı: {btn.name}");
+            }
+            else if (btnName.Contains("QUIT") || btnName.Contains("EXIT") || btnName.Contains("CIK"))
+            {
+                btn.onClick.AddListener(() => { Application.Quit(); });
+                Debug.Log($"[UIManager] Quit butonu bağlandı: {btn.name}");
+            }
+        }
     }
     
     private void CreateOverlay()

@@ -567,7 +567,7 @@ public class MiniMap2D : MonoBehaviour
         titleContainerRT.anchorMin = new Vector2(0.5f, 1f);
         titleContainerRT.anchorMax = new Vector2(0.5f, 1f);
         titleContainerRT.pivot = new Vector2(0.5f, 0f);
-        titleContainerRT.sizeDelta = new Vector2(80, 20);
+        titleContainerRT.sizeDelta = new Vector2(110, 22); // DEMON SENSE için genişletildi
         titleContainerRT.anchoredPosition = new Vector2(0, 4); // Mini-map'in 4px üstünde
         
         // Başlık arka planı
@@ -613,7 +613,7 @@ public class MiniMap2D : MonoBehaviour
         titleTextObj.transform.SetParent(titleContainer.transform, false);
         
         TextMeshProUGUI titleText = titleTextObj.AddComponent<TextMeshProUGUI>();
-        titleText.text = "RADAR";
+        titleText.text = "DEMON SENSE";
         titleText.fontSize = 12;
         titleText.fontStyle = FontStyles.Bold;
         titleText.color = new Color(0.8f, 0.7f, 1f, 0.9f); // SOUL CHARGES ile aynı mor ton

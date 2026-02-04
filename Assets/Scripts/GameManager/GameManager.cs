@@ -164,14 +164,14 @@ public class GameManager : MonoBehaviour
             return;
         }
         
-        // EnemyRadarSystem yoksa oluştur
-        if (EnemyRadarSystem.Instance == null)
-        {
-            GameObject radarObj = new GameObject("EnemyRadarSystem");
-            radarObj.AddComponent<EnemyRadarSystem>();
-            DontDestroyOnLoad(radarObj);
-            Debug.Log("[GameManager] EnemyRadarSystem oluşturuldu");
-        }
+        // EnemyRadarSystem DEVRE DIŞI - üst ortadaki radar UI kaldırıldı
+        // if (EnemyRadarSystem.Instance == null)
+        // {
+        //     GameObject radarObj = new GameObject("EnemyRadarSystem");
+        //     radarObj.AddComponent<EnemyRadarSystem>();
+        //     DontDestroyOnLoad(radarObj);
+        //     Debug.Log("[GameManager] EnemyRadarSystem oluşturuldu");
+        // }
         
         // DarkZoneTooltip yoksa oluştur
         if (DarkZoneTooltip.Instance == null)

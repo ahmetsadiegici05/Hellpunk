@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Hellpunk.slnx"
+    "dotnet.defaultSolution": "SourceCode.slnx"
 }

@@ -3,14 +3,14 @@ using System;
 
 /// <summary>
 /// Ultimate için Kill sayacı sistemi
-/// 7 düşman öldürüldüğünde Ultimate kullanılabilir
+/// 5 düşman öldürüldüğünde Ultimate kullanılabilir
 /// </summary>
 public class SoulSystem : MonoBehaviour
 {
     public static SoulSystem Instance { get; private set; }
 
     [Header("Ultimate Settings")]
-    [SerializeField] private int killsForUltimate = 0; // 7 kill = 1 Ultimate hakkı
+    [SerializeField] private int killsForUltimate = 5; // 5 kill = 1 Ultimate hakkı
 
     private int currentKills = 0;
     private bool ultimateReady = false;
