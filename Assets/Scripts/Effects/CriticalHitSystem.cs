@@ -46,12 +46,29 @@ public class CriticalHitSystem : MonoBehaviour
     }
     
     /// <summary>
+    /// Dash sırasında saldırı yapılıyor mu kontrolü
+    /// </summary>
+    private bool IsPlayerDashing()
+    {
+        return PlayerMovement.Instance != null && PlayerMovement.Instance.IsDashing;
+    }
+    
+    /// <summary>
     /// Kritik vuruş kontrolü yap ve hasarı döndür
     /// </summary>
     public float CalculateDamage(float baseDamage, out bool isCritical)
     {
         float critChance = CritChance;
-        isCritical = Random.value < critChance;
+        
+        // Dash sırasında %100 kritik şansı
+        if (IsPlayerDashing())
+        {
+            isCritical = true;
+        }
+        else
+        {
+            isCritical = Random.value < critChance;
+        }
         
         float finalDamage = baseDamage;
         
@@ -240,16 +257,25 @@ public class CriticalHitSystem : MonoBehaviour
         
         TMP_Text text = textObj.AddComponent<TextMeshProUGUI>();
         text.text = $"CRITICAL!\n{Mathf.RoundToInt(damage)}";
-        text.fontSize = 36; // Daha küçük font
+        text.fontSize = 28; // Daha kompakt font
         text.fontStyle = FontStyles.Bold;
         text.alignment = TextAlignmentOptions.Center;
-        text.color = critTextColor;
+        text.characterSpacing = 4f; // Harfler arası şık boşluk
         text.enableWordWrapping = false;
         text.overflowMode = TextOverflowModes.Overflow;
         
-        // Outline ekle
-        text.outlineWidth = 0.2f;
-        text.outlineColor = Color.black;
+        // Gradient renk efekti - turuncu'dan sarıya
+        text.enableVertexGradient = true;
+        text.colorGradient = new VertexGradient(
+            new Color(1f, 0.9f, 0.3f),   // Sol üst - parlak sarı
+            new Color(1f, 0.7f, 0.2f),   // Sağ üst - turuncu-sarı
+            new Color(1f, 0.5f, 0.1f),   // Sol alt - turuncu
+            new Color(1f, 0.6f, 0.15f)   // Sağ alt
+        );
+        
+        // Outline ekle - daha belirgin
+        text.outlineWidth = 0.15f;
+        text.outlineColor = new Color(0.3f, 0.1f, 0f, 1f); // Koyu turuncu/kahverengi
         
         RectTransform textRect = text.GetComponent<RectTransform>();
         textRect.anchoredPosition = Vector2.zero;
@@ -287,9 +313,9 @@ public class CriticalHitSystem : MonoBehaviour
             }
             canvasObj.transform.localScale = startScale * scaleMultiplier;
             
-            // Solma
+            // Solma - gradient alpha ile
             float alpha = t < 0.5f ? 1f : 1f - ((t - 0.5f) / 0.5f);
-            text.color = new Color(critTextColor.r, critTextColor.g, critTextColor.b, alpha);
+            text.alpha = alpha;
             
             yield return null;
         }

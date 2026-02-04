@@ -13,6 +13,7 @@ TagManager:
   - RotateMap
   - Boss
   - Portal
+  - PortalPoint
   layers:
   - Default
   - TransparentFX
@@ -67,6 +68,9 @@ TagManager:
     locked: 0
   - name: UI
     uniqueID: 1352109019
+    locked: 0
+  - name: PortalPoint
+    uniqueID: 2403605073
     locked: 0
   m_RenderingLayers:
   - Default

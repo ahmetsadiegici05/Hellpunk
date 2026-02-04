@@ -38,8 +38,21 @@ public class GameManager : MonoBehaviour
     [Header("Chest System")]
     public GameObject portalPrefab;
     public GameObject chestPrefab;
+    [Tooltip("Eski sistem - PortalPoint tag'li objeler otomatik bulunur")]
     public List<Transform> randomPoints;
     public List<Transform> randomPoints2;
+    
+    [Header("Portal Spawn Ayarları")]
+    [Tooltip("Her sahnede spawn edilecek maksimum portal sayısı")]
+    [SerializeField] private int maxPortalsPerScene = 5;
+    [Tooltip("Her spawn noktasında portal çıkma şansı (0-1)")]
+    [Range(0f, 1f)]
+    [SerializeField] private float portalSpawnChance = 0.6f;
+    [Tooltip("Minimum portal sayısı")]
+    [SerializeField] private int minPortals = 2;
+    
+    // Public accessor for PortalPointTrigger
+    public float PortalSpawnChance => portalSpawnChance;
 
     [Header("Ulti")]
     public GameObject ultiObject;
@@ -84,6 +97,7 @@ public class GameManager : MonoBehaviour
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
         EnsureShopManager();
+        EnsureGameFeedbackUI();
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -92,6 +106,7 @@ public class GameManager : MonoBehaviour
         EnsureTimeSlowSystem();
         EnsureGuitarSkillSystem();
         EnsureShopManager();
+        EnsureGameFeedbackUI();
 
         SpawnRandomChests();
         SpawnRandomPortals();
@@ -406,56 +421,105 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (randomPoints == null || randomPoints.Count == 0)
-        {
-            Debug.LogWarning("[GameManager] randomPoints boş!");
-            return;
-        }
-
         // Eski portalları temizle
         GameObject[] oldPortals = GameObject.FindGameObjectsWithTag("Portal");
         foreach (var portal in oldPortals)
             Destroy(portal);
 
-        // Random noktaları kopyala - null olanları filtrele
-        List<Transform> shuffledPoints = new List<Transform>();
-        foreach (var point in randomPoints)
+        // Önce "PortalPoint" tag'li noktaları bul (yeni sistem)
+        List<Transform> spawnPoints = new List<Transform>();
+        GameObject[] portalPoints = GameObject.FindGameObjectsWithTag("PortalPoint");
+        foreach (var point in portalPoints)
         {
             if (point != null)
-                shuffledPoints.Add(point);
+                spawnPoints.Add(point.transform);
         }
 
-        if (shuffledPoints.Count == 0)
+        // Eğer PortalPoint yoksa eski randomPoints listesini kullan
+        if (spawnPoints.Count == 0 && randomPoints != null)
         {
-            Debug.LogWarning("[GameManager] Tüm randomPoints null veya destroyed!");
+            foreach (var point in randomPoints)
+            {
+                if (point != null)
+                    spawnPoints.Add(point);
+            }
+        }
+
+        if (spawnPoints.Count == 0)
+        {
+            Debug.LogWarning("[GameManager] Portal spawn noktası bulunamadı! (PortalPoint tag'li veya randomPoints)");
             return;
         }
 
-        // Fisher–Yates shuffle
-        for (int i = 0; i < shuffledPoints.Count; i++)
+        Debug.Log($"[GameManager] {spawnPoints.Count} portal spawn noktası bulundu");
+
+        // Her nokta için spawn şansını hesapla
+        List<Transform> eligiblePoints = new List<Transform>();
+        
+        foreach (var point in spawnPoints)
         {
-            int rnd = Random.Range(i, shuffledPoints.Count);
-            Transform temp = shuffledPoints[i];
-            shuffledPoints[i] = shuffledPoints[rnd];
-            shuffledPoints[rnd] = temp;
+            if (point == null) continue;
+
+            // Spawn şansına göre ekle
+            if (Random.value < portalSpawnChance)
+            {
+                eligiblePoints.Add(point);
+            }
         }
 
-        int spawnCount = Mathf.Min(5, shuffledPoints.Count);
-        Debug.Log($"[GameManager] {spawnCount} portal spawn edilecek");
-
-        for (int i = 0; i < spawnCount; i++)
+        // Minimum portal sayısını garanti et
+        if (eligiblePoints.Count < minPortals)
         {
-            if (shuffledPoints[i] == null) continue;
+            List<Transform> remaining = new List<Transform>(spawnPoints);
+            foreach (var added in eligiblePoints)
+                remaining.Remove(added);
+
+            // Shuffle remaining
+            for (int i = 0; i < remaining.Count; i++)
+            {
+                int rnd = Random.Range(i, remaining.Count);
+                var temp = remaining[i];
+                remaining[i] = remaining[rnd];
+                remaining[rnd] = temp;
+            }
+
+            int needed = minPortals - eligiblePoints.Count;
+            for (int i = 0; i < needed && i < remaining.Count; i++)
+            {
+                eligiblePoints.Add(remaining[i]);
+            }
+        }
+
+        // Maksimum sayıyı aşmasın
+        if (eligiblePoints.Count > maxPortalsPerScene)
+        {
+            // Shuffle ve kes
+            for (int i = 0; i < eligiblePoints.Count; i++)
+            {
+                int rnd = Random.Range(i, eligiblePoints.Count);
+                var temp = eligiblePoints[i];
+                eligiblePoints[i] = eligiblePoints[rnd];
+                eligiblePoints[rnd] = temp;
+            }
+            eligiblePoints = eligiblePoints.GetRange(0, maxPortalsPerScene);
+        }
+
+        // Portalları spawn et
+        foreach (var point in eligiblePoints)
+        {
+            if (point == null) continue;
             
             GameObject portal = Instantiate(
                 portalPrefab,
-                shuffledPoints[i].position,
+                point.position,
                 Quaternion.identity,
-                shuffledPoints[i] // parent olarak point
+                point // parent olarak point
             );
 
-            Debug.Log($"[GameManager] Portal {i + 1} spawnlandı: {shuffledPoints[i].position}");
+            Debug.Log($"[GameManager] Portal spawnlandı: {point.position}");
         }
+
+        Debug.Log($"[GameManager] Toplam {eligiblePoints.Count} portal spawn edildi");
     }
 
     // ================= SYSTEMS =================
@@ -545,6 +609,32 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance != null && UIManager.Instance.shopManager == null)
         {
             UIManager.Instance.shopManager = ShopManager.Instance;
+        }
+    }
+    
+    /// <summary>
+    /// GameFeedbackUI sistemini kontrol et ve yoksa oluştur
+    /// Dash yazısı ve skill input feedback'i için
+    /// </summary>
+    private void EnsureGameFeedbackUI()
+    {
+        // MainMenu'de oluşturma
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name.ToLower();
+        if (sceneName.Contains("menu") || sceneName.Contains("main"))
+        {
+            return;
+        }
+        
+        if (GameFeedbackUI.Instance == null)
+        {
+            var existing = FindFirstObjectByType<GameFeedbackUI>();
+            if (existing == null)
+            {
+                GameObject feedbackObj = new GameObject("GameFeedbackUI");
+                feedbackObj.AddComponent<GameFeedbackUI>();
+                DontDestroyOnLoad(feedbackObj);
+                Debug.Log("[GameManager] GameFeedbackUI oluşturuldu");
+            }
         }
     }
 

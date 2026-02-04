@@ -6642,6 +6642,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 310121244}
   m_CullTransparentMesh: 1
+--- !u!1 &321056624
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 321056625}
+  m_Layer: 0
+  m_Name: PortalPoint
+  m_TagString: PortalPoint
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &321056625
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 321056624}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.29, y: -2.34, z: 0}
+  m_LocalScale: {x: 1, y: 0.57, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &327782808
 GameObject:
   m_ObjectHideFlags: 0
@@ -282424,6 +282455,9 @@ MonoBehaviour:
   - {fileID: 2021715870}
   - {fileID: 730600397}
   - {fileID: 287254017}
+  maxPortalsPerScene: 5
+  portalSpawnChance: 0.6
+  minPortals: 2
   ultiObject: {fileID: 1365521249}
   ultiAnimator: {fileID: 1365521251}
   chestRoomSpawnPoint: {fileID: 549518053}
@@ -284678,6 +284712,53 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1377680074
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1377680076}
+  - component: {fileID: 1377680075}
+  m_Layer: 0
+  m_Name: PortalPoint (1)
+  m_TagString: PortalPoint
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1377680075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377680074}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdfc9d37aa660e240a2f2d34f205046c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waitForRotation: 1
+  spawnDelay: 0.5
+  debugMode: 0
+--- !u!4 &1377680076
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1377680074}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 111.87, y: 0.74, z: 0}
+  m_LocalScale: {x: 1, y: 0.57, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1381869856
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -332328,3 +332409,5 @@ SceneRoots:
   - {fileID: 1147200924}
   - {fileID: 1988278890}
   - {fileID: 1757079097}
+  - {fileID: 321056625}
+  - {fileID: 1377680076}

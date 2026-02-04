@@ -169075,6 +169075,9 @@ MonoBehaviour:
   - {fileID: 928488458}
   - {fileID: 1583086546}
   - {fileID: 1144340534}
+  maxPortalsPerScene: 5
+  portalSpawnChance: 0.6
+  minPortals: 2
   ultiObject: {fileID: 0}
   ultiAnimator: {fileID: 0}
   chestRoomSpawnPoint: {fileID: 887113592}
@@ -171724,6 +171727,37 @@ SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 8498996296718867978, guid: 1fdb84a8def884dffb35f1762364f367, type: 3}
   m_PrefabInstance: {fileID: 7906366224115751075}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1523611155
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1523611156}
+  m_Layer: 0
+  m_Name: PortalPoint
+  m_TagString: PortalPoint
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1523611156
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1523611155}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 116.5, y: -2.39, z: 0}
+  m_LocalScale: {x: 1, y: 0.57, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1527320687 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2029709533793420489, guid: 0b57361da9d50984b8cc141746e5cf19, type: 3}
@@ -179191,7 +179225,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3499254852559847999, guid: edf8e46dad5fcfa4884a4da94032792a, type: 3}
       propertyPath: darkIntensity
-      value: 0.99
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7166481809988306501, guid: edf8e46dad5fcfa4884a4da94032792a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -196820,3 +196854,4 @@ SceneRoots:
   - {fileID: 1763459562}
   - {fileID: 13242857064244116}
   - {fileID: 844833809}
+  - {fileID: 1523611156}

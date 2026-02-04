@@ -28,6 +28,7 @@ public class EffectsManager : MonoBehaviour
     [SerializeField] private bool enableHeatDistortion = true;
     [SerializeField] private bool enableWeatherEffects = true;
     [SerializeField] private bool enableSkillColorBurst = true;
+    [SerializeField] private bool enableAbilityPickup = true;
     [SerializeField] private WeatherEffects.WeatherType defaultWeather = WeatherEffects.WeatherType.Embers;
     
     private void Awake()
@@ -182,6 +183,14 @@ public class EffectsManager : MonoBehaviour
             GameObject burstObj = new GameObject("SkillColorBurst");
             burstObj.transform.SetParent(transform);
             burstObj.AddComponent<SkillColorBurst>();
+        }
+        
+        // Ability Pickup Effect - Sandıktan ability çıkınca efekt
+        if (enableAbilityPickup && AbilityPickupEffect.Instance == null)
+        {
+            GameObject abilityObj = new GameObject("AbilityPickupEffect");
+            abilityObj.transform.SetParent(transform);
+            abilityObj.AddComponent<AbilityPickupEffect>();
         }
         
         Debug.Log("[EffectsManager] Tüm efekt sistemleri başlatıldı!");

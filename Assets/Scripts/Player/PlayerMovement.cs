@@ -890,6 +890,12 @@ public class PlayerMovement : MonoBehaviour
             ScreenShake.Instance.ShakeLight();
         }
         
+        // Dash UI feedback - şık DASH yazısı
+        if (GameFeedbackUI.Instance != null)
+        {
+            GameFeedbackUI.Instance.ShowDashText();
+        }
+        
         // Dash sesi (varsa)
         if (GameManager.Instance != null)
         {

@@ -311,11 +311,13 @@ public class EnemyHealth : MonoBehaviour
 
         if (isDamagableObject) 
         {
-            if (particleSystem != null) particleSystem.Play();
             if (healthBar != null) Destroy(healthBar.gameObject);
             
-            // Sandık kırıldığında coin ver
-            GiveDirectReward();
+            // Sandık kırıldığında ödül ver (coin çıkarsa particle oynat)
+            bool coinDropped = GiveDirectReward();
+            if (coinDropped && particleSystem != null) 
+                particleSystem.Play();
+            
             animator.SetTrigger("Open");
             
             StartCoroutine(FadeAndDestroy());
@@ -555,10 +557,80 @@ public class EnemyHealth : MonoBehaviour
 
     #region Puzzle System
     
-    private void GiveDirectReward()
+    // Sandık ödül sırası: 0=Coin, 1=Heal, 2=Fireball
+    private static int chestRewardIndex = 0;
+    
+    /// <summary>
+    /// Sandıktan ödül verir. Coin çıkarsa true, ability çıkarsa false döner.
+    /// Sırayla: Coin → Heal → Fireball → Coin → ...
+    /// </summary>
+    private bool GiveDirectReward()
     {
-        GameManager.Instance.coin += 15; // Dengeli ekonomi
-        Debug.Log($"[EnemyHealth] Direkt ödül verildi: 15 coin");
+        if (GuitarSkillSystem.Instance != null)
+        {
+            // Sırayla döngü: 0=Coin, 1=Heal, 2=Fireball
+            int currentReward = chestRewardIndex;
+            chestRewardIndex = (chestRewardIndex + 1) % 3; // Sonraki için güncelle
+            
+            switch (currentReward)
+            {
+                case 0: // Coin
+                    int coinReward = 25;
+                    GameManager.Instance.coin += coinReward;
+                    Debug.Log($"[EnemyHealth] Sandıktan +{coinReward} coin çıktı!");
+                    ShowAbilityPickupText($"+{coinReward} COIN", new Color(1f, 0.85f, 0.2f));
+                    
+                    if (CoinCollectEffect.Instance != null)
+                        CoinCollectEffect.Instance.PlayCoinEffect(transform.position);
+                    return true;
+                    
+                case 1: // Heal
+                    GuitarSkillSystem.Instance.AddHealCharges(1);
+                    Debug.Log($"[EnemyHealth] Sandıktan +1 Heal ability çıktı!");
+                    ShowAbilityPickupText("HEAL +1", new Color(0.2f, 0.8f, 0.4f));
+                    
+                    if (AbilityPickupEffect.Instance != null)
+                        AbilityPickupEffect.Instance.PlayHealEffect(transform.position);
+                    return false;
+                    
+                case 2: // Fireball
+                    GuitarSkillSystem.Instance.AddFireballCharges(1);
+                    Debug.Log($"[EnemyHealth] Sandıktan +1 Fireball ability çıktı!");
+                    ShowAbilityPickupText("FIREBALL +1", new Color(1f, 0.5f, 0.1f));
+                    
+                    if (AbilityPickupEffect.Instance != null)
+                        AbilityPickupEffect.Instance.PlayFireballEffect(transform.position);
+                    return false;
+            }
+        }
+        
+        // Fallback - skill sistemi yoksa coin ver
+        GameManager.Instance.coin += 15;
+        Debug.Log($"[EnemyHealth] GuitarSkillSystem bulunamadı, 15 coin verildi");
+        return true;
+    }
+    
+    private void ShowAbilityPickupText(string text, Color color)
+    {
+        // FloatingDamageText prefab'ını kullanarak ability pickup text göster
+        GameObject prefab = Resources.Load<GameObject>("FloatingDamageText");
+        if (prefab == null) 
+        {
+            Debug.LogWarning("[EnemyHealth] FloatingDamageText prefab'ı Resources'ta bulunamadı!");
+            return;
+        }
+        
+        Vector3 spawnPos = transform.position + new Vector3(0f, 1.5f, 0f);
+        GameObject textObj = Instantiate(prefab, spawnPos, Quaternion.identity);
+        
+        // Text içeriğini ve rengini ayarla
+        TMPro.TextMeshProUGUI tmpText = textObj.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        if (tmpText != null)
+        {
+            tmpText.text = text;
+            tmpText.color = color;
+            tmpText.fontSize = 6; // Ability text için biraz daha büyük
+        }
     }
     
     #endregion

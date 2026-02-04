@@ -72,8 +72,8 @@ public class RotateOnTrigger : MonoBehaviour
             StartCoroutine(KeyPressFeedback());
         }
         
-        // Smooth progress bar animasyonu
-        currentProgress = Mathf.Lerp(currentProgress, targetProgress, Time.deltaTime * 12f);
+        // Smooth progress bar animasyonu - daha yavaş interpolasyon
+        currentProgress = Mathf.Lerp(currentProgress, targetProgress, Time.deltaTime * 8f);
         if (mainProgressBar != null)
         {
             mainProgressBar.fillAmount = currentProgress;
@@ -87,6 +87,7 @@ public class RotateOnTrigger : MonoBehaviour
             }
         }
     }
+    
     
     private IEnumerator KeyPressFeedback()
     {
@@ -117,7 +118,7 @@ public class RotateOnTrigger : MonoBehaviour
         currentPressCount = 0;
         currentProgress = 0f;
         targetProgress = 0f;
-        requiredPressCount = 7; // Force 7 presses
+        requiredPressCount = 14; // 14 kez basılması gerekiyor
         qteActive = true;
         GameManager.Instance.isRotation = true;
 
@@ -165,6 +166,29 @@ public class RotateOnTrigger : MonoBehaviour
             
         PlayerMovement.Instance.lockMovement = false;
         GameManager.Instance.isRotation = false;
+        
+        // Rotasyon sonrası delayed portal spawn - rotationRoot altındaki PortalPointTrigger'ları tetikle
+        TriggerDelayedPortalSpawns();
+    }
+    
+    /// <summary>
+    /// Rotasyon tamamlandıktan sonra delayed portal spawn'ları tetikler
+    /// </summary>
+    private void TriggerDelayedPortalSpawns()
+    {
+        if (rotationRoot == null) return;
+        
+        // rotationRoot altındaki tüm PortalPointTrigger'ları bul ve tetikle
+        PortalPointTrigger[] portalPoints = rotationRoot.GetComponentsInChildren<PortalPointTrigger>(true);
+        foreach (var point in portalPoints)
+        {
+            if (point != null)
+            {
+                point.OnRotationComplete();
+            }
+        }
+        
+        Debug.Log($"[RotateOnTrigger] {portalPoints.Length} delayed portal point tetiklendi");
     }
     
     private IEnumerator ShowResult(bool success)
