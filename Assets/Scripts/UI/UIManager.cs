@@ -147,7 +147,7 @@ public class UIManager : MonoBehaviour
             }
             else if (btnName.Contains("CHECKPOINT") || btnName.Contains("LAST"))
             {
-                btn.onClick.AddListener(() => { RestartFromCheckpoint(); });
+                btn.onClick.AddListener(() => { ContinueFromCheckpoint(); });
                 Debug.Log($"[UIManager] Checkpoint butonu bağlandı: {btn.name}");
             }
             else if (btnName.Contains("QUIT") || btnName.Contains("EXIT") || btnName.Contains("CIK"))

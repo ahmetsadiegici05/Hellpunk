@@ -87,7 +87,7 @@ public class DarkZoneNotification : MonoBehaviour
         {
             if (isShowing)
             {
-                HideDarkZoneNotification();
+                HideNotification(); // Anında gizle
                 wasInDarkZone = false;
             }
             return;
@@ -101,18 +101,18 @@ public class DarkZoneNotification : MonoBehaviour
         {
             if (isShowing)
             {
-                HideDarkZoneNotification();
+                HideNotification(); // Anında gizle
                 wasInDarkZone = false;
             }
             return;
         }
         
-        // Pause açıldığında sadece gizle (wasInDarkZone'u değiştirme)
+        // Pause açıldığında anında gizle (wasInDarkZone'u değiştirme)
         if (isPaused)
         {
             if (isShowing)
             {
-                HideDarkZoneNotification();
+                HideNotification(); // Anında gizle, animasyon bekleme
             }
             wasPaused = true;
             return;
