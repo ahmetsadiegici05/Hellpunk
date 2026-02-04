@@ -404,6 +404,8 @@ public class GuitarSkillSystem : MonoBehaviour
         if (pressCount == 1)
         {
             ArrowDirection pressedDirection;
+            if (currentSkillType != SkillType.Ultimate) anim.SetTrigger("PlayerGuitarBroke");
+            if (currentSkillType == SkillType.Ultimate) anim.SetTrigger("Ulti");
             
             if (upPressed)
                 pressedDirection = ArrowDirection.Up;

@@ -1,0 +1,700 @@
+fileFormatVersion: 2
+guid: a1bc463d6ba0c42148171dae4c094260
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3742821593554139940
+    second: eastsheet_0
+  - first:
+      213: 1444451541622128200
+    second: eastsheet_1
+  - first:
+      213: 2664357324750225983
+    second: eastsheet_2
+  - first:
+      213: 7310278827369838247
+    second: eastsheet_3
+  - first:
+      213: 5464721313965390736
+    second: eastsheet_4
+  - first:
+      213: -4159973719819461857
+    second: eastsheet_5
+  - first:
+      213: -2949500575406912056
+    second: eastsheet_6
+  - first:
+      213: -6753314195420192993
+    second: eastsheet_7
+  - first:
+      213: 6844689840235695456
+    second: eastsheet_8
+  - first:
+      213: 1196120900117728139
+    second: eastsheet_9
+  - first:
+      213: -4389354700775654683
+    second: eastsheet_10
+  - first:
+      213: -3580999912748755168
+    second: eastsheet_11
+  - first:
+      213: -1927846632267671109
+    second: eastsheet_12
+  - first:
+      213: -105822375851599392
+    second: eastsheet_13
+  - first:
+      213: 6400376469368876661
+    second: eastsheet_14
+  - first:
+      213: -515902557938719240
+    second: eastsheet_15
+  - first:
+      213: 1775713098039341132
+    second: eastsheet_16
+  - first:
+      213: -4265283996109837647
+    second: eastsheet_17
+  - first:
+      213: 2340840747780503426
+    second: eastsheet_18
+  - first:
+      213: -1536995443163144382
+    second: eastsheet_19
+  - first:
+      213: 387565539942252033
+    second: eastsheet_20
+  - first:
+      213: 4407672588808634269
+    second: eastsheet_21
+  - first:
+      213: 3014918701927889660
+    second: eastsheet_22
+  - first:
+      213: -4381446564473641751
+    second: eastsheet_23
+  - first:
+      213: -6022959580083667772
+    second: eastsheet_24
+  - first:
+      213: -2877790768572159246
+    second: eastsheet_25
+  - first:
+      213: -1615130037319008789
+    second: eastsheet_26
+  - first:
+      213: -2538786831970564512
+    second: eastsheet_27
+  - first:
+      213: -8311460442972977562
+    second: eastsheet_28
+  - first:
+      213: -7767553618294156261
+    second: eastsheet_29
+  - first:
+      213: 1224692460877934075
+    second: eastsheet_30
+  - first:
+      213: -4508226014243487331
+    second: eastsheet_31
+  - first:
+      213: 5217585843732437833
+    second: eastsheet_32
+  - first:
+      213: 8463306019094979601
+    second: eastsheet_33
+  - first:
+      213: -8175733829757194198
+    second: eastsheet_34
+  - first:
+      213: -1899316121575680557
+    second: eastsheet_35
+  - first:
+      213: 5827434123340982764
+    second: eastsheet_36
+  - first:
+      213: 2708486128945907805
+    second: eastsheet_37
+  - first:
+      213: 3904713139192997607
+    second: eastsheet_38
+  - first:
+      213: -997813648458389153
+    second: eastsheet_39
+  - first:
+      213: 5723170466593514223
+    second: eastsheet_40
+  - first:
+      213: -5578157320309918679
+    second: eastsheet_41
+  - first:
+      213: 7145302803470306497
+    second: eastsheet_42
+  - first:
+      213: -6111655097634720690
+    second: eastsheet_43
+  - first:
+      213: -3950550744153793624
+    second: eastsheet_44
+  - first:
+      213: 2573432241374877100
+    second: eastsheet_45
+  - first:
+      213: 9036137248507198817
+    second: eastsheet_46
+  - first:
+      213: 3870272837627184444
+    second: eastsheet_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 60
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: eastsheet_0
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 16
+        width: 53
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42bb475b86c21f330800000000000000
+      internalID: 3742821593554139940
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_1
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 16
+        width: 65
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 84ef6a92609bb0410800000000000000
+      internalID: 1444451541622128200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_2
+      rect:
+        serializedVersion: 2
+        x: 339
+        y: 16
+        width: 53
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f328278ded2b9f420800000000000000
+      internalID: 2664357324750225983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_3
+      rect:
+        serializedVersion: 2
+        x: 482
+        y: 16
+        width: 56
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7a6307aacd3537560800000000000000
+      internalID: 7310278827369838247
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_4
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 16
+        width: 82
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 09bb96be41796db40800000000000000
+      internalID: 5464721313965390736
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_6
+      rect:
+        serializedVersion: 2
+        x: 751
+        y: 16
+        width: 82
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cd8f029ad44117d0800000000000000
+      internalID: -2949500575406912056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_8
+      rect:
+        serializedVersion: 2
+        x: 889
+        y: 16
+        width: 87
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06d49fc15293dfe50800000000000000
+      internalID: 6844689840235695456
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_10
+      rect:
+        serializedVersion: 2
+        x: 1036
+        y: 16
+        width: 86
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5ea731bc721e513c0800000000000000
+      internalID: -4389354700775654683
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_11
+      rect:
+        serializedVersion: 2
+        x: 1203
+        y: 16
+        width: 53
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 027d7e36d8bbd4ec0800000000000000
+      internalID: -3580999912748755168
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_12
+      rect:
+        serializedVersion: 2
+        x: 1346
+        y: 16
+        width: 56
+        height: 106
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb9904eb3b9ee35e0800000000000000
+      internalID: -1927846632267671109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_13
+      rect:
+        serializedVersion: 2
+        x: 1490
+        y: 16
+        width: 54
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0e9d31e1c1b088ef0800000000000000
+      internalID: -105822375851599392
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_14
+      rect:
+        serializedVersion: 2
+        x: 1615
+        y: 16
+        width: 81
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57e208dfc74b2d850800000000000000
+      internalID: 6400376469368876661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_16
+      rect:
+        serializedVersion: 2
+        x: 1759
+        y: 16
+        width: 82
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c40b4af87a994a810800000000000000
+      internalID: 1775713098039341132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_18
+      rect:
+        serializedVersion: 2
+        x: 1903
+        y: 16
+        width: 81
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 287773ff1465c7020800000000000000
+      internalID: 2340840747780503426
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_20
+      rect:
+        serializedVersion: 2
+        x: 2044
+        y: 16
+        width: 87
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 10eb07f1ec8e06500800000000000000
+      internalID: 387565539942252033
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eastsheet_21
+      rect:
+        serializedVersion: 2
+        x: 2211
+        y: 16
+        width: 56
+        height: 108
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9f3a2eddd23b2d30800000000000000
+      internalID: 4407672588808634269
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 2bc288cb38960479cae113d7548af635
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      eastsheet_0: 3742821593554139940
+      eastsheet_1: 1444451541622128200
+      eastsheet_10: -4389354700775654683
+      eastsheet_11: -3580999912748755168
+      eastsheet_12: -1927846632267671109
+      eastsheet_13: -105822375851599392
+      eastsheet_14: 6400376469368876661
+      eastsheet_15: -515902557938719240
+      eastsheet_16: 1775713098039341132
+      eastsheet_17: -4265283996109837647
+      eastsheet_18: 2340840747780503426
+      eastsheet_19: -1536995443163144382
+      eastsheet_2: 2664357324750225983
+      eastsheet_20: 387565539942252033
+      eastsheet_21: 4407672588808634269
+      eastsheet_22: 3014918701927889660
+      eastsheet_23: -4381446564473641751
+      eastsheet_24: -6022959580083667772
+      eastsheet_25: -2877790768572159246
+      eastsheet_26: -1615130037319008789
+      eastsheet_27: -2538786831970564512
+      eastsheet_28: -8311460442972977562
+      eastsheet_29: -7767553618294156261
+      eastsheet_3: 7310278827369838247
+      eastsheet_30: 1224692460877934075
+      eastsheet_31: -4508226014243487331
+      eastsheet_32: 5217585843732437833
+      eastsheet_33: 8463306019094979601
+      eastsheet_34: -8175733829757194198
+      eastsheet_35: -1899316121575680557
+      eastsheet_36: 5827434123340982764
+      eastsheet_37: 2708486128945907805
+      eastsheet_38: 3904713139192997607
+      eastsheet_39: -997813648458389153
+      eastsheet_4: 5464721313965390736
+      eastsheet_40: 5723170466593514223
+      eastsheet_41: -5578157320309918679
+      eastsheet_42: 7145302803470306497
+      eastsheet_43: -6111655097634720690
+      eastsheet_44: -3950550744153793624
+      eastsheet_45: 2573432241374877100
+      eastsheet_5: -4159973719819461857
+      eastsheet_6: -2949500575406912056
+      eastsheet_7: -6753314195420192993
+      eastsheet_8: 6844689840235695456
+      eastsheet_9: 1196120900117728139
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

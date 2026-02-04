@@ -10,7 +10,7 @@ public class SoulSystem : MonoBehaviour
     public static SoulSystem Instance { get; private set; }
 
     [Header("Ultimate Settings")]
-    [SerializeField] private int killsForUltimate = 7; // 7 kill = 1 Ultimate hakkı
+    [SerializeField] private int killsForUltimate = 0; // 7 kill = 1 Ultimate hakkı
 
     private int currentKills = 0;
     private bool ultimateReady = false;

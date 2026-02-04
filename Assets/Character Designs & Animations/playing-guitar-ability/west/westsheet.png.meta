@@ -1,0 +1,1404 @@
+fileFormatVersion: 2
+guid: 9cd6c15e901df4191bce7435e6ea48d3
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -5163919600162926463
+    second: westsheet_0
+  - first:
+      213: 5130863056660891111
+    second: westsheet_1
+  - first:
+      213: -1893178420695021570
+    second: westsheet_2
+  - first:
+      213: -2971276571634780595
+    second: westsheet_3
+  - first:
+      213: -6278747843551771306
+    second: westsheet_4
+  - first:
+      213: 411741885934355053
+    second: westsheet_5
+  - first:
+      213: -7995729817283060356
+    second: westsheet_6
+  - first:
+      213: 8960174520791850798
+    second: westsheet_7
+  - first:
+      213: 8509043113009175506
+    second: westsheet_8
+  - first:
+      213: 6328859842719623043
+    second: westsheet_9
+  - first:
+      213: 5197254990030304515
+    second: westsheet_10
+  - first:
+      213: 8926875742594954054
+    second: westsheet_11
+  - first:
+      213: -8418244521674130585
+    second: westsheet_12
+  - first:
+      213: -8159361085223945559
+    second: westsheet_13
+  - first:
+      213: 7415857848022654252
+    second: westsheet_14
+  - first:
+      213: 4048962598486545517
+    second: westsheet_15
+  - first:
+      213: -4900772686358121775
+    second: westsheet_16
+  - first:
+      213: -862203226254192216
+    second: westsheet_17
+  - first:
+      213: -2678257600375895395
+    second: westsheet_18
+  - first:
+      213: -1185857427461495532
+    second: westsheet_19
+  - first:
+      213: -514770667358084389
+    second: westsheet_20
+  - first:
+      213: -5313765535912445000
+    second: westsheet_21
+  - first:
+      213: 3264176878817891058
+    second: westsheet_22
+  - first:
+      213: 8860983283238848060
+    second: westsheet_23
+  - first:
+      213: 6300964072159057350
+    second: westsheet_24
+  - first:
+      213: 4247037106888004182
+    second: westsheet_25
+  - first:
+      213: -1236295773449737569
+    second: westsheet_26
+  - first:
+      213: -8543125719347980704
+    second: westsheet_27
+  - first:
+      213: 2028560059036518061
+    second: westsheet_28
+  - first:
+      213: -8216156369361688507
+    second: westsheet_29
+  - first:
+      213: -2330813881098041898
+    second: westsheet_30
+  - first:
+      213: 6516051623571217726
+    second: westsheet_31
+  - first:
+      213: 116919978053513258
+    second: westsheet_32
+  - first:
+      213: -6735269768581701350
+    second: westsheet_33
+  - first:
+      213: -6642317210723261934
+    second: westsheet_34
+  - first:
+      213: -7113827744874573233
+    second: westsheet_35
+  - first:
+      213: -5296562557921673332
+    second: westsheet_36
+  - first:
+      213: 4751834126895418866
+    second: westsheet_37
+  - first:
+      213: 2561226567474863675
+    second: westsheet_38
+  - first:
+      213: -2215748354689516929
+    second: westsheet_39
+  - first:
+      213: 3559084155693610810
+    second: westsheet_40
+  - first:
+      213: -7674244029818185587
+    second: westsheet_41
+  - first:
+      213: 8634277118388750453
+    second: westsheet_42
+  - first:
+      213: -3988264401288173125
+    second: westsheet_43
+  - first:
+      213: 2624365888840520211
+    second: westsheet_44
+  - first:
+      213: 7664654825513252802
+    second: westsheet_45
+  - first:
+      213: -4696706222131008438
+    second: westsheet_46
+  - first:
+      213: 2857628189113017379
+    second: westsheet_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: westsheet_0
+      rect:
+        serializedVersion: 2
+        x: 37
+        y: 17
+        width: 56
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1809c97bb721658b0800000000000000
+      internalID: -5163919600162926463
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_1
+      rect:
+        serializedVersion: 2
+        x: 182
+        y: 17
+        width: 55
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7e5827bf3cc743740800000000000000
+      internalID: 5130863056660891111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_2
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 83
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ef7c902c1441ab5e0800000000000000
+      internalID: -1893178420695021570
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_3
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 17
+        width: 56
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d46b44a53b7e3c6d0800000000000000
+      internalID: -2971276571634780595
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_4
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 83
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 655c8de3a186dd8a0800000000000000
+      internalID: -6278747843551771306
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_5
+      rect:
+        serializedVersion: 2
+        x: 470
+        y: 17
+        width: 55
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d624442501dc6b500800000000000000
+      internalID: 411741885934355053
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_6
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 85
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c7d18d82816790190800000000000000
+      internalID: -7995729817283060356
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_7
+      rect:
+        serializedVersion: 2
+        x: 614
+        y: 17
+        width: 55
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e2fdd4de04fe85c70800000000000000
+      internalID: 8960174520791850798
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_8
+      rect:
+        serializedVersion: 2
+        x: 760
+        y: 17
+        width: 54
+        height: 107
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2db5561e0a1361670800000000000000
+      internalID: 8509043113009175506
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_9
+      rect:
+        serializedVersion: 2
+        x: 902
+        y: 17
+        width: 56
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 387a986ce70a4d750800000000000000
+      internalID: 6328859842719623043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_10
+      rect:
+        serializedVersion: 2
+        x: 1048
+        y: 17
+        width: 53
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 305f1ef80eb502840800000000000000
+      internalID: 5197254990030304515
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_11
+      rect:
+        serializedVersion: 2
+        x: 1190
+        y: 17
+        width: 56
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6437c67f032a2eb70800000000000000
+      internalID: 8926875742594954054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_12
+      rect:
+        serializedVersion: 2
+        x: 1250
+        y: 84
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76b3c3595336c2b80800000000000000
+      internalID: -8418244521674130585
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_13
+      rect:
+        serializedVersion: 2
+        x: 1336
+        y: 17
+        width: 53
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9aab419b25024ce80800000000000000
+      internalID: -8159361085223945559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_14
+      rect:
+        serializedVersion: 2
+        x: 1396
+        y: 80
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c2dde200c6b6ae660800000000000000
+      internalID: 7415857848022654252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_15
+      rect:
+        serializedVersion: 2
+        x: 1478
+        y: 17
+        width: 55
+        height: 105
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d6412afe70ec03830800000000000000
+      internalID: 4048962598486545517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_16
+      rect:
+        serializedVersion: 2
+        x: 1535
+        y: 89
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d2ffa80535fcfbb0800000000000000
+      internalID: -4900772686358121775
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_17
+      rect:
+        serializedVersion: 2
+        x: 1624
+        y: 17
+        width: 53
+        height: 104
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a15ceedbb6d804f0800000000000000
+      internalID: -862203226254192216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_18
+      rect:
+        serializedVersion: 2
+        x: 1766
+        y: 17
+        width: 56
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d9aca9807eae4dad0800000000000000
+      internalID: -2678257600375895395
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_19
+      rect:
+        serializedVersion: 2
+        x: 1912
+        y: 17
+        width: 53
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 41526e1e3fcfa8fe0800000000000000
+      internalID: -1185857427461495532
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_20
+      rect:
+        serializedVersion: 2
+        x: 2054
+        y: 17
+        width: 65
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bd2a45f2eca2bd8f0800000000000000
+      internalID: -514770667358084389
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_21
+      rect:
+        serializedVersion: 2
+        x: 2200
+        y: 17
+        width: 53
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bbb93c0666b146b0800000000000000
+      internalID: -5313765535912445000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_22
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 79
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f2dbf1b39fac4d20800000000000000
+      internalID: 3264176878817891058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_23
+      rect:
+        serializedVersion: 2
+        x: 1471
+        y: 69
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c36402e395988fa70800000000000000
+      internalID: 8860983283238848060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_24
+      rect:
+        serializedVersion: 2
+        x: 1545
+        y: 69
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c51a8f8075817750800000000000000
+      internalID: 6300964072159057350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_25
+      rect:
+        serializedVersion: 2
+        x: 1679
+        y: 79
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 65256f73fb180fa30800000000000000
+      internalID: 4247037106888004182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_26
+      rect:
+        serializedVersion: 2
+        x: 172
+        y: 65
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9a26325b8bc7dee0800000000000000
+      internalID: -1236295773449737569
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_27
+      rect:
+        serializedVersion: 2
+        x: 251
+        y: 65
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06692c2fb68b07980800000000000000
+      internalID: -8543125719347980704
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_28
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 64
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: da6ca6c30a4e62c10800000000000000
+      internalID: 2028560059036518061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_29
+      rect:
+        serializedVersion: 2
+        x: 393
+        y: 64
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 548222920595afd80800000000000000
+      internalID: -8216156369361688507
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_30
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 68
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d50a93df1947afd0800000000000000
+      internalID: -2330813881098041898
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_31
+      rect:
+        serializedVersion: 2
+        x: 537
+        y: 68
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e3dd1199d6aad6a50800000000000000
+      internalID: 6516051623571217726
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_32
+      rect:
+        serializedVersion: 2
+        x: 607
+        y: 63
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a20b60fb9126f9100800000000000000
+      internalID: 116919978053513258
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_33
+      rect:
+        serializedVersion: 2
+        x: 681
+        y: 63
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a11a24994d38782a0800000000000000
+      internalID: -6735269768581701350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_34
+      rect:
+        serializedVersion: 2
+        x: 1182
+        y: 63
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 212606970bfb1d3a0800000000000000
+      internalID: -6642317210723261934
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_35
+      rect:
+        serializedVersion: 2
+        x: 1260
+        y: 63
+        width: 9
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f42de615b5b964d90800000000000000
+      internalID: -7113827744874573233
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_36
+      rect:
+        serializedVersion: 2
+        x: 1328
+        y: 61
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8fb17c7a64de76b0800000000000000
+      internalID: -5296562557921673332
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_37
+      rect:
+        serializedVersion: 2
+        x: 1406
+        y: 61
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fd0e2d46f7e1f140800000000000000
+      internalID: 4751834126895418866
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_38
+      rect:
+        serializedVersion: 2
+        x: 1615
+        y: 63
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3ed1af3efd4b8320800000000000000
+      internalID: 2561226567474863675
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_39
+      rect:
+        serializedVersion: 2
+        x: 1689
+        y: 63
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f7a33176c941041e0800000000000000
+      internalID: -2215748354689516929
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_40
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 47
+        width: 9
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a37b6d9ce28646130800000000000000
+      internalID: 3559084155693610810
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_41
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 45
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d88560bf6bb9f7590800000000000000
+      internalID: -7674244029818185587
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_42
+      rect:
+        serializedVersion: 2
+        x: 527
+        y: 50
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 57848d5fa4d13d770800000000000000
+      internalID: 8634277118388750453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_43
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 47
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb9e1e268a6d6a8c0800000000000000
+      internalID: -3988264401288173125
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_44
+      rect:
+        serializedVersion: 2
+        x: 1250
+        y: 43
+        width: 8
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 312ddf41fde9b6420800000000000000
+      internalID: 2624365888840520211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_45
+      rect:
+        serializedVersion: 2
+        x: 1396
+        y: 42
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2c773b864f25e5a60800000000000000
+      internalID: 7664654825513252802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_46
+      rect:
+        serializedVersion: 2
+        x: 1535
+        y: 50
+        width: 8
+        height: 9
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4ca38f3392f1deb0800000000000000
+      internalID: -4696706222131008438
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: westsheet_47
+      rect:
+        serializedVersion: 2
+        x: 1679
+        y: 47
+        width: 8
+        height: 8
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 324693892b558a720800000000000000
+      internalID: 2857628189113017379
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      westsheet_0: -5163919600162926463
+      westsheet_1: 5130863056660891111
+      westsheet_10: 5197254990030304515
+      westsheet_11: 8926875742594954054
+      westsheet_12: -8418244521674130585
+      westsheet_13: -8159361085223945559
+      westsheet_14: 7415857848022654252
+      westsheet_15: 4048962598486545517
+      westsheet_16: -4900772686358121775
+      westsheet_17: -862203226254192216
+      westsheet_18: -2678257600375895395
+      westsheet_19: -1185857427461495532
+      westsheet_2: -1893178420695021570
+      westsheet_20: -514770667358084389
+      westsheet_21: -5313765535912445000
+      westsheet_22: 3264176878817891058
+      westsheet_23: 8860983283238848060
+      westsheet_24: 6300964072159057350
+      westsheet_25: 4247037106888004182
+      westsheet_26: -1236295773449737569
+      westsheet_27: -8543125719347980704
+      westsheet_28: 2028560059036518061
+      westsheet_29: -8216156369361688507
+      westsheet_3: -2971276571634780595
+      westsheet_30: -2330813881098041898
+      westsheet_31: 6516051623571217726
+      westsheet_32: 116919978053513258
+      westsheet_33: -6735269768581701350
+      westsheet_34: -6642317210723261934
+      westsheet_35: -7113827744874573233
+      westsheet_36: -5296562557921673332
+      westsheet_37: 4751834126895418866
+      westsheet_38: 2561226567474863675
+      westsheet_39: -2215748354689516929
+      westsheet_4: -6278747843551771306
+      westsheet_40: 3559084155693610810
+      westsheet_41: -7674244029818185587
+      westsheet_42: 8634277118388750453
+      westsheet_43: -3988264401288173125
+      westsheet_44: 2624365888840520211
+      westsheet_45: 7664654825513252802
+      westsheet_46: -4696706222131008438
+      westsheet_47: 2857628189113017379
+      westsheet_5: 411741885934355053
+      westsheet_6: -7995729817283060356
+      westsheet_7: 8960174520791850798
+      westsheet_8: 8509043113009175506
+      westsheet_9: 6328859842719623043
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
